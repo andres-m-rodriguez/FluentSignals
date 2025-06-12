@@ -1,0 +1,120 @@
+@using FluentSignals.ServerTest.Components
+
+<div class="tabbed-code-block">
+    <div class="code-tabs">
+        <button class="@GetTabClass("csharp")" @onclick='() => SelectTab("csharp")'>
+            <span class="tab-icon">🔷</span>
+            C# Code
+        </button>
+        @if (!string.IsNullOrEmpty(RazorCode))
+        {
+            <button class="@GetTabClass("razor")" @onclick='() => SelectTab("razor")'>
+                <span class="tab-icon">📄</span>
+                Razor Code
+            </button>
+        }
+    </div>
+    <div class="code-content">
+        @if (selectedTab == "csharp")
+        {
+            <CodeBlock Code="@CSharpCode" Language="csharp" Title="@CSharpTitle" />
+        }
+        else if (selectedTab == "razor")
+        {
+            <CodeBlock Code="@RazorCode" Language="razor" Title="@RazorTitle" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string CSharpCode { get; set; } = "";
+    [Parameter] public string? RazorCode { get; set; }
+    [Parameter] public string CSharpTitle { get; set; } = "C# Code";
+    [Parameter] public string RazorTitle { get; set; } = "Razor Code";
+    
+    private string selectedTab = "csharp";
+    
+    protected override void OnInitialized()
+    {
+        // If no C# code but Razor code exists, show Razor by default
+        if (string.IsNullOrEmpty(CSharpCode) && !string.IsNullOrEmpty(RazorCode))
+        {
+            selectedTab = "razor";
+        }
+    }
+    
+    private void SelectTab(string tab)
+    {
+        selectedTab = tab;
+    }
+    
+    private string GetTabClass(string tab)
+    {
+        return $"code-tab {(selectedTab == tab ? "active" : "")}";
+    }
+}
+
+<style>
+    .tabbed-code-block {
+        margin: 1rem 0;
+    }
+    
+    .code-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e5e7eb;
+        background: #f8fafc;
+        border-radius: 8px 8px 0 0;
+        overflow: hidden;
+    }
+    
+    .code-tab {
+        background: transparent;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .code-tab:hover {
+        background: rgba(0, 0, 0, 0.02);
+        color: #334155;
+    }
+    
+    .code-tab.active {
+        color: #667eea;
+        background: white;
+    }
+    
+    .code-tab.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: #667eea;
+    }
+    
+    .tab-icon {
+        font-size: 1rem;
+    }
+    
+    .code-content {
+        border-radius: 0 0 8px 8px;
+        overflow: hidden;
+    }
+    
+    /* Override CodeBlock margins when inside tabbed view */
+    .code-content > :global(.code-block) {
+        margin: 0;
+        border-radius: 0 0 8px 8px;
+    }
+</style>

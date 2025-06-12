@@ -115,3 +115,6 @@ ServiceFabricBackup/
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
 node_modules/
+
+# Exclude the test project (it will be in a separate repo)
+FluentSignals.ServerTest/

@@ -1,0 +1,315 @@
+@namespace FluentSignals.ServerTest.Components.Pages.Demos.AsyncSignalDemo.Components
+@inherits SignalComponentBase
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Blazor.Extensions
+@using FluentSignals.Blazor.Components
+@using FluentSignals.Options.HttpResource
+@using FluentSignals.ServerTest.Components
+@using FluentSignals.ServerTest.Controllers
+@using System.Net.Http
+@inject HttpClient Http
+@rendermode InteractiveServer
+
+<div class="http-resource-demo">
+    <div class="fetch-controls">
+        <select @bind="selectedEndpoint" @bind:event="oninput" class="endpoint-select">
+            <option value="/api/weather">Weather (Success)</option>
+            <option value="/api/weather/999">Weather (404)</option>
+            <option value="/api/weather/error/500">Weather (500)</option>
+        </select>
+        <button class="btn btn-primary" @onclick="RefreshData">
+            Refresh Data
+        </button>
+    </div>
+    
+    <HttpResourceView @ref="weatherResourceView" T="WeatherForecast[]" 
+                      Url="@selectedEndpoint" 
+                      LoadOnInit="true"
+                      OnResourceCreated="@(resource => weatherResource = resource)">
+        <Loading>
+            <div class="weather-loading">
+                <div class="weather-skeleton">
+                    @for (int i = 0; i < 3; i++)
+                    {
+                        <div class="skeleton-card">
+                            <div class="skeleton-line short"></div>
+                            <div class="skeleton-line"></div>
+                            <div class="skeleton-line medium"></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </Loading>
+        
+        <Success Context="forecasts">
+            <div class="weather-grid">
+                @foreach (var forecast in forecasts)
+                {
+                    <div class="weather-card">
+                        <div class="weather-date">@forecast.Date.ToString("MMM dd")</div>
+                        <div class="weather-temp">@forecast.TemperatureC°C</div>
+                        <div class="weather-summary">@forecast.Summary</div>
+                    </div>
+                }
+            </div>
+        </Success>
+        
+        <NotFound>
+            <div class="error-display">
+                <span class="error-icon">🔍</span>
+                <span>Weather data not found</span>
+            </div>
+        </NotFound>
+        
+        <InternalServerError>
+            <div class="error-display">
+                <span class="error-icon">⚠️</span>
+                <span>Server error occurred</span>
+            </div>
+        </InternalServerError>
+    </HttpResourceView>
+    <TabbedCodeBlock CSharpCode="@HttpResourceFetchDemo.CSharpCodeExample" RazorCode="@HttpResourceFetchDemo.RazorCodeExample" />
+</div>
+
+@code {
+    // HttpResource components
+    private HttpResourceView<WeatherForecast[]>? weatherResourceView;
+    private HttpResource? weatherResource;
+    private string selectedEndpoint = "/api/weather";
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+
+    // Refresh data using HttpResource
+    private async Task RefreshData()
+    {
+        if (weatherResourceView != null)
+        {
+            await weatherResourceView.RefreshAsync();
+        }
+    }
+
+    // Alternative: Direct HttpResource control
+    private async Task LoadWithCustomHeaders()
+    {
+        if (weatherResource != null)
+        {
+            // The HttpResource GetAsync method doesn't support headers parameter
+            // You would need to configure headers on the HttpClient instance
+            await weatherResource.GetAsync<WeatherForecast[]>(selectedEndpoint);
+        }
+    }
+
+    // Code example strings
+    public static string CSharpCodeExample => @"using FluentSignals.Blazor.Components;
+using FluentSignals.Options.HttpResource;
+
+public partial class WeatherDemo
+{
+    private HttpResourceView<WeatherForecast[]>? weatherResourceView;
+    private HttpResource? weatherResource;
+    private string selectedEndpoint = ""/api/weather"";
+    
+    // Refresh data programmatically
+    private async Task RefreshData()
+    {
+        if (weatherResourceView != null)
+        {
+            await weatherResourceView.RefreshAsync();
+        }
+    }
+    
+    // Alternative: Direct HttpResource control
+    private async Task LoadData()
+    {
+        if (weatherResource != null)
+        {
+            // Use GetAsync to fetch data
+            var response = await weatherResource.GetAsync<WeatherForecast[]>(
+                selectedEndpoint);
+            
+            // Handle the response
+            if (response.IsSuccess)
+            {
+                // Process data
+                var data = response.Data;
+            }
+        }
+    }
+}";
+
+    public static string RazorCodeExample => @"<div class=""fetch-controls"">
+    <select @bind=""selectedEndpoint"" @bind:event=""oninput"" class=""endpoint-select"">
+        <option value=""/api/weather"">Weather (Success)</option>
+        <option value=""/api/weather/999"">Weather (404)</option>
+        <option value=""/api/weather/error/500"">Weather (500)</option>
+    </select>
+    <button class=""btn btn-primary"" @onclick=""RefreshData"">
+        Refresh Data
+    </button>
+</div>
+
+<HttpResourceView @ref=""weatherResourceView"" T=""WeatherForecast[]"" 
+                  Url=""@selectedEndpoint"" 
+                  LoadOnInit=""true""
+                  OnResourceCreated=""@(resource => weatherResource = resource)"">
+    <Loading>
+        <div class=""weather-loading"">
+            <div class=""spinner""></div>
+            <span>Loading weather data...</span>
+        </div>
+    </Loading>
+    
+    <Success Context=""forecasts"">
+        <div class=""weather-grid"">
+            @foreach (var forecast in forecasts)
+            {
+                <div class=""weather-card"">
+                    <div class=""weather-date"">@forecast.Date.ToString(""MMM dd"")</div>
+                    <div class=""weather-temp"">@forecast.TemperatureC°C</div>
+                    <div class=""weather-summary"">@forecast.Summary</div>
+                </div>
+            }
+        </div>
+    </Success>
+    
+    <NotFound>
+        <div class=""error-display"">
+            <span class=""error-icon"">🔍</span>
+            <span>Weather data not found</span>
+        </div>
+    </NotFound>
+    
+    <InternalServerError>
+        <div class=""error-display"">
+            <span class=""error-icon"">⚠️</span>
+            <span>Server error occurred</span>
+        </div>
+    </InternalServerError>
+</HttpResourceView>";
+}
+
+<style>
+    .http-resource-demo {
+        padding: 1rem 0;
+    }
+
+    .fetch-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .endpoint-select {
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        flex: 1;
+    }
+
+    .error-display {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1.25rem;
+        justify-content: center;
+        padding: 3rem;
+    }
+
+    .error-display {
+        color: #dc2626;
+    }
+
+    .error-icon {
+        font-size: 2rem;
+    }
+
+    /* Weather display styles */
+    .weather-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 3rem;
+    }
+    
+    .weather-skeleton {
+        display: flex;
+        gap: 1rem;
+        width: 100%;
+        max-width: 600px;
+    }
+    
+    .skeleton-card {
+        flex: 1;
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .skeleton-line {
+        height: 1rem;
+        background: #e5e7eb;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+        animation: shimmer 1.5s infinite;
+    }
+    
+    .skeleton-line.short {
+        width: 60%;
+    }
+    
+    .skeleton-line.medium {
+        width: 80%;
+    }
+    
+    @@keyframes shimmer {
+        0% { opacity: 0.5; }
+        50% { opacity: 1; }
+        100% { opacity: 0.5; }
+    }
+    
+    .weather-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .weather-card {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s;
+    }
+    
+    .weather-card:hover {
+        border-color: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .weather-date {
+        font-weight: 600;
+        color: #4f46e5;
+        margin-bottom: 0.5rem;
+    }
+    
+    .weather-temp {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+    
+    .weather-summary {
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+</style>

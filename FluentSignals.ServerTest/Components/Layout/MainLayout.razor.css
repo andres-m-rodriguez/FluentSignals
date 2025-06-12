@@ -1,0 +1,104 @@
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.main-content {
+    flex: 1;
+    margin-left: 280px;
+    transition: margin-left 0.3s ease;
+}
+
+.content {
+    min-height: 100vh;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.content > * {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+    padding: 3rem;
+    margin-bottom: 2rem;
+}
+
+/* Special handling for pages that shouldn't have the white background */
+.content > .home-page,
+.content > .demo-page,
+.content > .playground-page {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 0;
+}
+
+@media (max-width: 1536px) {
+    .content {
+        max-width: 1200px;
+    }
+}
+
+@media (max-width: 1280px) {
+    .content {
+        max-width: 1024px;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .content {
+        padding: 1rem;
+    }
+    
+    .content > * {
+        padding: 2rem 1.5rem;
+    }
+}
+
+#blazor-error-ui {
+    background: #0f111a;
+    bottom: 0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    color: white;
+    display: none;
+    left: 0;
+    padding: 1rem 1.5rem;
+    position: fixed;
+    right: 0;
+    z-index: 10000;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+#blazor-error-ui .dismiss:hover {
+    opacity: 1;
+}
+
+#blazor-error-ui .reload {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+}
+
+#blazor-error-ui .reload:hover {
+    color: #764ba2;
+    border-bottom-color: #764ba2;
+}

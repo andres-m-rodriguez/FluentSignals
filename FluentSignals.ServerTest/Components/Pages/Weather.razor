@@ -1,0 +1,765 @@
+﻿@page "/weather"
+@rendermode InteractiveServer
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Blazor.Components
+@using FluentSignals.ServerTest.Components
+@inject IServiceProvider ServiceProvider
+@inherits SignalComponentBase
+@attribute [StreamRendering]
+
+<PageTitle>Global State - FluentSignals</PageTitle>
+
+<div class="demo-page">
+    <div class="page-header">
+        <h1>Global State Management</h1>
+        <p class="lead">Share state across components using signals with dependency injection</p>
+    </div>
+
+    <DemoSection Title="Shared Theme State"
+                 Description="Global theme settings that persist across components"
+                 CSharpCode="@themeStateCode"
+                 RazorCode="@themeStateRazorCode">
+        <Demo>
+            <div class="theme-demo">
+                <div class="theme-controls">
+                    <h4>Theme Settings</h4>
+                    <div class="control-group">
+                        <label>
+                            <input type="checkbox" @bind="AppState.IsDarkMode.Value" />
+                            Dark Mode
+                        </label>
+                    </div>
+                    <div class="control-group">
+                        <label>Primary Color:</label>
+                        <div class="color-options">
+                            @foreach (var color in colorOptions)
+                            {
+                                <button class="color-btn @(AppState.PrimaryColor.Value == color ? "active" : "")"
+                                        style="background-color: @color"
+                                        @onclick="() => AppState.PrimaryColor.Value = color">
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label>Font Size:</label>
+                        <input type="range" min="12" max="20" @bind="AppState.FontSize.Value" @bind:event="oninput" />
+                        <span>@AppState.FontSize.Value px</span>
+                    </div>
+                </div>
+
+                <div class="theme-preview" style="@GetPreviewStyle()">
+                    <h4>Preview</h4>
+                    <p>This preview updates instantly as you change the theme settings.</p>
+                    <button class="preview-button" style="background-color: @AppState.PrimaryColor.Value">
+                        Sample Button
+                    </button>
+                </div>
+            </div>
+        </Demo>
+    </DemoSection>
+
+    <DemoSection Title="Shopping Cart State"
+                 Description="Global shopping cart that persists across pages"
+                 CSharpCode="@cartStateCode"
+                 RazorCode="@cartStateRazorCode">
+        <Demo>
+            <div class="cart-demo">
+                <div class="products-section">
+                    <h4>Available Products</h4>
+                    <div class="product-grid">
+                        @foreach (var product in availableProducts)
+                        {
+                            <div class="product-card">
+                                <div class="product-icon">@product.Icon</div>
+                                <h5>@product.Name</h5>
+                                <p class="product-price">$@product.Price</p>
+                                <button class="btn btn-primary" @onclick="() => CartState.AddItem(product)">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="cart-section">
+                    <h4>Shopping Cart (@CartState.ItemCount.Value items)</h4>
+                    @if (CartState.Items.Value.Any())
+                    {
+                        <div class="cart-items">
+                            @foreach (var item in CartState.Items.Value)
+                            {
+                                <div class="cart-item">
+                                    <span>@item.Product.Name</span>
+                                    <div class="quantity-controls">
+                                        <button @onclick="() => CartState.UpdateQuantity(item.Product.Id, item.Quantity - 1)">-</button>
+                                        <span>@item.Quantity</span>
+                                        <button @onclick="() => CartState.UpdateQuantity(item.Product.Id, item.Quantity + 1)">+</button>
+                                    </div>
+                                    <span>$@(item.Product.Price * item.Quantity)</span>
+                                    <button class="remove-btn" @onclick="() => CartState.RemoveItem(item.Product.Id)">×</button>
+                                </div>
+                            }
+                        </div>
+                        <div class="cart-total">
+                            <strong>Total:</strong>
+                            <strong>$@CartState.TotalPrice.Value</strong>
+                        </div>
+                        <button class="btn btn-success" @onclick="CartState.ClearCart">
+                            Clear Cart
+                        </button>
+                    }
+                    else
+                    {
+                        <p class="empty-cart">Your cart is empty</p>
+                    }
+                </div>
+            </div>
+        </Demo>
+    </DemoSection>
+
+    <DemoSection Title="User Authentication State"
+                 Description="Global authentication state management"
+                 CSharpCode="@authStateCode"
+                 RazorCode="@authStateRazorCode">
+        <Demo>
+            <div class="auth-demo">
+                @if (!AuthState.IsAuthenticated.Value)
+                {
+                    <div class="login-form">
+                        <h4>Login</h4>
+                        <div class="form-group">
+                            <label>Username:</label>
+                            <input type="text" class="form-control" @bind="loginUsername" />
+                        </div>
+                        <div class="form-group">
+                            <label>Password:</label>
+                            <input type="password" class="form-control" @bind="loginPassword" />
+                        </div>
+                        <button class="btn btn-primary" @onclick="Login">
+                            Login
+                        </button>
+                        @if (loginError)
+                        {
+                            <p class="error-message">Invalid credentials</p>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="user-profile">
+                        <h4>Welcome, @AuthState.CurrentUser.Value?.Name!</h4>
+                        <div class="user-info">
+                            <p><strong>Email:</strong> @AuthState.CurrentUser.Value?.Email</p>
+                            <p><strong>Role:</strong> @AuthState.CurrentUser.Value?.Role</p>
+                            <p><strong>Last Login:</strong> @AuthState.LastLoginTime.Value?.ToString("g")</p>
+                        </div>
+                        <div class="user-permissions">
+                            <h5>Permissions:</h5>
+                            <div class="permission-list">
+                                @foreach (var permission in AuthState.Permissions.Value)
+                                {
+                                    <span class="permission-badge">@permission</span>
+                                }
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" @onclick="Logout">
+                            Logout
+                        </button>
+                    </div>
+                }
+            </div>
+        </Demo>
+    </DemoSection>
+</div>
+
+@code {
+    // Service classes defined inline for this demo
+    public class AppStateService
+    {
+        public TypedSignal<bool> IsDarkMode { get; } = new(false);
+        public TypedSignal<string> PrimaryColor { get; } = new("#667eea");
+        public TypedSignal<int> FontSize { get; } = new(16);
+    }
+
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
+        public string Icon { get; set; } = "";
+    }
+
+    public class CartItem
+    {
+        public Product Product { get; set; } = new();
+        public int Quantity { get; set; }
+    }
+
+    public class CartStateService
+    {
+        private List<CartItem> _items = new();
+        
+        public TypedSignal<List<CartItem>> Items { get; } = new([]);
+        public TypedSignal<int> ItemCount { get; } = new(0);
+        public TypedSignal<decimal> TotalPrice { get; } = new(0);
+
+        public void AddItem(Product product)
+        {
+            var existing = _items.FirstOrDefault(i => i.Product.Id == product.Id);
+            if (existing != null)
+            {
+                existing.Quantity++;
+            }
+            else
+            {
+                _items.Add(new CartItem { Product = product, Quantity = 1 });
+            }
+            
+            UpdateSignals();
+        }
+
+        public void RemoveItem(int productId)
+        {
+            _items.RemoveAll(i => i.Product.Id == productId);
+            UpdateSignals();
+        }
+
+        public void UpdateQuantity(int productId, int newQuantity)
+        {
+            if (newQuantity <= 0)
+            {
+                RemoveItem(productId);
+            }
+            else
+            {
+                var item = _items.FirstOrDefault(i => i.Product.Id == productId);
+                if (item != null)
+                {
+                    item.Quantity = newQuantity;
+                    UpdateSignals();
+                }
+            }
+        }
+
+        public void ClearCart()
+        {
+            _items.Clear();
+            UpdateSignals();
+        }
+
+        private void UpdateSignals()
+        {
+            Items.Value = _items.ToList();
+            ItemCount.Value = _items.Sum(i => i.Quantity);
+            TotalPrice.Value = _items.Sum(i => i.Product.Price * i.Quantity);
+        }
+    }
+
+    public class User
+    {
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Role { get; set; } = "";
+    }
+
+    public class AuthStateService
+    {
+        public TypedSignal<bool> IsAuthenticated { get; } = new(false);
+        public TypedSignal<User?> CurrentUser { get; } = new(null);
+        public TypedSignal<List<string>> Permissions { get; } = new([]);
+        public TypedSignal<DateTime?> LastLoginTime { get; } = new(null);
+
+        public async Task<bool> Login(string username, string password)
+        {
+            // Simulate authentication
+            await Task.Delay(500);
+            
+            if (username == "admin" && password == "admin")
+            {
+                CurrentUser.Value = new User 
+                { 
+                    Name = "Admin User",
+                    Email = "admin@example.com",
+                    Role = "Administrator"
+                };
+                
+                Permissions.Value = ["read", "write", "delete", "admin"];
+                IsAuthenticated.Value = true;
+                LastLoginTime.Value = DateTime.Now;
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        public async Task Logout()
+        {
+            await Task.Delay(100);
+            
+            IsAuthenticated.Value = false;
+            CurrentUser.Value = null;
+            Permissions.Value = [];
+            LastLoginTime.Value = null;
+        }
+    }
+
+    private AppStateService AppState { get; set; } = null!;
+    private CartStateService CartState { get; set; } = null!;
+    private AuthStateService AuthState { get; set; } = null!;
+
+    private string[] colorOptions = { "#667eea", "#f56565", "#48bb78", "#ed8936", "#9f7aea", "#38b2ac" };
+    
+    private List<Product> availableProducts = new()
+    {
+        new Product { Id = 1, Name = "Laptop", Price = 999.99m, Icon = "💻" },
+        new Product { Id = 2, Name = "Mouse", Price = 29.99m, Icon = "🖱️" },
+        new Product { Id = 3, Name = "Keyboard", Price = 79.99m, Icon = "⌨️" },
+        new Product { Id = 4, Name = "Monitor", Price = 299.99m, Icon = "🖥️" },
+        new Product { Id = 5, Name = "Headphones", Price = 149.99m, Icon = "🎧" },
+        new Product { Id = 6, Name = "Webcam", Price = 89.99m, Icon = "📷" }
+    };
+
+    private string loginUsername = "";
+    private string loginPassword = "";
+    private bool loginError = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        // Create service instances for this demo
+        AppState = new AppStateService();
+        CartState = new CartStateService();
+        AuthState = new AuthStateService();
+
+        // Subscribe to state changes using SubscribeForUpdate from SignalComponentBase
+        SubscribeForUpdate(
+            AppState.IsDarkMode,
+            AppState.PrimaryColor,
+            AppState.FontSize,
+            CartState.Items,
+            CartState.ItemCount,
+            CartState.TotalPrice,
+            AuthState.IsAuthenticated,
+            AuthState.CurrentUser
+        );
+    }
+
+    private string GetPreviewStyle()
+    {
+        return $"background-color: {(AppState.IsDarkMode.Value ? "#1a202c" : "#ffffff")}; " +
+               $"color: {(AppState.IsDarkMode.Value ? "#ffffff" : "#1a202c")}; " +
+               $"font-size: {AppState.FontSize.Value}px;";
+    }
+
+    private async Task Login()
+    {
+        loginError = false;
+        var success = await AuthState.Login(loginUsername, loginPassword);
+        if (!success)
+        {
+            loginError = true;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthState.Logout();
+        loginUsername = "";
+        loginPassword = "";
+    }
+
+    // Code examples
+    private string themeStateCode = @"using FluentSignals.Implementations.Core;
+
+// Global state service
+public class AppStateService
+{
+    public TypedSignal<bool> IsDarkMode { get; } = new(false);
+    public TypedSignal<string> PrimaryColor { get; } = new(""#667eea"");
+    public TypedSignal<int> FontSize { get; } = new(16);
+}
+
+// Register as singleton in Program.cs
+builder.Services.AddSingleton<AppStateService>();
+
+// Use in any component
+@inject AppStateService AppState
+
+<div style=""color: @AppState.PrimaryColor.Value"">
+    Theme-aware content
+</div>";
+
+    private string themeStateRazorCode = @"@inject AppStateService AppState
+
+<!-- Theme controls -->
+<label>
+    <input type=""checkbox"" @bind=""AppState.IsDarkMode.Value"" />
+    Dark Mode
+</label>
+
+<div class=""color-options"">
+    @foreach (var color in colorOptions)
+    {
+        <button style=""background: @color""
+                class=""@(AppState.PrimaryColor.Value == color ? ""active"" : """")""
+                @onclick=""() => AppState.PrimaryColor.Value = color"">
+        </button>
+    }
+</div>
+
+<!-- Any component can react to theme changes -->
+<div style=""@GetThemeStyle()"">
+    Themed content
+</div>";
+
+    private string cartStateCode = @"using FluentSignals.Implementations.Core;
+
+public class CartStateService
+{
+    private List<CartItem> _items = new();
+    
+    public TypedSignal<List<CartItem>> Items { get; } = new([]);
+    public TypedSignal<int> ItemCount { get; } = new(0);
+    public TypedSignal<decimal> TotalPrice { get; } = new(0);
+
+    public void AddItem(Product product)
+    {
+        var existing = _items.FirstOrDefault(i => i.Product.Id == product.Id);
+        if (existing != null)
+        {
+            existing.Quantity++;
+        }
+        else
+        {
+            _items.Add(new CartItem { Product = product, Quantity = 1 });
+        }
+        
+        UpdateSignals();
+    }
+
+    public void RemoveItem(int productId)
+    {
+        _items.RemoveAll(i => i.Product.Id == productId);
+        UpdateSignals();
+    }
+
+    private void UpdateSignals()
+    {
+        Items.Value = _items.ToList();
+        ItemCount.Value = _items.Sum(i => i.Quantity);
+        TotalPrice.Value = _items.Sum(i => i.Product.Price * i.Quantity);
+    }
+}";
+
+    private string cartStateRazorCode = @"@inject CartStateService CartState
+
+<!-- Add to cart button (any component) -->
+<button @onclick=""() => CartState.AddItem(product)"">
+    Add to Cart
+</button>
+
+<!-- Cart display (any component) -->
+<div class=""cart"">
+    <h4>Cart (@CartState.ItemCount.Value items)</h4>
+    
+    @foreach (var item in CartState.Items.Value)
+    {
+        <div class=""cart-item"">
+            <span>@item.Product.Name</span>
+            <span>Qty: @item.Quantity</span>
+            <span>$@(item.Product.Price * item.Quantity)</span>
+        </div>
+    }
+    
+    <div class=""total"">
+        Total: $@CartState.TotalPrice.Value
+    </div>
+</div>";
+
+    private string authStateCode = @"using FluentSignals.Implementations.Core;
+
+public class AuthStateService
+{
+    public TypedSignal<bool> IsAuthenticated { get; } = new(false);
+    public TypedSignal<User?> CurrentUser { get; } = new(null);
+    public TypedSignal<List<string>> Permissions { get; } = new([]);
+    public TypedSignal<DateTime?> LastLoginTime { get; } = new(null);
+
+    public async Task<bool> Login(string username, string password)
+    {
+        // Simulate authentication
+        await Task.Delay(500);
+        
+        if (username == ""admin"" && password == ""admin"")
+        {
+            CurrentUser.Value = new User 
+            { 
+                Name = ""Admin User"",
+                Email = ""admin@example.com"",
+                Role = ""Administrator""
+            };
+            
+            Permissions.Value = [""read"", ""write"", ""delete"", ""admin""];
+            IsAuthenticated.Value = true;
+            LastLoginTime.Value = DateTime.Now;
+            
+            return true;
+        }
+        
+        return false;
+    }
+
+    public async Task Logout()
+    {
+        await Task.Delay(100);
+        
+        IsAuthenticated.Value = false;
+        CurrentUser.Value = null;
+        Permissions.Value = [];
+        LastLoginTime.Value = null;
+    }
+}";
+
+    private string authStateRazorCode = @"@inject AuthStateService AuthState
+
+@if (!AuthState.IsAuthenticated.Value)
+{
+    <!-- Login form -->
+    <div class=""login-form"">
+        <input type=""text"" @bind=""username"" placeholder=""Username"" />
+        <input type=""password"" @bind=""password"" placeholder=""Password"" />
+        <button @onclick=""Login"">Login</button>
+    </div>
+}
+else
+{
+    <!-- Authenticated content -->
+    <div class=""user-info"">
+        <h4>Welcome, @AuthState.CurrentUser.Value?.Name!</h4>
+        <p>Role: @AuthState.CurrentUser.Value?.Role</p>
+        
+        <div class=""permissions"">
+            @foreach (var perm in AuthState.Permissions.Value)
+            {
+                <span class=""badge"">@perm</span>
+            }
+        </div>
+        
+        <button @onclick=""Logout"">Logout</button>
+    </div>
+}";
+}
+
+<style>
+    .demo-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .theme-demo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .theme-controls, .theme-preview {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .control-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .control-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+
+    .color-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .color-btn {
+        width: 40px;
+        height: 40px;
+        border: 2px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .color-btn:hover {
+        transform: scale(1.1);
+    }
+
+    .color-btn.active {
+        border-color: #1a202c;
+        transform: scale(1.15);
+    }
+
+    .theme-preview {
+        padding: 2rem;
+        transition: all 0.3s;
+    }
+
+    .preview-button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .cart-demo {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+    }
+
+    .products-section, .cart-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+
+    .product-card {
+        text-align: center;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .product-card:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+
+    .product-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-card h5 {
+        margin: 0.5rem 0;
+    }
+
+    .product-price {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+        background: #f8fafc;
+        border-radius: 6px;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .quantity-controls button {
+        width: 24px;
+        height: 24px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .remove-btn {
+        background: none;
+        border: none;
+        color: #dc2626;
+        font-size: 1.25rem;
+        cursor: pointer;
+    }
+
+    .cart-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-top: 1px solid #e5e7eb;
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+    }
+
+    .empty-cart {
+        text-align: center;
+        color: #6b7280;
+        padding: 2rem;
+    }
+
+    .auth-demo {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .login-form, .user-profile {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .user-info {
+        margin-bottom: 1.5rem;
+    }
+
+    .user-info p {
+        margin: 0.5rem 0;
+    }
+
+    .permission-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .permission-badge {
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+    }
+
+    @@media (max-width: 768px) {
+        .theme-demo, .cart-demo {
+            grid-template-columns: 1fr;
+        }
+    }
+}</style>

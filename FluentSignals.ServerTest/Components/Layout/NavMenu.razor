@@ -1,0 +1,324 @@
+@rendermode InteractiveServer
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <a class="brand" href="">
+            <span class="brand-icon">⚡</span>
+            <span class="brand-text">FluentSignals</span>
+        </a>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-section-title">GETTING STARTED</div>
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Home</span>
+            </NavLink>
+            <NavLink class="nav-link" href="demos/signal">
+                <span class="nav-icon">📖</span>
+                <span class="nav-text">Signal Guide</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">CORE CONCEPTS</div>
+            <NavLink class="nav-link" href="demos/signal">
+                <span class="nav-icon">📡</span>
+                <span class="nav-text">Basic Signals</span>
+            </NavLink>
+            <NavLink class="nav-link" href="counter">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Form Binding</span>
+            </NavLink>
+            <NavLink class="nav-link" href="weather">
+                <span class="nav-icon">🌍</span>
+                <span class="nav-text">Global State</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">ADVANCED FEATURES</div>
+            <NavLink class="nav-link" href="demos/async-signal">
+                <span class="nav-icon">🔄</span>
+                <span class="nav-text">Async Signal</span>
+            </NavLink>
+            <NavLink class="nav-link" href="demos/composite-signals">
+                <span class="nav-icon">🔗</span>
+                <span class="nav-text">Composite Signals</span>
+            </NavLink>
+            <NavLink class="nav-link" href="demos/http-resource">
+                <span class="nav-icon">🌐</span>
+                <span class="nav-text">HTTP Resource</span>
+            </NavLink>
+            <NavLink class="nav-link" href="playground">
+                <span class="nav-icon">🎮</span>
+                <span class="nav-text">Playground</span>
+            </NavLink>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title">REAL-WORLD EXAMPLES</div>
+            <NavLink class="nav-link" href="demos/signal">
+                <span class="nav-icon">📡</span>
+                <span class="nav-text">Signal Demo</span>
+            </NavLink>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="https://github.com/fluentsignals/fluentsignals" target="_blank" class="github-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            <span>View on GitHub</span>
+        </a>
+    </div>
+</div>
+
+<div class="mobile-menu-toggle">
+    <input type="checkbox" id="mobile-menu" />
+    <label for="mobile-menu" class="menu-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </label>
+</div>
+
+<style>
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background: #0f111a;
+        color: #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .sidebar-header {
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        text-decoration: none;
+        color: white;
+        font-size: 1.375rem;
+        font-weight: 700;
+    }
+
+    .brand-icon {
+        font-size: 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .brand-text {
+        font-size: 1.375rem;
+        letter-spacing: -0.02em;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 1.5rem 0;
+        overflow-y: auto;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-section {
+        margin-bottom: 2rem;
+    }
+
+    .nav-section-title {
+        padding: 0.5rem 1.75rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #4b5563;
+        letter-spacing: 0.15em;
+    }
+
+    .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.875rem 1.75rem;
+        color: #9ca3af;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    .nav-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: #f3f4f6;
+    }
+
+    .nav-link::deep.active {
+        background: rgba(102, 126, 234, 0.15);
+        color: #a5b4fc;
+    }
+
+    .nav-link::deep.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #667eea;
+        box-shadow: 0 0 12px rgba(102, 126, 234, 0.6);
+    }
+
+    .nav-icon {
+        font-size: 1.25rem;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-link:hover .nav-icon {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+    }
+
+    .nav-link::deep.active .nav-icon {
+        background: rgba(102, 126, 234, 0.2);
+    }
+
+    .nav-text {
+        font-size: 0.9375rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+    }
+
+    .sidebar-footer {
+        padding: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .github-link {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 0.875rem 1.25rem;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .github-link:hover {
+        color: #d1d5db;
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .github-link svg {
+        flex-shrink: 0;
+    }
+
+    /* Mobile menu toggle */
+    .mobile-menu-toggle {
+        display: none;
+        position: fixed;
+        top: 1.5rem;
+        left: 1.5rem;
+        z-index: 1001;
+    }
+
+    .mobile-menu-toggle input {
+        display: none;
+    }
+
+    .menu-icon {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 32px;
+        height: 24px;
+        cursor: pointer;
+        padding: 6px;
+        background: rgba(15, 17, 26, 0.95);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .menu-icon span {
+        display: block;
+        height: 2px;
+        background: white;
+        border-radius: 1px;
+        transition: all 0.3s ease;
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-menu-toggle {
+            display: block;
+        }
+
+        #mobile-menu:checked ~ .sidebar {
+            transform: translateX(0);
+        }
+
+        #mobile-menu:checked + .menu-icon span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        #mobile-menu:checked + .menu-icon span:nth-child(2) {
+            opacity: 0;
+        }
+
+        #mobile-menu:checked + .menu-icon span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+    }
+</style>
