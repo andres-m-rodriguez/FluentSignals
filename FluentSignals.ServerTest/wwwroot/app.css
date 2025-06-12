@@ -1,5 +1,92 @@
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* Prevent horizontal overflow */
+* {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Handle tables and pre elements */
+table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+pre, code {
+    overflow-x: auto;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile typography and sizing adjustments */
+@media (max-width: 768px) {
+    html {
+        font-size: 14px; /* Reduce base font size on mobile */
+    }
+    
+    body {
+        -webkit-text-size-adjust: 100%; /* Prevent iOS font scaling */
+        position: relative;
+        width: 100%;
+    }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.25rem;
+    }
+    
+    h4 {
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .form-control {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    /* Fix Bootstrap container issues */
+    .container, .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+        overflow-x: hidden;
+    }
+    
+    .row {
+        margin-left: -15px;
+        margin-right: -15px;
+    }
+    
+    /* Ensure cards don't overflow */
+    .card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 13px;
+    }
 }
 
 a, .btn-link {

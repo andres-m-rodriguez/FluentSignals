@@ -21,12 +21,16 @@
         display: flex;
         min-height: 100vh;
         background: #f8fafc;
+        overflow-x: hidden;
+        width: 100%;
     }
 
     .main-content {
         flex: 1;
         margin-left: 280px;
         transition: margin-left 0.3s ease;
+        overflow-x: hidden;
+        width: 100%;
     }
 
     .content {
@@ -34,6 +38,8 @@
         padding: 0.5rem;
         max-width: 1400px;
         margin: 0 auto;
+        overflow-x: hidden;
+        width: 100%;
     }
 
     .content > * {
@@ -72,11 +78,21 @@
         }
         
         .content {
-            padding: 1rem;
+            padding: 0;
+            min-height: 100vh;
         }
         
         .content > * {
-            padding: 2rem 1.5rem;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 1rem;
+            margin-bottom: 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .content > *:last-child {
+            border-bottom: none;
         }
     }
 
