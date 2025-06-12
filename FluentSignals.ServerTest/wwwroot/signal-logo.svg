@@ -1,0 +1,66 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="signal-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#9f7aea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Central node -->
+  <circle cx="24" cy="24" r="6" fill="url(#signal-gradient)" filter="url(#glow)">
+    <animate attributeName="r" values="6;7;6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Signal rings -->
+  <circle cx="24" cy="24" r="12" fill="none" stroke="url(#signal-gradient)" stroke-width="2" opacity="0.8">
+    <animate attributeName="r" values="12;16;12" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="24" cy="24" r="18" fill="none" stroke="url(#signal-gradient)" stroke-width="1.5" opacity="0.6">
+    <animate attributeName="r" values="18;22;18" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Connected nodes -->
+  <circle cx="24" cy="8" r="3" fill="url(#signal-gradient)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2s" begin="0s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="40" cy="24" r="3" fill="url(#signal-gradient)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="24" cy="40" r="3" fill="url(#signal-gradient)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+  
+  <circle cx="8" cy="24" r="3" fill="url(#signal-gradient)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.5;0.9" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Connection lines -->
+  <line x1="24" y1="18" x2="24" y2="11" stroke="url(#signal-gradient)" stroke-width="1.5" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="0s" repeatCount="indefinite"/>
+  </line>
+  
+  <line x1="30" y1="24" x2="37" y2="24" stroke="url(#signal-gradient)" stroke-width="1.5" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+  </line>
+  
+  <line x1="24" y1="30" x2="24" y2="37" stroke="url(#signal-gradient)" stroke-width="1.5" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="1s" repeatCount="indefinite"/>
+  </line>
+  
+  <line x1="18" y1="24" x2="11" y2="24" stroke="url(#signal-gradient)" stroke-width="1.5" opacity="0.5">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" begin="1.5s" repeatCount="indefinite"/>
+  </line>
+</svg>

@@ -39,13 +39,19 @@
 }
 
 .logo-large {
-    font-size: 5rem;
-    animation: pulse 2s infinite;
+    width: 80px;
+    height: 80px;
+    filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+    animation: logo-float 3s ease-in-out infinite;
 }
 
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); }
+@keyframes logo-float {
+    0%, 100% { 
+        transform: translateY(0) rotate(0deg); 
+    }
+    50% { 
+        transform: translateY(-10px) rotate(5deg); 
+    }
 }
 
 .hero-subtitle {
