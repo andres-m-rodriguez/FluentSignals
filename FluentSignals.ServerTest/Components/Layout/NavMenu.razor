@@ -1,6 +1,6 @@
 @rendermode InteractiveServer
 
-<div class="sidebar">
+<div class="sidebar @(isOpen ? "open" : "")">
     <div class="sidebar-header">
         <a class="brand" href="">
             <span class="brand-icon">⚡</span>
@@ -11,11 +11,11 @@
     <nav class="sidebar-nav">
         <div class="nav-section">
             <div class="nav-section-title">GETTING STARTED</div>
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="CloseMenu">
                 <span class="nav-icon">🏠</span>
                 <span class="nav-text">Home</span>
             </NavLink>
-            <NavLink class="nav-link" href="demos/signal">
+            <NavLink class="nav-link" href="demos/signal" @onclick="CloseMenu">
                 <span class="nav-icon">📖</span>
                 <span class="nav-text">Signal Guide</span>
             </NavLink>
@@ -23,15 +23,15 @@
 
         <div class="nav-section">
             <div class="nav-section-title">CORE CONCEPTS</div>
-            <NavLink class="nav-link" href="demos/signal">
+            <NavLink class="nav-link" href="demos/signal" @onclick="CloseMenu">
                 <span class="nav-icon">📡</span>
                 <span class="nav-text">Basic Signals</span>
             </NavLink>
-            <NavLink class="nav-link" href="counter">
+            <NavLink class="nav-link" href="counter" @onclick="CloseMenu">
                 <span class="nav-icon">📊</span>
                 <span class="nav-text">Form Binding</span>
             </NavLink>
-            <NavLink class="nav-link" href="weather">
+            <NavLink class="nav-link" href="weather" @onclick="CloseMenu">
                 <span class="nav-icon">🌍</span>
                 <span class="nav-text">Global State</span>
             </NavLink>
@@ -39,19 +39,19 @@
 
         <div class="nav-section">
             <div class="nav-section-title">ADVANCED FEATURES</div>
-            <NavLink class="nav-link" href="demos/async-signal">
+            <NavLink class="nav-link" href="demos/async-signal" @onclick="CloseMenu">
                 <span class="nav-icon">🔄</span>
                 <span class="nav-text">Async Signal</span>
             </NavLink>
-            <NavLink class="nav-link" href="demos/composite-signals">
+            <NavLink class="nav-link" href="demos/composite-signals" @onclick="CloseMenu">
                 <span class="nav-icon">🔗</span>
                 <span class="nav-text">Composite Signals</span>
             </NavLink>
-            <NavLink class="nav-link" href="demos/http-resource">
+            <NavLink class="nav-link" href="demos/http-resource" @onclick="CloseMenu">
                 <span class="nav-icon">🌐</span>
                 <span class="nav-text">HTTP Resource</span>
             </NavLink>
-            <NavLink class="nav-link" href="playground">
+            <NavLink class="nav-link" href="playground" @onclick="CloseMenu">
                 <span class="nav-icon">🎮</span>
                 <span class="nav-text">Playground</span>
             </NavLink>
@@ -59,7 +59,7 @@
 
         <div class="nav-section">
             <div class="nav-section-title">REAL-WORLD EXAMPLES</div>
-            <NavLink class="nav-link" href="demos/signal">
+            <NavLink class="nav-link" href="demos/signal" @onclick="CloseMenu">
                 <span class="nav-icon">📡</span>
                 <span class="nav-text">Signal Demo</span>
             </NavLink>
@@ -76,14 +76,27 @@
     </div>
 </div>
 
-<div class="mobile-menu-toggle">
-    <input type="checkbox" id="mobile-menu" />
-    <label for="mobile-menu" class="menu-icon">
-        <span></span>
-        <span></span>
-        <span></span>
-    </label>
-</div>
+<button class="mobile-menu-toggle @(isOpen ? "active" : "")" @onclick="ToggleMenu">
+    <span></span>
+    <span></span>
+    <span></span>
+</button>
+
+<div class="mobile-overlay @(isOpen ? "active" : "")" @onclick="CloseMenu"></div>
+
+@code {
+    private bool isOpen = false;
+
+    private void ToggleMenu()
+    {
+        isOpen = !isOpen;
+    }
+
+    private void CloseMenu()
+    {
+        isOpen = false;
+    }
+}
 
 <style>
     .sidebar {
@@ -264,61 +277,107 @@
     .mobile-menu-toggle {
         display: none;
         position: fixed;
-        top: 1.5rem;
-        left: 1.5rem;
-        z-index: 1001;
-    }
-
-    .mobile-menu-toggle input {
-        display: none;
-    }
-
-    .menu-icon {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        width: 32px;
-        height: 24px;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1002;
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         cursor: pointer;
-        padding: 6px;
-        background: rgba(15, 17, 26, 0.95);
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        padding: 0;
+        transition: all 0.3s ease;
     }
 
-    .menu-icon span {
+    .mobile-menu-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+    }
+
+    .mobile-menu-toggle span {
         display: block;
+        position: absolute;
         height: 2px;
+        width: 24px;
         background: white;
-        border-radius: 1px;
+        border-radius: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .mobile-menu-toggle span:nth-child(1) {
+        top: 14px;
+    }
+
+    .mobile-menu-toggle span:nth-child(2) {
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .mobile-menu-toggle span:nth-child(3) {
+        bottom: 14px;
+    }
+
+    .mobile-menu-toggle.active span:nth-child(1) {
+        top: 50%;
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .mobile-menu-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-toggle.active span:nth-child(3) {
+        bottom: 50%;
+        transform: translate(-50%, 50%) rotate(-45deg);
+    }
+
+    /* Mobile overlay */
+    .mobile-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0);
+        backdrop-filter: blur(0px);
+        z-index: 999;
+        opacity: 0;
         transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .mobile-overlay.active {
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        opacity: 1;
+        pointer-events: auto;
     }
 
     /* Responsive design */
     @@media (max-width: 768px) {
         .sidebar {
             transform: translateX(-100%);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
         }
 
-        .mobile-menu-toggle {
-            display: block;
-        }
-
-        #mobile-menu:checked ~ .sidebar {
+        .sidebar.open {
             transform: translateX(0);
         }
 
-        #mobile-menu:checked + .menu-icon span:nth-child(1) {
-            transform: rotate(45deg) translate(6px, 6px);
+        .mobile-menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        #mobile-menu:checked + .menu-icon span:nth-child(2) {
-            opacity: 0;
-        }
-
-        #mobile-menu:checked + .menu-icon span:nth-child(3) {
-            transform: rotate(-45deg) translate(6px, -6px);
+        .mobile-overlay {
+            display: block;
         }
     }
 </style>
