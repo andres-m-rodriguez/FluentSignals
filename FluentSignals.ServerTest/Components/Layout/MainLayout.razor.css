@@ -16,7 +16,7 @@
 
 .content {
     min-height: 100vh;
-    padding: 2rem;
+    padding: 0.5rem;
     max-width: 1400px;
     margin: 0 auto;
     overflow-x: hidden;
@@ -27,14 +27,14 @@
     background: white;
     border-radius: 16px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
-    padding: 3rem;
-    margin-bottom: 2rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 /* Special handling for pages that shouldn't have the white background */
-.content > .home-page,
-.content > .demo-page,
-.content > .playground-page {
+.content > ::deep .home-page,
+.content > ::deep .demo-page,
+.content > ::deep .playground-page {
     background: transparent;
     box-shadow: none;
     padding: 0;
@@ -78,9 +78,9 @@
     }
     
     /* Special pages remain unchanged */
-    .content > .home-page,
-    .content > .demo-page,
-    .content > .playground-page {
+    .content > ::deep .home-page,
+    .content > ::deep .demo-page,
+    .content > ::deep .playground-page {
         background: transparent;
         box-shadow: none;
         padding: 0;
