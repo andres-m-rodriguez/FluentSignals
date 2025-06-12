@@ -1,0 +1,397 @@
+@namespace FluentSignals.Blazor.Components
+@typeparam T
+@using System.Net.Http
+@using FluentSignals.Options.HttpResource
+@using FluentSignals.Blazor.Http
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.DependencyInjection
+@implements IDisposable
+@inject IServiceProvider ServiceProvider
+@inject NavigationManager Navigation
+
+<ResourceView Resource="httpResource" T="HttpResponse">
+    <Loading>
+        @if (Loading != null)
+        {
+            @Loading
+        }
+        else
+        {
+            <div class="d-flex justify-content-center align-items-center p-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        }
+    </Loading>
+    
+    <Success Context="response">
+        @if (response != null && response is HttpResponse<T> typedResponse && typedResponse.Data != null)
+        {
+            @if (Success != null)
+            {
+                @Success(typedResponse.Data)
+            }
+            else if (ChildContent != null)
+            {
+                @ChildContent(typedResponse.Data)
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    Data loaded successfully.
+                </div>
+            }
+        }
+        else
+        {
+            @if (Empty != null)
+            {
+                @Empty
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    No data available.
+                </div>
+            }
+        }
+    </Success>
+    
+    <BadRequest>
+        @if (BadRequest != null)
+        {
+            @BadRequest
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h4>Bad Request</h4>
+                <p>The request was invalid.</p>
+                <button class="btn btn-primary" @onclick="HandleRefresh">Try Again</button>
+            </div>
+        }
+    </BadRequest>
+    
+    <Unauthorized>
+        @if (Unauthorized != null)
+        {
+            @Unauthorized
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h4>Unauthorized</h4>
+                <p>You are not authorized to access this resource.</p>
+            </div>
+        }
+    </Unauthorized>
+    
+    <Forbidden>
+        @if (Forbidden != null)
+        {
+            @Forbidden
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h4>Forbidden</h4>
+                <p>Access to this resource is forbidden.</p>
+            </div>
+        }
+    </Forbidden>
+    
+    <NotFound>
+        @if (NotFound != null)
+        {
+            @NotFound
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                <h4>Not Found</h4>
+                <p>The requested resource was not found.</p>
+                <button class="btn btn-primary" @onclick="HandleRefresh">Try Again</button>
+            </div>
+        }
+    </NotFound>
+    
+    <InternalServerError>
+        @if (InternalServerError != null)
+        {
+            @InternalServerError
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h4>Server Error</h4>
+                <p>An error occurred on the server.</p>
+                <button class="btn btn-primary" @onclick="HandleRefresh">Try Again</button>
+            </div>
+        }
+    </InternalServerError>
+    
+    <ServiceUnavailable>
+        @if (ServiceUnavailable != null)
+        {
+            @ServiceUnavailable
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                <h4>Service Unavailable</h4>
+                <p>The service is temporarily unavailable.</p>
+                <button class="btn btn-primary" @onclick="HandleRefresh">Try Again</button>
+            </div>
+        }
+    </ServiceUnavailable>
+    
+    <ErrorContent Context="error">
+        @if (ErrorContent != null)
+        {
+            @ErrorContent(error)
+        }
+        else
+        {
+            <div class="alert alert-danger">
+                <h4>Error</h4>
+                <p>@error?.ToString()</p>
+                <button class="btn btn-primary" @onclick="HandleRefresh">Try Again</button>
+            </div>
+        }
+    </ErrorContent>
+</ResourceView>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Url { get; set; } = "";
+
+    [Parameter]
+    public IHttpResourceFactory? HttpResourceFactory { get; set; }
+    
+    [Parameter]
+    public HttpClient? HttpClient { get; set; }
+
+    [Parameter]
+    public string? BaseUrl { get; set; }
+
+    [Parameter]
+    public Dictionary<string, string>? Headers { get; set; }
+
+    [Parameter]
+    public bool LoadOnInit { get; set; } = true;
+
+    [Parameter]
+    public bool StreamRendering { get; set; } = true;
+
+    [Parameter]
+    public RenderFragment? Loading { get; set; }
+
+    [Parameter]
+    public RenderFragment<T>? Success { get; set; }
+
+    [Parameter]
+    public RenderFragment<T>? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? Empty { get; set; }
+
+    [Parameter]
+    public RenderFragment<Exception>? ErrorContent { get; set; }
+
+    [Parameter]
+    public RenderFragment? BadRequest { get; set; }
+
+    [Parameter]
+    public RenderFragment? Unauthorized { get; set; }
+
+    [Parameter]
+    public RenderFragment? Forbidden { get; set; }
+
+    [Parameter]
+    public RenderFragment? NotFound { get; set; }
+
+    [Parameter]
+    public RenderFragment? InternalServerError { get; set; }
+
+    [Parameter]
+    public RenderFragment? ServiceUnavailable { get; set; }
+
+    [Parameter]
+    public EventCallback<T> OnDataLoaded { get; set; }
+
+    [Parameter]
+    public EventCallback<Exception> OnError { get; set; }
+
+    [Parameter]
+    public EventCallback<HttpResource> OnResourceCreated { get; set; }
+
+    private HttpResource? httpResource;
+    
+    /// <summary>
+    /// Gets the underlying HttpResource instance for advanced control
+    /// </summary>
+    public HttpResource? Resource => httpResource;
+    private bool isInitialized = false;
+    private string? lastUrl;
+    private bool isInteractive = false;
+    private readonly List<IDisposable> _subscriptions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Check if we're in interactive mode
+        isInteractive = OperatingSystem.IsBrowser();
+
+        InitializeHttpResource();
+        
+        // Only load data if conditions are met
+        if (LoadOnInit && !string.IsNullOrEmpty(Url) && (isInteractive || StreamRendering))
+        {
+            await LoadDataAsync();
+        }
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        
+        // If URL changed, reload data
+        if (isInitialized && lastUrl != Url && !string.IsNullOrEmpty(Url))
+        {
+            lastUrl = Url;
+            await LoadDataAsync();
+        }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        
+        if (firstRender)
+        {
+            var wasPrerendering = !isInteractive;
+            isInteractive = OperatingSystem.IsBrowser();
+            
+            // If we were prerendering and didn't load data, load it now
+            if (wasPrerendering && !StreamRendering && LoadOnInit && !string.IsNullOrEmpty(Url) && httpResource?.Value == null)
+            {
+                await LoadDataAsync();
+                StateHasChanged();
+            }
+        }
+    }
+    
+    private void InitializeHttpResource()
+    {
+        // Dispose previous resource if exists
+        httpResource?.Dispose();
+        foreach (var sub in _subscriptions)
+        {
+            sub?.Dispose();
+        }
+        _subscriptions.Clear();
+        
+        // Try to get factory from DI if not provided
+        var factory = HttpResourceFactory ?? ServiceProvider.GetService<IHttpResourceFactory>();
+        
+        if (factory != null)
+        {
+            // Use factory to create resource
+            if (!string.IsNullOrEmpty(BaseUrl))
+            {
+                httpResource = factory.CreateWithBaseUrl(BaseUrl);
+            }
+            else if (HttpClient != null)
+            {
+                httpResource = factory.Create(HttpClient);
+            }
+            else
+            {
+                httpResource = factory.Create();
+            }
+        }
+        else
+        {
+            // Fallback to direct creation
+            var client = HttpClient ?? new HttpClient();
+            
+            // Set base URL if provided
+            if (!string.IsNullOrEmpty(BaseUrl) && client.BaseAddress == null)
+            {
+                client.BaseAddress = new Uri(BaseUrl);
+            }
+            
+            httpResource = new HttpResource(client);
+        }
+        
+        // Add headers if provided
+        if (Headers != null && httpResource != null && HttpClient != null)
+        {
+            foreach (var header in Headers)
+            {
+                HttpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+            }
+        }
+        
+        // Subscribe to data changes
+        if (httpResource != null)
+        {
+            _subscriptions.Add(httpResource.SubscribeDisposable(() =>
+            {
+                if (httpResource.Value is HttpResponse<T> response && response.Data != null)
+                {
+                    _ = OnDataLoaded.InvokeAsync(response.Data);
+                }
+                InvokeAsync(StateHasChanged);
+            }));
+            
+            _subscriptions.Add(httpResource.Error.SubscribeDisposable(error =>
+            {
+                if (error != null)
+                {
+                    _ = OnError.InvokeAsync(error);
+                }
+                InvokeAsync(StateHasChanged);
+            }));
+        }
+        
+        isInitialized = true;
+        lastUrl = Url;
+        
+        // Notify that resource has been created
+        if (httpResource != null)
+        {
+            _ = OnResourceCreated.InvokeAsync(httpResource);
+        }
+    }
+    
+    private async Task LoadDataAsync()
+    {
+        if (httpResource != null && !string.IsNullOrEmpty(Url))
+        {
+            await httpResource.GetAsync<T>(Url);
+        }
+    }
+    
+    private async Task HandleRefresh()
+    {
+        await LoadDataAsync();
+    }
+    
+    public async Task RefreshAsync()
+    {
+        await LoadDataAsync();
+    }
+    
+    public void Dispose()
+    {
+        httpResource?.Dispose();
+        foreach (var sub in _subscriptions)
+        {
+            sub?.Dispose();
+        }
+        _subscriptions.Clear();
+    }
+}

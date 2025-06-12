@@ -1,0 +1,148 @@
+@namespace FluentSignals.Blazor.Components
+@typeparam T
+@using FluentSignals.Contracts
+@using System.Net
+@using FluentSignals.Options.HttpResource
+@using FluentSignals.Blazor.Extensions
+@inherits ComponentBase
+@implements IDisposable
+
+@if (Resource != null)
+{
+    var asyncSignal = Resource as IAsyncSignal;
+    @if (asyncSignal?.IsLoading.Value == true)
+    {
+        @Loading
+    }
+    else if (asyncSignal?.Error.Value != null)
+    {
+        @if (Resource.Value is HttpResponse httpResponse && httpResponse.StatusCode != default)
+        {
+            var statusCode = httpResponse.StatusCode;
+            @switch (statusCode)
+            {
+                case HttpStatusCode.BadRequest:
+                    @BadRequest
+                    break;
+                case HttpStatusCode.Unauthorized:
+                    @Unauthorized
+                    break;
+                case HttpStatusCode.Forbidden:
+                    @Forbidden
+                    break;
+                case HttpStatusCode.NotFound:
+                    @NotFound
+                    break;
+                case HttpStatusCode.InternalServerError:
+                    @InternalServerError
+                    break;
+                case HttpStatusCode.ServiceUnavailable:
+                    @ServiceUnavailable
+                    break;
+                default:
+                    @if (ErrorContent != null)
+                    {
+                        @ErrorContent(asyncSignal.Error.Value)
+                    }
+                    break;
+            }
+        }
+        else if (ErrorContent != null)
+        {
+            @ErrorContent(asyncSignal.Error.Value)
+        }
+    }
+    else if (Resource.Value != null)
+    {
+        @if (Success != null)
+        {
+            @Success(Resource.Value)
+        }
+    }
+    else
+    {
+        @Empty
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public IResource<T>? Resource { get; set; }
+
+    [Parameter]
+    public RenderFragment Loading { get; set; } = @<text>Loading...</text>;
+
+    [Parameter]
+    public RenderFragment<T>? Success { get; set; }
+
+    [Parameter]
+    public RenderFragment Empty { get; set; } = @<text>No data available.</text>;
+
+    [Parameter]
+    public RenderFragment<Exception>? ErrorContent { get; set; }
+
+    [Parameter]
+    public RenderFragment BadRequest { get; set; } = @<text>Bad Request</text>;
+
+    [Parameter]
+    public RenderFragment Unauthorized { get; set; } = @<text>Unauthorized</text>;
+
+    [Parameter]
+    public RenderFragment Forbidden { get; set; } = @<text>Forbidden</text>;
+
+    [Parameter]
+    public RenderFragment NotFound { get; set; } = @<text>Not Found</text>;
+
+    [Parameter]
+    public RenderFragment InternalServerError { get; set; } = @<text>Internal Server Error</text>;
+
+    [Parameter]
+    public RenderFragment ServiceUnavailable { get; set; } = @<text>Service Unavailable</text>;
+
+    private readonly List<IDisposable> _subscriptions = new();
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        
+        // Clear existing subscriptions
+        foreach (var subscription in _subscriptions)
+        {
+            subscription?.Dispose();
+        }
+        _subscriptions.Clear();
+
+        if (Resource != null)
+        {
+            var asyncSignal = Resource as IAsyncSignal;
+            
+            // Subscribe to changes
+            if (asyncSignal != null)
+            {
+                _subscriptions.Add(asyncSignal.IsLoading.SubscribeDisposable(_ => 
+                {
+                    InvokeAsync(StateHasChanged);
+                }));
+
+                _subscriptions.Add(asyncSignal.Error.SubscribeDisposable(_ => 
+                {
+                    InvokeAsync(StateHasChanged);
+                }));
+            }
+
+            _subscriptions.Add(Resource.SubscribeDisposable(() => 
+            {
+                InvokeAsync(StateHasChanged);
+            }));
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (var subscription in _subscriptions)
+        {
+            subscription?.Dispose();
+        }
+        _subscriptions.Clear();
+    }
+}
