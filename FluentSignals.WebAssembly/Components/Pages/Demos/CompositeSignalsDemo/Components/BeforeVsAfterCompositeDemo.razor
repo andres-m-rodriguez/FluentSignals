@@ -1,0 +1,161 @@
+@namespace FluentSignals.WebAssembly.Components.Pages.Demos.CompositeSignalsDemo.Components
+@using FluentSignals.Blazor.Components
+@using FluentSignals.WebAssembly.Components
+@inherits SignalComponentBase
+
+<div class="demo-content">
+            <div class="comparison-grid">
+                <div class="comparison-column">
+                    <h4>Before (Manual Management)</h4>
+                    <div class="code-stats bad">
+                        <div class="stat">Lines of subscription code: 12+</div>
+                        <div class="stat">Manual cleanup required: Yes</div>
+                        <div class="stat">Risk of memory leaks: High</div>
+                        <div class="stat">Subscription tracking: Manual</div>
+                    </div>
+                </div>
+                
+                <div class="comparison-column">
+                    <h4>After (Composite Signal)</h4>
+                    <div class="code-stats good">
+                        <div class="stat">Lines of subscription code: 1</div>
+                        <div class="stat">Manual cleanup required: No</div>
+                        <div class="stat">Risk of memory leaks: Low</div>
+                        <div class="stat">Subscription tracking: Automatic</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="benefits-summary">
+                <h5>Key Benefits:</h5>
+                <ul>
+                    <li>Single subscription point for complex state</li>
+                    <li>Automatic disposal of all internal subscriptions</li>
+                    <li>Consistent state updates across related signals</li>
+                    <li>Easier testing and maintenance</li>
+                </ul>
+            </div>
+
+    <CodeBlock Code="@beforeAfterCode" />
+</div>
+
+@code {
+    private string beforeAfterCode = @"// BEFORE: Manual subscription management
+public class ManualFormComponent : ComponentBase, IDisposable
+{
+    private FormViewModel form = new();
+    private List<IDisposable> subscriptions = new();
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to each field individually
+        subscriptions.Add(form.Username.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        subscriptions.Add(form.Email.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        subscriptions.Add(form.Password.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        
+        // Subscribe to each state signal
+        subscriptions.Add(form.Errors.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        subscriptions.Add(form.IsValid.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        subscriptions.Add(form.IsDirty.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        subscriptions.Add(form.IsSubmitting.Subscribe(_ => InvokeAsync(StateHasChanged)));
+        
+        // Easy to forget signals, leading to UI not updating
+        // Manual disposal required for each subscription
+    }
+
+    public void Dispose()
+    {
+        // Must manually dispose each subscription
+        foreach (var sub in subscriptions)
+        {
+            sub.Dispose();
+        }
+    }
+}
+
+// AFTER: Composite signal with automatic management
+public class CompositeFormComponent : ComponentBase
+{
+    private FormSignal form = new();
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to ALL signals with one simple loop!
+        foreach (var signal in form.GetInternalSignals())
+        {
+            signal.Subscribe(_ => InvokeAsync(StateHasChanged));
+        }
+        
+        // That's it! All signals are subscribed
+        // No risk of forgetting signals
+        // Disposal is automatic when form is disposed
+    }
+}";
+}
+
+<style>
+    .demo-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    /* Comparison styles */
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .comparison-column h4 {
+        margin-bottom: 1rem;
+        color: #1e293b;
+    }
+
+    .code-stats {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .code-stats.bad {
+        border: 2px solid #fee2e2;
+    }
+
+    .code-stats.good {
+        border: 2px solid #d1fae5;
+    }
+
+    .stat {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e5e7eb;
+        color: #64748b;
+    }
+
+    .stat:last-child {
+        border-bottom: none;
+    }
+
+    .benefits-summary {
+        background: #f0fdf4;
+        border: 2px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .benefits-summary h5 {
+        margin: 0 0 0.75rem 0;
+        color: #166534;
+    }
+
+    .benefits-summary ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+
+    .benefits-summary li {
+        color: #166534;
+        padding: 0.25rem 0;
+    }
+</style>

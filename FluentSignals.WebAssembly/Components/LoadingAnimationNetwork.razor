@@ -1,0 +1,120 @@
+
+<div id="loading-overlay-network" class="@(_isLoading ? "active" : "")">
+    <div class="network-container">
+        <!-- Network nodes -->
+        <div class="network-nodes">
+            <div class="network-node node-1">
+                <div class="node-inner"></div>
+            </div>
+            <div class="network-node node-2">
+                <div class="node-inner"></div>
+            </div>
+            <div class="network-node node-3">
+                <div class="node-inner"></div>
+            </div>
+            <div class="network-node node-4">
+                <div class="node-inner"></div>
+            </div>
+            <div class="network-node node-5">
+                <div class="node-inner"></div>
+            </div>
+            <div class="network-node node-6">
+                <div class="node-inner"></div>
+            </div>
+            <div class="network-node node-center">
+                <div class="node-inner">
+                    <span class="lightning">⚡</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Signal paths -->
+        <svg class="signal-paths" viewBox="0 0 400 400">
+            <defs>
+                <linearGradient id="signal-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#667eea" stop-opacity="0"/>
+                    <stop offset="50%" stop-color="#667eea" stop-opacity="1"/>
+                    <stop offset="100%" stop-color="#764ba2" stop-opacity="0"/>
+                </linearGradient>
+            </defs>
+            
+            <!-- Paths from center to nodes -->
+            <path class="signal-path path-1" d="M200,200 L200,50" />
+            <path class="signal-path path-2" d="M200,200 L325,125" />
+            <path class="signal-path path-3" d="M200,200 L325,275" />
+            <path class="signal-path path-4" d="M200,200 L200,350" />
+            <path class="signal-path path-5" d="M200,200 L75,275" />
+            <path class="signal-path path-6" d="M200,200 L75,125" />
+            
+            <!-- Traveling signals -->
+            <circle class="signal-dot dot-1" r="4" fill="#667eea">
+                <animateMotion dur="2s" repeatCount="indefinite">
+                    <mpath href="#path-1" />
+                </animateMotion>
+            </circle>
+            <circle class="signal-dot dot-2" r="4" fill="#667eea">
+                <animateMotion dur="2s" repeatCount="indefinite" begin="0.3s">
+                    <mpath href="#path-2" />
+                </animateMotion>
+            </circle>
+            <circle class="signal-dot dot-3" r="4" fill="#667eea">
+                <animateMotion dur="2s" repeatCount="indefinite" begin="0.6s">
+                    <mpath href="#path-3" />
+                </animateMotion>
+            </circle>
+            <circle class="signal-dot dot-4" r="4" fill="#667eea">
+                <animateMotion dur="2s" repeatCount="indefinite" begin="0.9s">
+                    <mpath href="#path-4" />
+                </animateMotion>
+            </circle>
+            <circle class="signal-dot dot-5" r="4" fill="#667eea">
+                <animateMotion dur="2s" repeatCount="indefinite" begin="1.2s">
+                    <mpath href="#path-5" />
+                </animateMotion>
+            </circle>
+            <circle class="signal-dot dot-6" r="4" fill="#667eea">
+                <animateMotion dur="2s" repeatCount="indefinite" begin="1.5s">
+                    <mpath href="#path-6" />
+                </animateMotion>
+            </circle>
+        </svg>
+        
+        <div class="loading-info">
+            <h1 class="loading-title">
+                <span class="letter" style="animation-delay: 0ms">F</span>
+                <span class="letter" style="animation-delay: 50ms">l</span>
+                <span class="letter" style="animation-delay: 100ms">u</span>
+                <span class="letter" style="animation-delay: 150ms">e</span>
+                <span class="letter" style="animation-delay: 200ms">n</span>
+                <span class="letter" style="animation-delay: 250ms">t</span>
+                <span class="letter space" style="animation-delay: 300ms">&nbsp;</span>
+                <span class="letter" style="animation-delay: 350ms">S</span>
+                <span class="letter" style="animation-delay: 400ms">i</span>
+                <span class="letter" style="animation-delay: 450ms">g</span>
+                <span class="letter" style="animation-delay: 500ms">n</span>
+                <span class="letter" style="animation-delay: 550ms">a</span>
+                <span class="letter" style="animation-delay: 600ms">l</span>
+                <span class="letter" style="animation-delay: 650ms">s</span>
+            </h1>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+            <p class="loading-status">Initializing reactive state management...</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Keep the loading animation for 2.5 seconds
+            await Task.Delay(2500);
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

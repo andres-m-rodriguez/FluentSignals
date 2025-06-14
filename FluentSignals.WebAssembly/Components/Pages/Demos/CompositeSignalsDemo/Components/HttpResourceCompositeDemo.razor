@@ -1,0 +1,366 @@
+@namespace FluentSignals.WebAssembly.Components.Pages.Demos.CompositeSignalsDemo.Components
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Contracts
+@using FluentSignals.WebAssembly.Components
+@using FluentSignals.Options.HttpResource
+@using FluentSignals.Blazor.Extensions
+@using FluentSignals.Blazor.Components
+@using System.Net
+@using System.Net.Http
+@inherits SignalComponentBase
+
+<div class="demo-content">
+            <div class="http-demo">
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="label">Loading:</span>
+                        <span class="value @(httpResource.IsLoading.Value ? "active" : "")">
+                            @httpResource.IsLoading.Value
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Status Code:</span>
+                        <span class="value @GetStatusClass(httpResource.LastStatusCode.Value)">
+                            @(httpResource.LastStatusCode.Value?.ToString() ?? "N/A")
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label">Error:</span>
+                        <span class="value error">
+                            @(httpResource.Error.Value != null ? "Yes" : "No")
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="response-display">
+                    @if (httpResource.Value != null)
+                    {
+                        <div class="response-content">
+                            <h5>Response:</h5>
+                            <pre>@httpResource.Value.Content</pre>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="placeholder">No response yet</div>
+                    }
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" @onclick="MakeSuccessRequest">GET /users (200)</button>
+                    <button class="btn btn-warning" @onclick="MakeNotFoundRequest">GET /notfound (404)</button>
+                    <button class="btn btn-danger" @onclick="MakeErrorRequest">GET /error (500)</button>
+                </div>
+            </div>
+
+    <TabbedCodeBlock CSharpCode="@httpResourceCode" RazorCode="@httpResourceRazorCode" />
+</div>
+
+@code {
+    // HTTP Resource example
+    private HttpResource httpResource = null!;
+    private readonly HttpClient mockHttpClient = new HttpClient(new MockHttpMessageHandler());
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Initialize HTTP resource
+        httpResource = new HttpResource(mockHttpClient);
+        
+        // Subscribe to all signals for UI updates
+        SubscribeToSignals();
+    }
+
+    private void SubscribeToSignals()
+    {
+        // The base class SubscribeForUpdate method automatically handles composite signals
+        // It will subscribe to the signal itself and all its internal signals if it implements ICompositeSignal
+        
+        // Subscribe to HttpResource - this will automatically subscribe to all internal signals  
+        // (the signal itself, IsLoading, Error, and LastStatusCode)
+        SubscribeForUpdate(httpResource);
+    }
+
+    // HTTP Resource methods
+    private async Task MakeSuccessRequest()
+    {
+        try
+        {
+            await httpResource.GetAsync("/users");
+        }
+        catch { }
+    }
+
+    private async Task MakeNotFoundRequest()
+    {
+        try
+        {
+            await httpResource.GetAsync("/notfound");
+        }
+        catch { }
+    }
+
+    private async Task MakeErrorRequest()
+    {
+        try
+        {
+            await httpResource.GetAsync("/error");
+        }
+        catch { }
+    }
+
+    private string GetStatusClass(HttpStatusCode? statusCode)
+    {
+        if (statusCode == null) return "";
+        
+        return ((int)statusCode) switch
+        {
+            >= 200 and < 300 => "success",
+            >= 400 and < 500 => "warning",
+            >= 500 => "error",
+            _ => ""
+        };
+    }
+
+    // Mock HTTP handler for demo
+    public class MockHttpMessageHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            await Task.Delay(1000); // Simulate network delay
+            
+            return request.RequestUri?.PathAndQuery switch
+            {
+                "/users" => new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(@"[
+                        { ""id"": 1, ""name"": ""Alice"" },
+                        { ""id"": 2, ""name"": ""Bob"" }
+                    ]")
+                },
+                "/notfound" => new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent("Resource not found")
+                },
+                "/error" => new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("Internal server error")
+                },
+                _ => new HttpResponseMessage(HttpStatusCode.OK)
+            };
+        }
+    }
+
+    // Code examples
+    private string httpResourceCode = @"public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpResponse?>
+{
+    // Additional signal for HTTP-specific state
+    public ISignal<HttpStatusCode?> LastStatusCode { get; } = new TypedSignal<HttpStatusCode?>(null);
+    
+    private async Task<HttpResponse<T>> ExecuteAsync<T>(HttpMethod method, string url, ...)
+    {
+        try
+        {
+            IsLoading.Value = true;
+            Error.Value = null;
+            
+            var response = await _httpClient.SendAsync(request);
+            LastStatusCode.Value = response.StatusCode; // Update status code
+            
+            // Process response...
+            return httpResponse;
+        }
+        catch (Exception ex)
+        {
+            Error.Value = ex;
+            throw;
+        }
+        finally
+        {
+            IsLoading.Value = false;
+        }
+    }
+    
+    // Override to include LastStatusCode in internal signals
+    public override IEnumerable<ISignal> GetInternalSignals()
+    {
+        // Get base signals (IsLoading, Error, Value)
+        foreach (var signal in base.GetInternalSignals())
+        {
+            yield return signal;
+        }
+        
+        // Add HTTP-specific signal
+        yield return LastStatusCode;
+    }
+}";
+
+    private string httpResourceRazorCode = @"@code {
+    private HttpResource httpResource;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to ALL signals (loading, error, value, status code) with one loop!
+        foreach (var signal in httpResource.GetInternalSignals())
+        {
+            signal.Subscribe(_ => InvokeAsync(StateHasChanged));
+        }
+    }
+}
+
+@* Access all state through the signals *@
+<div class=""http-status"">
+    @if (httpResource.IsLoading.Value)
+    {
+        <span>Loading...</span>
+    }
+    
+    Status: @httpResource.LastStatusCode.Value
+    Error: @httpResource.Error.Value?.Message
+    Response: @httpResource.Value?.Content
+</div>";
+}
+
+<style>
+    /* HTTP demo styles */
+    .http-demo {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .status-item {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .status-item .label {
+        display: block;
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 0.5rem;
+    }
+
+    .status-item .value {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .status-item .value.active {
+        color: #3b82f6;
+    }
+
+    .status-item .value.success {
+        color: #22c55e;
+    }
+
+    .status-item .value.warning {
+        color: #f59e0b;
+    }
+
+    .status-item .value.error {
+        color: #ef4444;
+    }
+
+    .response-display {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        border-radius: 8px;
+        padding: 1.5rem;
+        min-height: 150px;
+        overflow-x: auto;
+    }
+
+    .response-content h5 {
+        margin: 0 0 0.5rem 0;
+        color: #cccccc;
+    }
+
+    .response-content pre {
+        margin: 0;
+        font-family: 'Cascadia Code', monospace;
+        font-size: 0.875rem;
+        white-space: pre-wrap;
+    }
+
+    .placeholder {
+        color: #666666;
+        font-style: italic;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    /* Button styles */
+    .button-group {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-primary {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #2563eb;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #4b5563;
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+        background: #dc2626;
+    }
+
+    .btn-warning {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-warning:hover:not(:disabled) {
+        background: #d97706;
+    }
+
+    .demo-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+</style>

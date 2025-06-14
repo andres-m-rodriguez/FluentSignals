@@ -1,0 +1,287 @@
+@namespace FluentSignals.WebAssembly.Components.Pages.Demos.SignalDemo.Components
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Blazor.Components
+@using FluentSignals.WebAssembly.Components
+@inherits SignalComponentBase
+
+<div class="demo-content">
+            <div class="shopping-cart">
+                <h4>Shopping Cart</h4>
+                <div class="cart-items">
+                    @foreach (var item in cartItems)
+                    {
+                        <div class="cart-item">
+                            <span>@item.Name</span>
+                            <div class="quantity-controls">
+                                <button @onclick="() => UpdateQuantity(item, -1)">-</button>
+                                <span class="quantity">@item.Quantity.Value</span>
+                                <button @onclick="() => UpdateQuantity(item, 1)">+</button>
+                            </div>
+                            <span class="price">$@(item.Price * item.Quantity.Value)</span>
+                        </div>
+                    }
+                </div>
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Total Items:</span>
+                        <span>@totalItems.Value</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total Price:</span>
+                        <span>$@totalPrice.Value</span>
+                    </div>
+                </div>
+            </div>
+            <TabbedCodeBlock CSharpCode="@multipleSignalsCode" RazorCode="@multipleSignalsRazorCode" />
+</div>
+
+@code {
+    // CartItem class definition
+    public class CartItem
+    {
+        public string Name { get; }
+        public decimal Price { get; }
+        public TypedSignal<int> Quantity { get; }
+        
+        public CartItem(string name, decimal price)
+        {
+            Name = name;
+            Price = price;
+            Quantity = new TypedSignal<int>(0);
+        }
+    }
+
+    // Multiple Signals Demo
+    private List<CartItem> cartItems = new();
+    private TypedSignal<int> totalItems = new(0);
+    private TypedSignal<decimal> totalPrice = new(0);
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        // Setup shopping cart
+        SetupShoppingCart();
+
+        // Subscribe to all signals for UI updates using the base class method
+        SubscribeToSignal(totalItems, _ => { /* UI update handled by base class */ });
+        SubscribeToSignal(totalPrice, _ => { /* UI update handled by base class */ });
+    }
+
+    private void SetupShoppingCart()
+    {
+        cartItems = new List<CartItem>
+        {
+            new("Coffee", 4.99m),
+            new("Sandwich", 8.99m),
+            new("Cookie", 2.49m)
+        };
+
+        // Subscribe to quantity changes
+        foreach (var item in cartItems)
+        {
+            SubscribeToSignal(item.Quantity, _ =>
+            {
+                UpdateTotals();
+            });
+        }
+
+        UpdateTotals();
+    }
+
+    private void UpdateQuantity(CartItem item, int change)
+    {
+        var newQuantity = Math.Max(0, item.Quantity.Value + change);
+        item.Quantity.Value = newQuantity;
+    }
+
+    private void UpdateTotals()
+    {
+        totalItems.Value = cartItems.Sum(i => i.Quantity.Value);
+        totalPrice.Value = cartItems.Sum(i => i.Price * i.Quantity.Value);
+    }
+
+    // Code examples
+    private string multipleSignalsCode = @"using FluentSignals.Implementations.Core;
+
+public partial class ShoppingCartDemo
+{
+    public class CartItem
+    {
+        public string Name { get; }
+        public decimal Price { get; }
+        public TypedSignal<int> Quantity { get; }
+        
+        public CartItem(string name, decimal price)
+        {
+            Name = name;
+            Price = price;
+            Quantity = new TypedSignal<int>(0);
+        }
+    }
+
+    private List<CartItem> cartItems = new();
+    private TypedSignal<int> totalItems = new(0);
+    private TypedSignal<decimal> totalPrice = new(0);
+
+    protected override void OnInitialized()
+    {
+        // Initialize cart items
+        cartItems = new List<CartItem>
+        {
+            new(""Coffee"", 4.99m),
+            new(""Sandwich"", 8.99m),
+            new(""Salad"", 7.99m)
+        };
+
+        // Subscribe to quantity changes
+        foreach (var item in cartItems)
+        {
+            item.Quantity.Subscribe(_ =>
+            {
+                UpdateTotals();
+                InvokeAsync(StateHasChanged);
+                return _;
+            });
+        }
+    }
+
+    private void UpdateTotals()
+    {
+        totalItems.Value = cartItems.Sum(i => i.Quantity.Value);
+        totalPrice.Value = cartItems.Sum(i => i.Price * i.Quantity.Value);
+    }
+
+    private void UpdateQuantity(CartItem item, int delta)
+    {
+        item.Quantity.Value = Math.Max(0, item.Quantity.Value + delta);
+    }
+}";
+
+    private string multipleSignalsRazorCode = @"<div class=""shopping-cart"">
+    <h4>Shopping Cart</h4>
+    <div class=""cart-items"">
+        @foreach (var item in cartItems)
+        {
+            <div class=""cart-item"">
+                <span>@item.Name</span>
+                <div class=""quantity-controls"">
+                    <button @onclick=""() => UpdateQuantity(item, -1)"">-</button>
+                    <span class=""quantity"">@item.Quantity.Value</span>
+                    <button @onclick=""() => UpdateQuantity(item, 1)"">+</button>
+                </div>
+                <span class=""price"">$@(item.Price * item.Quantity.Value)</span>
+            </div>
+        }
+    </div>
+    <div class=""cart-summary"">
+        <div class=""summary-row"">
+            <span>Total Items:</span>
+            <span>@totalItems.Value</span>
+        </div>
+        <div class=""summary-row total"">
+            <span>Total Price:</span>
+            <span>$@totalPrice.Value</span>
+        </div>
+    </div>
+</div>";
+}
+
+<style>
+    .demo-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .shopping-cart {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .shopping-cart h4 {
+        margin: 0 0 1rem 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .cart-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .cart-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem;
+        background: white;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+
+    .cart-item > span:first-child {
+        font-weight: 500;
+        min-width: 100px;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .quantity-controls button {
+        width: 30px;
+        height: 30px;
+        border: none;
+        background: #4f46e5;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: background-color 0.2s;
+    }
+
+    .quantity-controls button:hover {
+        background: #4338ca;
+    }
+
+    .quantity {
+        min-width: 30px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .price {
+        min-width: 60px;
+        text-align: right;
+        font-weight: 600;
+        color: #4f46e5;
+    }
+
+    .cart-summary {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid #e5e7eb;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        color: #64748b;
+    }
+
+    .summary-row.total {
+        font-weight: 700;
+        font-size: 1.25rem;
+        color: #1e293b;
+    }
+</style>

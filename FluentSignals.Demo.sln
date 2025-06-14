@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentSignals", "FluentSign
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentSignals.Blazor", "FluentSignals.Blazor\FluentSignals.Blazor.csproj", "{C332B427-828A-7AE5-B348-7FB415C3DB6E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FluentSignals.WebAssembly", "FluentSignals.WebAssembly\FluentSignals.WebAssembly.csproj", "{34E81960-F456-4062-BA66-39AE9172BBD2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{C332B427-828A-7AE5-B348-7FB415C3DB6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C332B427-828A-7AE5-B348-7FB415C3DB6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C332B427-828A-7AE5-B348-7FB415C3DB6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34E81960-F456-4062-BA66-39AE9172BBD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34E81960-F456-4062-BA66-39AE9172BBD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34E81960-F456-4062-BA66-39AE9172BBD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34E81960-F456-4062-BA66-39AE9172BBD2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

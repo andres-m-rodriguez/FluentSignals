@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="9.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.11.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FluentSignals.Blazor\FluentSignals.Blazor.csproj" />
     <ProjectReference Include="..\FluentSignals\FluentSignals.csproj" />
+    <ProjectReference Include="..\FluentSignals.WebAssembly\FluentSignals.WebAssembly.csproj" />
   </ItemGroup>
 
 </Project>

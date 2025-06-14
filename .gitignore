@@ -6,7 +6,7 @@ obj/
 *.cache
 *.userosscache
 *.sln.docstates
-
+*.packages
 # Visual Studio
 .vs/
 *.vspscc

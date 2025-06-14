@@ -1,0 +1,45 @@
+@page "/demos/signal"
+
+@using FluentSignals.WebAssembly.Components.Pages.Demos.SignalDemo.Components
+
+<div class="demo-page">
+    <div class="page-header">
+        <h1>Signal Demo</h1>
+        <p class="lead">Explore the power of reactive signals for state management</p>
+    </div>
+
+    <BasicSignalDemo />
+
+    <ComputedSignalDemo />
+
+    <SignalSubscriptionDemo />
+
+    <MultipleSignalsDemo />
+</div>
+
+<style>
+    .demo-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .page-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        color: #64748b;
+    }
+</style>

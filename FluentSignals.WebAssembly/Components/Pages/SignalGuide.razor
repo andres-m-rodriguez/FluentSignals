@@ -1,0 +1,696 @@
+@page "/signals-guide"
+@using FluentSignals.Implementations.Core
+@using FluentSignals.WebAssembly.Components
+
+<PageTitle>Signals Guide - FluentSignals</PageTitle>
+
+<div class="guide-page">
+    <div class="page-header">
+        <h1>Complete Guide to FluentSignals</h1>
+        <p class="lead">Learn how to use reactive signals for state management in .NET applications</p>
+    </div>
+
+    <div class="guide-nav">
+        <h3>Table of Contents</h3>
+        <nav class="toc">
+            <a href="#introduction">Introduction</a>
+            <a href="#basic-signals">Basic Signals</a>
+            <a href="#typed-signals">Typed Signals</a>
+            <a href="#subscriptions">Subscriptions</a>
+            <a href="#computed-values">Computed Values</a>
+            <a href="#async-signals">Async Signals</a>
+            <a href="#best-practices">Best Practices</a>
+        </nav>
+    </div>
+
+    <section id="introduction" class="guide-section">
+        <h2>Introduction</h2>
+        <p>
+            FluentSignals is a powerful reactive state management library for .NET applications. 
+            It provides a simple and intuitive API for creating reactive data flows, automatic UI updates, 
+            and complex state synchronization.
+        </p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h4>Reactive</h4>
+                <p>Automatically propagate changes through your application</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h4>Type-Safe</h4>
+                <p>Full IntelliSense support with strong typing</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h4>Performant</h4>
+                <p>Optimized for minimal overhead and efficient updates</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="basic-signals" class="guide-section">
+        <h2>Basic Signals</h2>
+        <p>
+            The foundation of FluentSignals is the <code>Signal</code> class. It represents a reactive value 
+            that can notify subscribers when it changes.
+        </p>
+
+        <div class="code-example">
+            <h4>Creating a Basic Signal</h4>
+            <pre class="code-block"><code>// Create a signal with an initial value
+var counter = new Signal(0);
+
+// Get the current value
+var currentValue = counter.Value; // 0
+
+// Update the value (triggers notifications)
+counter.Value = 10;</code></pre>
+        </div>
+
+        <div class="code-example">
+            <h4>Signal Notifications</h4>
+            <pre class="code-block"><code>// Signals automatically notify subscribers
+var message = new Signal("Hello");
+
+// Subscribe to changes
+message.Subscribe(() => 
+{
+    Console.WriteLine($"Message changed to: {message.Value}");
+});
+
+message.Value = "World"; // Prints: "Message changed to: World"</code></pre>
+        </div>
+    </section>
+
+    <section id="typed-signals" class="guide-section">
+        <h2>Typed Signals</h2>
+        <p>
+            <code>TypedSignal&lt;T&gt;</code> provides strongly-typed signals with better IntelliSense support 
+            and compile-time type checking.
+        </p>
+
+        <div class="code-example">
+            <h4>Using Typed Signals</h4>
+            <pre class="code-block"><code>// Create typed signals
+var name = new TypedSignal&lt;string&gt;("John");
+var age = new TypedSignal&lt;int&gt;(25);
+var isActive = new TypedSignal&lt;bool&gt;(true);
+
+// Type-safe operations
+name.Subscribe(value => 
+{
+    // 'value' is strongly typed as string
+    Console.WriteLine($"Name is now: {value}");
+});
+
+// Compiler enforces correct types
+age.Value = 30;        // ✓ Valid
+// age.Value = "thirty"; // ✗ Compile error</code></pre>
+        </div>
+
+        <div class="code-example">
+            <h4>Complex Types</h4>
+            <pre class="code-block"><code>// Signals can hold any type
+public class User
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+var userSignal = new TypedSignal&lt;User&gt;(new User 
+{ 
+    Name = "Alice", 
+    Age = 30 
+});
+
+// Update complex objects
+userSignal.Value = new User { Name = "Bob", Age = 25 };</code></pre>
+        </div>
+    </section>
+
+    <section id="subscriptions" class="guide-section">
+        <h2>Subscriptions</h2>
+        <p>
+            Subscriptions allow you to react to signal changes. FluentSignals provides multiple ways 
+            to subscribe to signals.
+        </p>
+
+        <div class="code-example">
+            <h4>Basic Subscription</h4>
+            <pre class="code-block"><code>var temperature = new TypedSignal&lt;double&gt;(20.0);
+
+// Subscribe with callback
+var subscription = temperature.Subscribe(temp => 
+{
+    if (temp > 30)
+        Console.WriteLine("It's hot!");
+    else if (temp &lt; 10)
+        Console.WriteLine("It's cold!");
+});
+
+// Unsubscribe when done
+subscription.Dispose();</code></pre>
+        </div>
+
+        <div class="code-example">
+            <h4>Multiple Subscriptions</h4>
+            <pre class="code-block"><code>var score = new TypedSignal&lt;int&gt;(0);
+
+// Multiple components can subscribe
+score.Subscribe(s => UpdateUI(s));
+score.Subscribe(s => SaveToDatabase(s));
+score.Subscribe(s => CheckAchievements(s));
+
+// All subscribers are notified
+score.Value = 100; // Triggers all three callbacks</code></pre>
+        </div>
+
+        <div class="code-example">
+            <h4>Subscription Patterns</h4>
+            <pre class="code-block"><code>// Subscribe once
+var signal = new TypedSignal&lt;string&gt;("");
+IDisposable sub = null;
+sub = signal.Subscribe(value => 
+{
+    Console.WriteLine($"First value: {value}");
+    sub?.Dispose(); // Unsubscribe after first update
+});
+
+// Conditional subscription
+signal.Subscribe(value => 
+{
+    if (!string.IsNullOrEmpty(value))
+    {
+        ProcessValue(value);
+    }
+});</code></pre>
+        </div>
+    </section>
+
+    <section id="computed-values" class="guide-section">
+        <h2>Computed Values</h2>
+        <p>
+            Create reactive computed values that automatically update when their dependencies change.
+        </p>
+
+        <div class="code-example">
+            <h4>Simple Computed Values</h4>
+            <pre class="code-block"><code>var firstName = new TypedSignal&lt;string&gt;("John");
+var lastName = new TypedSignal&lt;string&gt;("Doe");
+var fullName = new TypedSignal&lt;string&gt;("");
+
+// Setup computed value
+Action updateFullName = () => 
+{
+    fullName.Value = $"{firstName.Value} {lastName.Value}";
+};
+
+firstName.Subscribe(_ => updateFullName());
+lastName.Subscribe(_ => updateFullName());
+
+// Initial computation
+updateFullName();
+
+// fullName automatically updates
+firstName.Value = "Jane"; // fullName becomes "Jane Doe"</code></pre>
+        </div>
+
+        <div class="code-example">
+            <h4>Complex Computations</h4>
+            <pre class="code-block"><code>// Shopping cart example
+var items = new TypedSignal&lt;List&lt;CartItem&gt;&gt;(new());
+var taxRate = new TypedSignal&lt;decimal&gt;(0.08m);
+var discount = new TypedSignal&lt;decimal&gt;(0.10m);
+
+var subtotal = new TypedSignal&lt;decimal&gt;(0);
+var tax = new TypedSignal&lt;decimal&gt;(0);
+var total = new TypedSignal&lt;decimal&gt;(0);
+
+// Chain computations
+Action calculate = () =>
+{
+    subtotal.Value = items.Value.Sum(i => i.Price * i.Quantity);
+    var discounted = subtotal.Value * (1 - discount.Value);
+    tax.Value = discounted * taxRate.Value;
+    total.Value = discounted + tax.Value;
+};
+
+// Subscribe all dependencies
+items.Subscribe(_ => calculate());
+taxRate.Subscribe(_ => calculate());
+discount.Subscribe(_ => calculate());</code></pre>
+        </div>
+    </section>
+
+    <section id="async-signals" class="guide-section">
+        <h2>Async Signals</h2>
+        <p>
+            Handle asynchronous operations with built-in loading and error states.
+        </p>
+
+        <div class="code-example">
+            <h4>Basic Async Signal</h4>
+            <pre class="code-block"><code>var userDataSignal = new AsyncTypedSignal&lt;UserData&gt;(null);
+
+// Load data asynchronously
+await userDataSignal.LoadAsync(async () => 
+{
+    return await apiService.GetUserDataAsync();
+});
+
+// Check states
+if (userDataSignal.IsLoading.Value)
+    ShowSpinner();
+else if (userDataSignal.Error.Value != null)
+    ShowError(userDataSignal.Error.Value);
+else if (userDataSignal.Value != null)
+    ShowUserData(userDataSignal.Value);</code></pre>
+        </div>
+
+        <div class="code-example">
+            <h4>Async Signal with Retry</h4>
+            <pre class="code-block"><code>var weatherSignal = new AsyncTypedSignal&lt;Weather&gt;(null);
+
+async Task LoadWeatherWithRetry()
+{
+    const int maxRetries = 3;
+    int attempt = 0;
+    
+    while (attempt &lt; maxRetries)
+    {
+        await weatherSignal.LoadAsync(async () => 
+        {
+            return await weatherService.GetCurrentWeatherAsync();
+        });
+        
+        if (weatherSignal.Error.Value == null)
+            break;
+            
+        attempt++;
+        await Task.Delay(1000 * attempt); // Exponential backoff
+    }
+}</code></pre>
+        </div>
+    </section>
+
+    <section id="best-practices" class="guide-section">
+        <h2>Best Practices</h2>
+        
+        <div class="best-practice">
+            <h4>1. Dispose of Subscriptions</h4>
+            <p>Always dispose of subscriptions when they're no longer needed to prevent memory leaks.</p>
+            <div class="code-example">
+                <pre class="code-block"><code>public class MyComponent : IDisposable
+{
+    private readonly List&lt;IDisposable&gt; _subscriptions = new();
+    
+    public void Initialize()
+    {
+        _subscriptions.Add(signal.Subscribe(OnUpdate));
+    }
+    
+    public void Dispose()
+    {
+        foreach (var sub in _subscriptions)
+            sub.Dispose();
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="best-practice">
+            <h4>2. Use Typed Signals</h4>
+            <p>Prefer <code>TypedSignal&lt;T&gt;</code> over basic <code>Signal</code> for better type safety.</p>
+            <div class="code-example">
+                <pre class="code-block"><code>// ✓ Good - Type safe
+var count = new TypedSignal&lt;int&gt;(0);
+
+// ✗ Avoid - No compile-time type checking
+var count = new Signal(0);</code></pre>
+            </div>
+        </div>
+
+        <div class="best-practice">
+            <h4>3. Avoid Circular Dependencies</h4>
+            <p>Be careful not to create circular dependencies between signals.</p>
+            <div class="code-example">
+                <pre class="code-block"><code>// ✗ Bad - Circular dependency
+signalA.Subscribe(_ => signalB.Value = signalA.Value + 1);
+signalB.Subscribe(_ => signalA.Value = signalB.Value - 1);
+
+// ✓ Good - One-way data flow
+source.Subscribe(_ => derived.Value = compute(source.Value));</code></pre>
+            </div>
+        </div>
+
+        <div class="best-practice">
+            <h4>4. Use SignalComponentBase in Blazor</h4>
+            <p>Inherit from <code>SignalComponentBase</code> for automatic subscription management.</p>
+            <div class="code-example">
+                <pre class="code-block"><code>@@inherits SignalComponentBase
+
+@@code {
+    private TypedSignal&lt;int&gt; counter = new(0);
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Subscriptions are automatically managed
+        SubscribeForUpdate(counter);
+    }
+}</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <div class="guide-footer">
+        <h3>Ready to Get Started?</h3>
+        <p>Check out our interactive demos to see FluentSignals in action!</p>
+        <div class="footer-actions">
+            <a href="/demos/signal" class="btn btn-primary">View Demos</a>
+            <a href="/playground" class="btn btn-secondary">Try Playground</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .guide-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #1e293b;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-header .lead {
+        font-size: 1.25rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .guide-nav {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .guide-nav h3 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+    }
+
+    .toc {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .toc a {
+        padding: 0.5rem 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #475569;
+        font-weight: 500;
+        transition: all 0.2s;
+        border: 1px solid #e5e7eb;
+    }
+
+    .toc a:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        transform: translateY(-1px);
+    }
+
+    .guide-section {
+        background: white;
+        border-radius: 12px;
+        padding: 3rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+    }
+
+    .guide-section h2 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+        font-size: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .guide-section h2::before {
+        content: "";
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+    }
+
+    .guide-section p {
+        font-size: 1.125rem;
+        line-height: 1.7;
+        color: #475569;
+        margin-bottom: 1.5rem;
+    }
+
+    .guide-section code {
+        background: #f3f4f6;
+        padding: 0.125rem 0.375rem;
+        border-radius: 4px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.875em;
+        color: #e11d48;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .feature-card {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-card h4 {
+        margin: 0 0 0.5rem 0;
+        color: #1e293b;
+    }
+
+    .feature-card p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .code-example {
+        margin: 2rem 0;
+    }
+
+    .code-example h4 {
+        margin: 0 0 1rem 0;
+        color: #1e293b;
+        font-size: 1.125rem;
+    }
+
+    .code-block {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1.5rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .code-block code {
+        background: none;
+        color: inherit;
+        padding: 0;
+        font-size: inherit;
+    }
+
+    .best-practice {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .best-practice h4 {
+        margin-top: 0;
+        margin-bottom: 0.75rem;
+        color: #1e293b;
+    }
+
+    .best-practice p {
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .guide-footer {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 3rem;
+    }
+
+    .guide-footer h3 {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 2rem;
+    }
+
+    .guide-footer p {
+        font-size: 1.125rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+
+    .footer-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-block;
+        border: 2px solid transparent;
+    }
+
+    .btn-primary {
+        background: white;
+        color: #667eea;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-secondary {
+        background: transparent;
+        color: white;
+        border-color: white;
+    }
+
+    .btn-secondary:hover {
+        background: white;
+        color: #667eea;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .guide-page {
+            padding: 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+        }
+
+        .page-header .lead {
+            font-size: 1.125rem;
+        }
+
+        .guide-section {
+            padding: 2rem 1.5rem;
+        }
+
+        .guide-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .toc {
+            flex-direction: column;
+        }
+
+        .toc a {
+            text-align: center;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .footer-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .code-block {
+            padding: 1rem;
+            font-size: 0.75rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+
+        .guide-section {
+            padding: 1.5rem 1rem;
+        }
+
+        .guide-section h2 {
+            font-size: 1.25rem;
+        }
+
+        .guide-section p {
+            font-size: 1rem;
+        }
+
+        .best-practice {
+            padding: 1rem;
+        }
+    }
+</style>

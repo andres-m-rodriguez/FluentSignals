@@ -1,0 +1,119 @@
+@namespace FluentSignals.WebAssembly.Components.Pages.Demos.AsyncSignalDemo.Components
+@inherits SignalComponentBase
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Blazor.Extensions
+@using FluentSignals.Blazor.Components
+@using FluentSignals.WebAssembly.Components
+
+<div class="demo-content">
+            <div class="async-status">
+                @if (dataSignal.IsLoading.Value)
+                {
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <span>Loading data...</span>
+                    </div>
+                }
+                else if (dataSignal.Error.Value != null)
+                {
+                    <div class="error-display">
+                        <span class="error-icon">⚠️</span>
+                        <span>Error: @dataSignal.Error.Value.Message</span>
+                    </div>
+                }
+                else if (dataSignal.Value != null)
+                {
+                    <div class="success-display">
+                        <span class="success-icon">✅</span>
+                        <span>Data loaded: @dataSignal.Value</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-display">
+                        <span>No data loaded yet</span>
+                    </div>
+                }
+            </div>
+            <div class="button-group">
+                <button class="btn btn-primary" @onclick="LoadDataSuccess" disabled="@dataSignal.IsLoading.Value">
+                    Load Success
+                </button>
+                <button class="btn btn-warning" @onclick="LoadDataError" disabled="@dataSignal.IsLoading.Value">
+                    Load Error
+                </button>
+                <button class="btn btn-secondary" @onclick="LoadDataSlow" disabled="@dataSignal.IsLoading.Value">
+                    Load Slow (3s)
+                </button>
+            </div>
+            <CodeBlock Code="@basicAsyncCode" />
+</div>
+
+@code {
+    private AsyncTypedSignal<string?> dataSignal = new(null);
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Subscribe to the signal for UI updates
+        // AsyncTypedSignal now automatically handles subscribing to its internal IsLoading and Error signals
+        SubscribeForUpdate(dataSignal);
+    }
+
+    private async Task LoadDataSuccess()
+    {
+        await dataSignal.LoadAsync(async () =>
+        {
+            await Task.Delay(1000);
+            return "Data loaded successfully!";
+        });
+    }
+
+    private async Task LoadDataError()
+    {
+        await dataSignal.LoadAsync(async () =>
+        {
+            await Task.Delay(500);
+            throw new Exception("Simulated error occurred");
+        });
+    }
+
+    private async Task LoadDataSlow()
+    {
+        await dataSignal.LoadAsync(async () =>
+        {
+            await Task.Delay(3000);
+            return "Finally loaded after 3 seconds!";
+        });
+    }
+
+    private string basicAsyncCode = @"// Create an AsyncSignal
+var dataSignal = new AsyncTypedSignal<string>(null);
+
+// Subscribe to the signal - it automatically includes IsLoading and Error
+dataSignal.Subscribe(value => 
+{
+    Console.WriteLine($""Value: {value}"");
+    Console.WriteLine($""Loading: {dataSignal.IsLoading.Value}"");
+    if (dataSignal.Error.Value != null)
+        Console.WriteLine($""Error: {dataSignal.Error.Value.Message}"");
+});
+
+// Or in Blazor components, simply subscribe for UI updates
+SubscribeForUpdate(dataSignal);
+
+// Load data asynchronously
+await dataSignal.LoadAsync(async () =>
+{
+    // Simulate API call
+    await Task.Delay(1000);
+    return ""Data loaded successfully!"";
+});
+
+// LoadAsync automatically manages:
+// - IsLoading: true → false
+// - Error: cleared before operation
+// - Value: updated on success";
+}
+
