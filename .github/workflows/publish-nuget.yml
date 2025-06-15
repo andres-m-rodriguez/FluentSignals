@@ -1,5 +1,10 @@
 name: Publish NuGet Packages
 
+# 1. Give the workflow write access to contents and packages
+permissions:
+  contents: write      # needed to create tags & GitHub releases
+  packages: write      # needed if you're ever publishing via the GitHub Packages registry
+
 on:
   push:
     branches: [ master, main ]
@@ -17,152 +22,130 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     name: Build and Test
-    
+
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # GitVersion requires full history
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-    
-    - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal
-    
-    - name: Pack NuGet packages
-      run: |
-        dotnet pack ./FluentSignals/FluentSignals.csproj --configuration Release --no-build --output ./nupkgs
-        dotnet pack ./FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-build --output ./nupkgs
-    
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-artifacts
-        path: |
-          ./nupkgs/*.nupkg
-          ./nupkgs/*.snupkg
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+      - name: Pack NuGet packages
+        run: |
+          dotnet pack ./FluentSignals/FluentSignals.csproj --configuration Release --no-build --output ./nupkgs
+          dotnet pack ./FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-build --output ./nupkgs
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            ./nupkgs/*.nupkg
+            ./nupkgs/*.snupkg
 
   publish-nuget:
     needs: build-and-test
     runs-on: ubuntu-latest
     name: Publish to NuGet
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-    
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifacts
-        path: ./artifacts
-    
-    - name: List downloaded artifacts
-      run: |
-        echo "Contents of artifacts directory:"
-        find ./artifacts -type f -name "*.nupkg" | sort
-    
-    - name: Get version from csproj
-      id: version
-      run: |
-        VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | head -1)
-        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-        echo "Package version: $VERSION"
-    
-    - name: Check if version exists on NuGet
-      id: version-check
-      run: |
-        # Function to check if package exists
-        check_package() {
-          local package_name=$1
-          local version=$2
-          
-          # Try to download package info
-          if curl -s -f -o /dev/null "https://api.nuget.org/v3-flatcontainer/${package_name,,}/${version}/${package_name,,}.nuspec"; then
-            return 0  # exists
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: ./artifacts
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Contents of artifacts directory:"
+          find ./artifacts -type f -name "*.nupkg" | sort
+
+      - name: Get version from props
+        id: version
+        run: |
+          VERSION=$(grep '<Version>' Directory.Build.props \
+                    | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' \
+                    | head -1)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Package version: $VERSION"
+
+      - name: Check if version exists on NuGet
+        id: version-check
+        run: |
+          check_package() {
+            pkg=$1; ver=$2
+            url="https://api.nuget.org/v3-flatcontainer/${pkg,,}/${ver}/${pkg,,}.nuspec"
+            curl -s -f -o /dev/null "$url"
+          }
+
+          if check_package "FluentSignals" "${{ steps.version.outputs.VERSION }}"; then
+            echo "FLUENTSIGNALS_EXISTS=true" >> $GITHUB_OUTPUT
           else
-            return 1  # does not exist
+            echo "FLUENTSIGNALS_EXISTS=false" >> $GITHUB_OUTPUT
           fi
-        }
-        
-        # Check FluentSignals package
-        if check_package "FluentSignals" "${{ steps.version.outputs.VERSION }}"; then
-          echo "FluentSignals ${{ steps.version.outputs.VERSION }} already exists on NuGet"
-          echo "FLUENTSIGNALS_EXISTS=true" >> $GITHUB_OUTPUT
-        else
-          echo "FluentSignals ${{ steps.version.outputs.VERSION }} does not exist on NuGet"
-          echo "FLUENTSIGNALS_EXISTS=false" >> $GITHUB_OUTPUT
-        fi
-        
-        # Check FluentSignals.Blazor package
-        if check_package "FluentSignals.Blazor" "${{ steps.version.outputs.VERSION }}"; then
-          echo "FluentSignals.Blazor ${{ steps.version.outputs.VERSION }} already exists on NuGet"
-          echo "FLUENTSIGNALS_BLAZOR_EXISTS=true" >> $GITHUB_OUTPUT
-        else
-          echo "FluentSignals.Blazor ${{ steps.version.outputs.VERSION }} does not exist on NuGet"
-          echo "FLUENTSIGNALS_BLAZOR_EXISTS=false" >> $GITHUB_OUTPUT
-        fi
-    
-    - name: Publish FluentSignals to NuGet
-      if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false'
-      run: |
-        PACKAGE=$(find ./artifacts -name "FluentSignals.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
-        if [ -z "$PACKAGE" ]; then
-          echo "Error: FluentSignals package not found"
-          exit 1
-        fi
-        echo "Publishing package: $PACKAGE"
-        dotnet nuget push "$PACKAGE" \
-          --api-key ${{ secrets.NUGET_API_KEY }} \
-          --source ${{ env.NUGET_FEED }} \
-          --skip-duplicate
-    
-    - name: Publish FluentSignals.Blazor to NuGet
-      if: steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
-      run: |
-        PACKAGE=$(find ./artifacts -name "FluentSignals.Blazor.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
-        if [ -z "$PACKAGE" ]; then
-          echo "Error: FluentSignals.Blazor package not found"
-          exit 1
-        fi
-        echo "Publishing package: $PACKAGE"
-        dotnet nuget push "$PACKAGE" \
-          --api-key ${{ secrets.NUGET_API_KEY }} \
-          --source ${{ env.NUGET_FEED }} \
-          --skip-duplicate
-    
-    - name: Create GitHub Release
-      if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false' || steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ steps.version.outputs.VERSION }}
-        release_name: Release v${{ steps.version.outputs.VERSION }}
-        body: |
-          ## Changes in this Release
-          - FluentSignals v${{ steps.version.outputs.VERSION }}
-          - FluentSignals.Blazor v${{ steps.version.outputs.VERSION }}
-          
-          ### Installation
-          ```bash
-          dotnet add package FluentSignals --version ${{ steps.version.outputs.VERSION }}
-          dotnet add package FluentSignals.Blazor --version ${{ steps.version.outputs.VERSION }}
-          ```
-          
-          See the [documentation](https://github.com/${{ github.repository }}) for more information.
-        draft: false
-        prerelease: false
+
+          if check_package "FluentSignals.Blazor" "${{ steps.version.outputs.VERSION }}"; then
+            echo "FLUENTSIGNALS_BLAZOR_EXISTS=true" >> $GITHUB_OUTPUT
+          else
+            echo "FLUENTSIGNALS_BLAZOR_EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Publish FluentSignals to NuGet
+        if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false'
+        run: |
+          PACKAGE=$(find ./artifacts -name "FluentSignals.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
+          dotnet nuget push "$PACKAGE" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source ${{ env.NUGET_FEED }} \
+            --skip-duplicate
+
+      - name: Publish FluentSignals.Blazor to NuGet
+        if: steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
+        run: |
+          PACKAGE=$(find ./artifacts -name "FluentSignals.Blazor.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
+          dotnet nuget push "$PACKAGE" \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source ${{ env.NUGET_FEED }} \
+            --skip-duplicate
+
+      - name: Create GitHub Release
+        if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false' || steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
+        uses: actions/create-release@v1
+        with:
+          # 2. Pass the token via 'with'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          release_name: Release v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Changes in this Release
+            - FluentSignals v${{ steps.version.outputs.VERSION }}
+            - FluentSignals.Blazor v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            ```bash
+            dotnet add package FluentSignals --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package FluentSignals.Blazor --version ${{ steps.version.outputs.VERSION }}
+            ```
+
+          draft: false
+          prerelease: false
