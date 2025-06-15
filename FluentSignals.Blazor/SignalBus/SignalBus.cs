@@ -205,7 +205,7 @@ internal class QueueSubscription<T> : IDisposable where T : class
 }
 
 /// <summary>
-/// Adapter to make ISignal<T> work as ISignalConsumer<T>
+/// Adapter to make ISignal T work as ISignalConsumer T
 /// </summary>
 internal class SignalConsumerAdapter<T> : ISignalConsumer<T> where T : class
 {
