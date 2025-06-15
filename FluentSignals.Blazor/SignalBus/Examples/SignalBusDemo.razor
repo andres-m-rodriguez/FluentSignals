@@ -1,0 +1,155 @@
+@page "/signalbus-demo"
+@using FluentSignals.Blazor.SignalBus
+@using FluentSignals.Blazor.SignalBus.Examples
+@using FluentSignals.Contracts
+@inject ISignalPublisher Publisher
+@inject ISignalConsumer<NotificationMessage> NotificationConsumer
+@inject ISignalConsumer<UserLoggedInMessage> UserLoginConsumer
+@implements IDisposable
+
+<h3>SignalBus Demo</h3>
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>Publish Messages</h4>
+        
+        <div class="mb-3">
+            <h5>User Login Message</h5>
+            <input @bind="userName" placeholder="User Name" class="form-control mb-2" />
+            <button class="btn btn-primary" @onclick="PublishUserLogin">Publish User Login</button>
+        </div>
+        
+        <div class="mb-3">
+            <h5>Notification Message</h5>
+            <input @bind="notificationTitle" placeholder="Title" class="form-control mb-2" />
+            <input @bind="notificationContent" placeholder="Content" class="form-control mb-2" />
+            <select @bind="notificationType" class="form-control mb-2">
+                <option value="info">Info</option>
+                <option value="success">Success</option>
+                <option value="warning">Warning</option>
+                <option value="error">Error</option>
+            </select>
+            <button class="btn btn-primary" @onclick="PublishNotification">Publish Notification</button>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <h4>Received Messages</h4>
+        
+        <div class="border rounded p-3" style="height: 400px; overflow-y: auto;">
+            @foreach (var message in receivedMessages)
+            {
+                <div class="alert alert-@GetAlertClass(message.Type) mb-2">
+                    <strong>@message.Timestamp.ToString("HH:mm:ss")</strong> - @message.Message
+                </div>
+            }
+            
+            @if (!receivedMessages.Any())
+            {
+                <p class="text-muted">No messages received yet...</p>
+            }
+        </div>
+        
+        <button class="btn btn-secondary mt-2" @onclick="ClearMessages">Clear Messages</button>
+    </div>
+</div>
+
+<div class="mt-3">
+    <h5>Statistics</h5>
+    <p>Total messages received: @receivedMessages.Count</p>
+    <p>Active subscriptions: @(userLoginSubscription != null && notificationSubscription != null ? 2 : 0)</p>
+</div>
+
+@code {
+    private string userName = "TestUser";
+    private string notificationTitle = "Test Notification";
+    private string notificationContent = "This is a test message";
+    private string notificationType = "info";
+    
+    private List<ReceivedMessage> receivedMessages = new();
+    private IDisposable? userLoginSubscription;
+    private IDisposable? notificationSubscription;
+    
+    protected override void OnInitialized()
+    {
+        // Subscribe to user login messages
+        userLoginSubscription = UserLoginConsumer.SubscribeDisposable(message =>
+        {
+            receivedMessages.Add(new ReceivedMessage
+            {
+                Message = $"User '{message.UserName}' (ID: {message.UserId}) logged in",
+                Type = "success",
+                Timestamp = message.LoggedInAt
+            });
+            InvokeAsync(StateHasChanged);
+        });
+        
+        // Subscribe to notification messages
+        notificationSubscription = NotificationConsumer.SubscribeDisposable(async message =>
+        {
+            await Task.Delay(50); // Simulate async processing
+            
+            receivedMessages.Add(new ReceivedMessage
+            {
+                Message = $"{message.Title}: {message.Content}",
+                Type = message.Type,
+                Timestamp = DateTime.Now
+            });
+            
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+    
+    private void PublishUserLogin()
+    {
+        var message = new UserLoggedInMessage
+        {
+            UserId = Guid.NewGuid().ToString(),
+            UserName = userName,
+            LoggedInAt = DateTime.Now
+        };
+        
+        Publisher.Publish(message);
+    }
+    
+    private async Task PublishNotification()
+    {
+        var message = new NotificationMessage
+        {
+            Title = notificationTitle,
+            Content = notificationContent,
+            Type = notificationType
+        };
+        
+        await Publisher.PublishAsync(message);
+    }
+    
+    private void ClearMessages()
+    {
+        receivedMessages.Clear();
+    }
+    
+    private string GetAlertClass(string type)
+    {
+        return type switch
+        {
+            "success" => "success",
+            "warning" => "warning",
+            "error" => "danger",
+            _ => "info"
+        };
+    }
+    
+    public void Dispose()
+    {
+        userLoginSubscription?.Dispose();
+        notificationSubscription?.Dispose();
+    }
+    
+    private class ReceivedMessage
+    {
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "info";
+        public DateTime Timestamp { get; set; }
+    }
+}

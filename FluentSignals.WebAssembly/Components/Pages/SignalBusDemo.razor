@@ -1,0 +1,328 @@
+@page "/signalbus-demo"
+@using FluentSignals.Blazor.SignalBus
+@using FluentSignals.WebAssembly.Models
+@implements ISignalHandler<PersonForAddDto>
+@implements IDisposable
+
+<PageTitle>SignalBus Demo - FluentSignals</PageTitle>
+
+<div class="signalbus-demo-page">
+    <div class="demo-header">
+        <h1>SignalBus Demo</h1>
+        <p class="lead">Demonstrating publish-subscribe messaging between components</p>
+    </div>
+
+    <div class="demo-grid">
+        <!-- Publisher Component -->
+        <div class="demo-panel publisher-panel">
+            <div class="panel-header">
+                <h3>Publisher Component</h3>
+                <span class="badge">Component 1</span>
+            </div>
+            <div class="panel-body">
+                <SignalBusPublisher />
+            </div>
+        </div>
+
+        <!-- Consumer Component (This Component) -->
+        <div class="demo-panel consumer-panel">
+            <div class="panel-header">
+                <h3>Consumer Component</h3>
+                <span class="badge">Component 2</span>
+            </div>
+            <div class="panel-body">
+                <h4>Received People:</h4>
+                @if (people.Any())
+                {
+                    <div class="people-list">
+                        @foreach (var person in people)
+                        {
+                            <div class="person-item">
+                                <div class="person-info">
+                                    <strong>@person.Name</strong>, Age: @person.Age
+                                </div>
+                                <div class="person-time">
+                                    @person.CreatedAt.ToString("HH:mm:ss")
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <button class="btn btn-secondary mt-3" @onclick="ClearPeople">Clear List</button>
+                }
+                else
+                {
+                    <p class="text-muted">No people received yet. Click "Add Person" in the Publisher to send messages.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Message Flow Visualization -->
+        <div class="demo-panel flow-panel">
+            <div class="panel-header">
+                <h3>Message Flow</h3>
+            </div>
+            <div class="panel-body">
+                <div class="flow-visualization">
+                    <div class="flow-step">
+                        <div class="flow-icon">📤</div>
+                        <div class="flow-text">Publisher calls<br/><code>Publish(PersonForAddDto)</code></div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">📡</div>
+                        <div class="flow-text">SignalBus<br/>routes message</div>
+                    </div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step">
+                        <div class="flow-icon">📥</div>
+                        <div class="flow-text">Consumer's<br/><code>Consume()</code> called</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Example -->
+        <div class="demo-panel code-panel">
+            <div class="panel-header">
+                <h3>How It Works</h3>
+            </div>
+            <div class="panel-body">
+                <div class="code-section">
+                    <h5>Publisher Code:</h5>
+                    <pre><code>@("@inject ISignalPublisher SignalPublisher\n\nawait SignalPublisher.Publish(new PersonForAddDto\n{\n    Name = \"John Doe\",\n    Age = 30\n});")</code></pre>
+                </div>
+                <div class="code-section">
+                    <h5>Consumer Code:</h5>
+                    <pre><code>@("@inject ISignalConsumer<PersonForAddDto> SignalConsumer\n\n// Subscribe in OnInitialized\nsubscription = SignalConsumer.SubscribeDisposable(async message =>\n{\n    people.Add(message);\n    await InvokeAsync(StateHasChanged);\n});")</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<PersonForAddDto> people = new();
+    private IDisposable? subscription;
+
+    [Inject] private ISignalConsumer<PersonForAddDto> SignalConsumer { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        // Subscribe to PersonForAddDto messages
+        subscription = SignalConsumer.SubscribeDisposable(async message =>
+        {
+            await Handle(message);
+        });
+    }
+
+    public Task Handle(PersonForAddDto message)
+    {
+        people.Add(message);
+        InvokeAsync(StateHasChanged);
+        return Task.CompletedTask;
+    }
+
+    private void ClearPeople()
+    {
+        people.Clear();
+    }
+
+    public void Dispose()
+    {
+        subscription?.Dispose();
+    }
+}
+
+<style>
+    .signalbus-demo-page {
+        padding: 2rem;
+        background: #f8fafc;
+        min-height: calc(100vh - 100px);
+    }
+
+    .demo-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .demo-header h1 {
+        font-size: 2.5rem;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        color: #64748b;
+    }
+
+    .demo-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .demo-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+
+    .flow-panel, .code-panel {
+        grid-column: span 2;
+    }
+
+    .panel-header {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .panel-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #1e293b;
+    }
+
+    .badge {
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+    }
+
+    .panel-body {
+        padding: 1.5rem;
+    }
+
+    .people-list {
+        margin-top: 1rem;
+    }
+
+    .person-item {
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .person-time {
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    .text-muted {
+        color: #94a3b8;
+    }
+
+    .flow-visualization {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .flow-step {
+        text-align: center;
+    }
+
+    .flow-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .flow-text {
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .flow-arrow {
+        font-size: 2rem;
+        color: #667eea;
+        margin: 0 2rem;
+    }
+
+    .code-section {
+        margin-bottom: 1.5rem;
+    }
+
+    .code-section h5 {
+        margin-bottom: 0.5rem;
+        color: #475569;
+    }
+
+    pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 0;
+    }
+
+    code {
+        font-family: 'Cascadia Code', 'Fira Code', monospace;
+        font-size: 0.875rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a67d8;
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #475569;
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+    }
+
+    .mt-3 {
+        margin-top: 1rem;
+    }
+
+    @@media (max-width: 768px) {
+        .demo-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .flow-panel, .code-panel {
+            grid-column: span 1;
+        }
+
+        .flow-visualization {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .flow-arrow {
+            transform: rotate(90deg);
+            margin: 1rem 0;
+        }
+    }
+</style>

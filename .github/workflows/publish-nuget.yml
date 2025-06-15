@@ -1,0 +1,129 @@
+name: Publish NuGet Packages
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'FluentSignals/**'
+      - 'FluentSignals.Blazor/**'
+      - '.github/workflows/publish-nuget.yml'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  NUGET_FEED: https://api.nuget.org/v3/index.json
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Build and Test
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # GitVersion requires full history
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          **/bin/Release/*.nupkg
+          **/bin/Release/*.snupkg
+
+  publish-nuget:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    name: Publish to NuGet
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        path: ./artifacts
+    
+    - name: Get version from csproj
+      id: version
+      run: |
+        VERSION=$(grep '<Version>' FluentSignals/FluentSignals.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Package version: $VERSION"
+    
+    - name: Check if version exists on NuGet
+      id: version-check
+      run: |
+        # Check FluentSignals package
+        if dotnet nuget list source ${{ env.NUGET_FEED }} --source ${{ env.NUGET_FEED }} | grep -q "FluentSignals ${{ steps.version.outputs.VERSION }}"; then
+          echo "FLUENTSIGNALS_EXISTS=true" >> $GITHUB_OUTPUT
+        else
+          echo "FLUENTSIGNALS_EXISTS=false" >> $GITHUB_OUTPUT
+        fi
+        
+        # Check FluentSignals.Blazor package
+        if dotnet nuget list source ${{ env.NUGET_FEED }} --source ${{ env.NUGET_FEED }} | grep -q "FluentSignals.Blazor ${{ steps.version.outputs.VERSION }}"; then
+          echo "FLUENTSIGNALS_BLAZOR_EXISTS=true" >> $GITHUB_OUTPUT
+        else
+          echo "FLUENTSIGNALS_BLAZOR_EXISTS=false" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Publish FluentSignals to NuGet
+      if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false'
+      run: |
+        dotnet nuget push ./artifacts/**/FluentSignals.${{ steps.version.outputs.VERSION }}.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source ${{ env.NUGET_FEED }} \
+          --skip-duplicate
+    
+    - name: Publish FluentSignals.Blazor to NuGet
+      if: steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
+      run: |
+        dotnet nuget push ./artifacts/**/FluentSignals.Blazor.${{ steps.version.outputs.VERSION }}.nupkg \
+          --api-key ${{ secrets.NUGET_API_KEY }} \
+          --source ${{ env.NUGET_FEED }} \
+          --skip-duplicate
+    
+    - name: Create GitHub Release
+      if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false' || steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.version.outputs.VERSION }}
+        release_name: Release v${{ steps.version.outputs.VERSION }}
+        body: |
+          ## Changes in this Release
+          - FluentSignals v${{ steps.version.outputs.VERSION }}
+          - FluentSignals.Blazor v${{ steps.version.outputs.VERSION }}
+          
+          ### Installation
+          ```bash
+          dotnet add package FluentSignals --version ${{ steps.version.outputs.VERSION }}
+          dotnet add package FluentSignals.Blazor --version ${{ steps.version.outputs.VERSION }}
+          ```
+          
+          See the [documentation](https://github.com/${{ github.repository }}) for more information.
+        draft: false
+        prerelease: false

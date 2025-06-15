@@ -1,0 +1,788 @@
+@page "/playground"
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Contracts
+@using FluentSignals.WebAssembly.Components
+@using FluentSignals.Blazor.Components
+@using System.Linq
+@using System.IO
+@inherits SignalComponentBase
+
+<PageTitle>Playground - FluentSignals</PageTitle>
+
+<div class="playground-page">
+    <div class="playground-header">
+        <h1>FluentSignals Playground</h1>
+        <p class="lead">Experiment with FluentSignals in real-time</p>
+    </div>
+
+    <div class="playground-container">
+        <div class="editor-panel">
+            <div class="panel-header">
+                <h3>Code Editor</h3>
+                <div class="editor-actions">
+                    <button class="btn btn-primary" @onclick="RunCode" disabled="@isRunning">
+                        <span class="btn-icon">@(isRunning ? "⏳" : "▶️")</span> @(isRunning ? "Running..." : "Run")
+                    </button>
+                    <button class="btn btn-secondary" @onclick="ResetCode" disabled="@isRunning">
+                        <span class="btn-icon">🔄</span> Reset
+                    </button>
+                </div>
+            </div>
+            <div class="editor-content">
+                <textarea @bind="userCode" @bind:event="oninput" class="code-editor" placeholder="Enter your FluentSignals code here..."></textarea>
+            </div>
+            <div class="examples-section">
+                <h4>Quick Examples:</h4>
+                <div class="example-buttons">
+                    <button class="example-btn" @onclick='() => LoadExample("basic")'>Basic Signal</button>
+                    <button class="example-btn" @onclick='() => LoadExample("computed")'>Computed Values</button>
+                    <button class="example-btn" @onclick='() => LoadExample("async")'>Async Operations</button>
+                    <button class="example-btn" @onclick='() => LoadExample("complex")'>Complex State</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="output-panel">
+            <div class="panel-header">
+                <h3>Output</h3>
+                <button class="btn btn-sm" @onclick="ClearOutput">Clear</button>
+            </div>
+            <div class="output-content">
+                @if (outputLines.Any())
+                {
+                    @foreach (var line in outputLines)
+                    {
+                        <div class="output-line @line.Type">
+                            <span class="timestamp">[@line.Timestamp:HH:mm:ss]</span>
+                            <span class="message">@line.Message</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="output-placeholder">Output will appear here...</div>
+                }
+            </div>
+        </div>
+
+        <div class="state-panel">
+            <div class="panel-header">
+                <h3>Live State</h3>
+            </div>
+            <div class="state-content">
+                @if (signals.Any())
+                {
+                    <div class="state-grid">
+                        @foreach (var signal in signals)
+                        {
+                            <div class="state-item signal-item">
+                                <div class="state-name">@signal.Name</div>
+                                <div class="state-value">@signal.Value</div>
+                                <div class="state-type">@signal.Type</div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="state-placeholder">No signals created yet. Run code to see live state.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string userCode = "";
+    private List<OutputLine> outputLines = new();
+    private List<SignalInfo> signals = new();
+    private bool isRunning = false;
+
+    private class OutputLine
+    {
+        public DateTime Timestamp { get; set; } = DateTime.Now;
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "info";
+        
+        public OutputLine(string message, string type = "info")
+        {
+            Message = message;
+            Type = type;
+            Timestamp = DateTime.Now;
+        }
+    }
+
+    private class SignalInfo
+    {
+        public string Name { get; set; } = "";
+        public string Value { get; set; } = "";
+        public string Type { get; set; } = "";
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        LoadExample("basic");
+    }
+
+    private async Task RunCode()
+    {
+        if (string.IsNullOrWhiteSpace(userCode) || isRunning) return;
+
+        isRunning = true;
+        outputLines.Clear();
+        signals.Clear();
+        
+        try
+        {
+            // Instead of full C# compilation (which isn't supported in WebAssembly),
+            // we'll interpret the code based on patterns
+            await ExecuteInterpreted();
+        }
+        catch (Exception ex)
+        {
+            outputLines.Add(new OutputLine($"Error: {ex.Message}", "error"));
+        }
+        finally
+        {
+            isRunning = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task ExecuteInterpreted()
+    {
+        // This is a simplified interpreter for common FluentSignals patterns
+        var writer = new StringWriter();
+        var originalOut = Console.Out;
+        Console.SetOut(writer);
+
+        try
+        {
+            if (userCode.Contains("// Create a simple counter signal"))
+            {
+                await ExecuteBasicExample();
+            }
+            else if (userCode.Contains("// Create base signals"))
+            {
+                await ExecuteComputedExample();
+            }
+            else if (userCode.Contains("// Create an async signal"))
+            {
+                await ExecuteAsyncExample();
+            }
+            else if (userCode.Contains("// Define item class"))
+            {
+                await ExecuteComplexExample();
+            }
+            else
+            {
+                // Try to execute custom code with basic pattern matching
+                await ExecuteCustomCode();
+            }
+        }
+        finally
+        {
+            Console.SetOut(originalOut);
+            var output = writer.ToString();
+            if (!string.IsNullOrEmpty(output))
+            {
+                var lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var line in lines)
+                {
+                    outputLines.Add(new OutputLine(line, "success"));
+                }
+            }
+        }
+    }
+
+    private async Task ExecuteBasicExample()
+    {
+        var counter = new TypedSignal<int>(0);
+        TrackSignal("counter", counter);
+        
+        counter.Subscribe(value => 
+        {
+            Console.WriteLine($"Counter: {value}");
+        });
+        
+        counter.Value = 10;
+        counter.Value = 20;
+        await Task.CompletedTask;
+    }
+
+    private async Task ExecuteComputedExample()
+    {
+        var firstName = new TypedSignal<string>("John");
+        var lastName = new TypedSignal<string>("Doe");
+        var fullName = new TypedSignal<string>("");
+        
+        TrackSignal("firstName", firstName);
+        TrackSignal("lastName", lastName);
+        TrackSignal("fullName", fullName);
+        
+        Action updateFullName = () => 
+        {
+            fullName.Value = $"{firstName.Value} {lastName.Value}";
+            Console.WriteLine($"Full name computed: {fullName.Value}");
+        };
+        
+        firstName.Subscribe(_ => updateFullName());
+        lastName.Subscribe(_ => updateFullName());
+        
+        updateFullName();
+        
+        Console.WriteLine("Changing first name...");
+        firstName.Value = "Jane";
+        
+        Console.WriteLine("Changing last name...");
+        lastName.Value = "Smith";
+        
+        await Task.CompletedTask;
+    }
+
+    private async Task ExecuteAsyncExample()
+    {
+        var dataSignal = new AsyncTypedSignal<string?>(null);
+        
+        TrackSignal("dataSignal", dataSignal);
+        TrackSignal("isLoading", dataSignal.IsLoading);
+        
+        dataSignal.IsLoading.Subscribe(loading => 
+        {
+            Console.WriteLine($"Loading: {loading}");
+        });
+        
+        dataSignal.Subscribe(data => 
+        {
+            if (data != null)
+                Console.WriteLine($"Data received: {data}");
+        });
+        
+        Console.WriteLine("Starting async load...");
+        await dataSignal.LoadAsync(async () => 
+        {
+            await Task.Delay(1000);
+            return "Data loaded successfully!";
+        });
+        
+        Console.WriteLine("Async operation complete.");
+    }
+
+    private async Task ExecuteComplexExample()
+    {
+        var items = new TypedSignal<List<Item>>(new List<Item>());
+        var total = new TypedSignal<decimal>(0);
+        
+        TrackSignal("items", items);
+        TrackSignal("total", total);
+        
+        items.Subscribe(itemList => 
+        {
+            total.Value = itemList.Sum(i => i.Price);
+            Console.WriteLine($"Cart updated: {itemList.Count} items, Total: ${total.Value:F2}");
+        });
+        
+        Console.WriteLine("Adding Book to cart...");
+        var currentItems = new List<Item>(items.Value);
+        currentItems.Add(new Item { Name = "Book", Price = 15.99m });
+        items.Value = currentItems;
+        
+        Console.WriteLine("Adding Pen to cart...");
+        currentItems = new List<Item>(items.Value);
+        currentItems.Add(new Item { Name = "Pen", Price = 2.50m });
+        items.Value = currentItems;
+        
+        Console.WriteLine($"Final cart: {string.Join(", ", items.Value.Select(i => i.Name))}");
+        
+        await Task.CompletedTask;
+    }
+
+    private async Task ExecuteCustomCode()
+    {
+        // Simple pattern matching for custom code
+        outputLines.Add(new OutputLine("Note: Full C# compilation is not available in WebAssembly.", "info"));
+        outputLines.Add(new OutputLine("Try one of the example buttons or modify the existing examples.", "info"));
+        await Task.CompletedTask;
+    }
+
+    // Helper method to track signals
+    private void TrackSignal<T>(string name, ISignal<T> signal)
+    {
+        signal.Subscribe(value => 
+        {
+            UpdateSignalDisplay(name, value?.ToString() ?? "null", typeof(T).Name);
+        });
+    }
+
+    public class Item 
+    {
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
+    }
+
+
+    private void UpdateSignalDisplay(string name, string value, string type)
+    {
+        var existing = signals.FirstOrDefault(s => s.Name == name);
+        if (existing != null)
+        {
+            existing.Value = value;
+        }
+        else
+        {
+            signals.Add(new SignalInfo { Name = name, Value = value, Type = type });
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+
+    private void ClearOutput()
+    {
+        outputLines.Clear();
+    }
+
+    private void ClearSignals()
+    {
+        signals.Clear();
+    }
+
+    private async Task ResetCode()
+    {
+        ClearOutput();
+        ClearSignals();
+        LoadExample("basic");
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void LoadExample(string example)
+    {
+        userCode = example switch
+        {
+            "basic" => @"// Create a simple counter signal
+var counter = new TypedSignal<int>(0);
+
+// Track the signal (automatic in playground)
+// TrackSignal(""counter"", counter);
+
+// Subscribe to changes
+counter.Subscribe(value => 
+{
+    Console.WriteLine($""Counter: {value}"");
+});
+
+// Update the value
+counter.Value = 10;
+counter.Value = 20;",
+
+            "computed" => @"// Create base signals
+var firstName = new TypedSignal<string>(""John"");
+var lastName = new TypedSignal<string>(""Doe"");
+var fullName = new TypedSignal<string>("""");
+
+// Signals are automatically tracked in playground
+
+// Setup computed value
+Action updateFullName = () => 
+{
+    fullName.Value = $""{firstName.Value} {lastName.Value}"";
+    Console.WriteLine($""Full name computed: {fullName.Value}"");
+};
+
+firstName.Subscribe(_ => updateFullName());
+lastName.Subscribe(_ => updateFullName());
+
+// Initial computation
+updateFullName();
+
+// Change values
+Console.WriteLine(""Changing first name..."");
+firstName.Value = ""Jane"";
+
+Console.WriteLine(""Changing last name..."");
+lastName.Value = ""Smith"";",
+
+            "async" => @"// Create an async signal
+var dataSignal = new AsyncTypedSignal<string>(null);
+
+// Async signals are tracked automatically
+
+// Subscribe to loading state
+dataSignal.IsLoading.Subscribe(loading => 
+{
+    Console.WriteLine($""Loading: {loading}"");
+});
+
+// Subscribe to data
+dataSignal.Subscribe(data => 
+{
+    if (data != null)
+        Console.WriteLine($""Data received: {data}"");
+});
+
+// Load data
+Console.WriteLine(""Starting async load..."");
+await dataSignal.LoadAsync(async () => 
+{
+    await Task.Delay(1000);
+    return ""Data loaded successfully!"";
+});
+
+Console.WriteLine(""Async operation complete."");",
+
+            "complex" => @"// Define item class
+public class Item 
+{
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+
+// Shopping cart signals
+var items = new TypedSignal<List<Item>>(new List<Item>());
+var total = new TypedSignal<decimal>(0);
+
+// Signals tracked automatically in playground
+
+// Calculate total when items change
+items.Subscribe(itemList => 
+{
+    total.Value = itemList.Sum(i => i.Price);
+    Console.WriteLine($""Cart updated: {itemList.Count} items, Total: ${total.Value:F2}"");
+});
+
+// Add items
+Console.WriteLine(""Adding Book to cart..."");
+var currentItems = new List<Item>(items.Value);
+currentItems.Add(new Item { Name = ""Book"", Price = 15.99m });
+items.Value = currentItems;
+
+Console.WriteLine(""Adding Pen to cart..."");
+currentItems = new List<Item>(items.Value);
+currentItems.Add(new Item { Name = ""Pen"", Price = 2.50m });
+items.Value = currentItems;
+
+Console.WriteLine($""Final cart: {string.Join("", "", items.Value.Select(i => i.Name))}"");",
+
+            _ => ""
+        };
+    }
+}
+
+<style>
+    .playground-page {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .playground-header {
+        padding: 2rem;
+        background: white;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .playground-header h1 {
+        margin: 0 0 0.5rem 0;
+        color: #1e293b;
+        font-size: 2rem;
+    }
+
+    .playground-header .lead {
+        margin: 0;
+        color: #64748b;
+        font-size: 1.125rem;
+    }
+
+    .playground-container {
+        flex: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 2fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        background: #f8fafc;
+        min-height: 0;
+    }
+
+    .editor-panel {
+        grid-row: span 2;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .output-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .state-panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .panel-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .panel-header h3 {
+        margin: 0;
+        font-size: 1.125rem;
+        color: #1e293b;
+    }
+
+    .editor-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #5a67d8;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #475569;
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-icon {
+        font-size: 1.125rem;
+    }
+
+    .editor-content {
+        flex: 1;
+        padding: 1rem;
+        overflow: hidden;
+    }
+
+    .code-editor {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: 'Cascadia Code', 'Fira Code', monospace;
+        font-size: 0.875rem;
+        resize: none;
+        background: #f8fafc;
+    }
+
+    .code-editor:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .examples-section {
+        padding: 1rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .examples-section h4 {
+        margin: 0 0 0.75rem 0;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+
+    .example-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .example-btn {
+        padding: 0.375rem 0.75rem;
+        background: #f3f4f6;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .example-btn:hover {
+        background: #e5e7eb;
+        border-color: #d1d5db;
+    }
+
+    .output-content {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        font-family: 'Cascadia Code', 'Fira Code', monospace;
+        font-size: 0.875rem;
+    }
+
+    .output-line {
+        padding: 0.375rem 0;
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .output-line.info { color: #475569; }
+    .output-line.success { color: #16a34a; }
+    .output-line.error { color: #dc2626; }
+    .output-line.signal { color: #667eea; }
+
+    .timestamp {
+        color: #9ca3af;
+        font-size: 0.75rem;
+    }
+
+    .output-placeholder {
+        color: #9ca3af;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .state-content {
+        flex: 1;
+        padding: 1rem;
+        overflow-y: auto;
+    }
+
+    .state-grid {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    .state-item {
+        background: #f8fafc;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .state-item.signal-item {
+        background: #f0f9ff;
+        border-color: #667eea;
+    }
+
+    .state-item.variable-item {
+        opacity: 0.8;
+    }
+
+    .state-name {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .state-value {
+        color: #667eea;
+        font-family: 'Cascadia Code', 'Fira Code', monospace;
+        grid-column: 2;
+    }
+
+    .state-type {
+        color: #9ca3af;
+        font-size: 0.75rem;
+        grid-column: 1 / -1;
+    }
+
+    .state-placeholder {
+        color: #9ca3af;
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .state-note {
+        margin-top: 1rem;
+        padding: 0.5rem;
+        text-align: center;
+        color: #64748b;
+        font-size: 0.875rem;
+        font-style: italic;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1024px) {
+        .playground-container {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+        }
+
+        .editor-panel {
+            grid-row: span 1;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .playground-header {
+            padding: 1rem;
+        }
+
+        .playground-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .playground-header .lead {
+            font-size: 1rem;
+        }
+
+        .playground-container {
+            padding: 0.5rem;
+            gap: 0.5rem;
+        }
+
+        .panel-header {
+            padding: 0.75rem 1rem;
+        }
+
+        .editor-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .example-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+</style>

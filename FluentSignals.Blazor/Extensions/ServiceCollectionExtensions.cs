@@ -1,4 +1,5 @@
 using FluentSignals.Blazor.Http;
+using FluentSignals.Blazor.SignalBus;
 using FluentSignals.Options.HttpResource;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +25,17 @@ public static class ServiceCollectionExtensions
         
         // Add custom factory
         services.AddScoped(factoryProvider);
+        
+        return services;
+    }
+    
+    public static IServiceCollection AddFluentSignalsBlazorWithSignalBus(this IServiceCollection services, Action<HttpResourceOptions>? configureHttpResource = null)
+    {
+        // Add base FluentSignals Blazor services
+        services.AddFluentSignalsBlazor(configureHttpResource);
+        
+        // Add SignalBus services
+        services.AddSignalBus();
         
         return services;
     }
