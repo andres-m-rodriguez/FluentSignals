@@ -11,7 +11,7 @@
     <Description>A powerful reactive state management library for .NET applications inspired by SolidJS signals. Provides fine-grained reactivity with automatic dependency tracking.</Description>
     <PackageTags>signals;reactive;state-management;solidjs;blazor;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 

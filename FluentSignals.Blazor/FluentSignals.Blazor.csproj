@@ -11,7 +11,7 @@
     <Description>Blazor integration for FluentSignals - A reactive state management library. Includes SignalBus for component communication, HTTP resource components, and Blazor-specific helpers.</Description>
     <PackageTags>signals;reactive;state-management;blazor;signalbus;pubsub;dotnet</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 

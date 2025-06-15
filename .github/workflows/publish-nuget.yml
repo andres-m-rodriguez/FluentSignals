@@ -37,13 +37,18 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
     
+    - name: Pack NuGet packages
+      run: |
+        dotnet pack ./FluentSignals/FluentSignals.csproj --configuration Release --no-build --output ./nupkgs
+        dotnet pack ./FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-build --output ./nupkgs
+    
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
         path: |
-          **/bin/Release/*.nupkg
-          **/bin/Release/*.snupkg
+          ./nupkgs/*.nupkg
+          ./nupkgs/*.snupkg
 
   publish-nuget:
     needs: build-and-test
@@ -65,34 +70,62 @@ jobs:
         name: build-artifacts
         path: ./artifacts
     
+    - name: List downloaded artifacts
+      run: |
+        echo "Contents of artifacts directory:"
+        find ./artifacts -type f -name "*.nupkg" | sort
+    
     - name: Get version from csproj
       id: version
       run: |
-        VERSION=$(grep '<Version>' FluentSignals/FluentSignals.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+        VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | head -1)
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Package version: $VERSION"
     
     - name: Check if version exists on NuGet
       id: version-check
       run: |
+        # Function to check if package exists
+        check_package() {
+          local package_name=$1
+          local version=$2
+          
+          # Try to download package info
+          if curl -s -f -o /dev/null "https://api.nuget.org/v3-flatcontainer/${package_name,,}/${version}/${package_name,,}.nuspec"; then
+            return 0  # exists
+          else
+            return 1  # does not exist
+          fi
+        }
+        
         # Check FluentSignals package
-        if dotnet nuget list source ${{ env.NUGET_FEED }} --source ${{ env.NUGET_FEED }} | grep -q "FluentSignals ${{ steps.version.outputs.VERSION }}"; then
+        if check_package "FluentSignals" "${{ steps.version.outputs.VERSION }}"; then
+          echo "FluentSignals ${{ steps.version.outputs.VERSION }} already exists on NuGet"
           echo "FLUENTSIGNALS_EXISTS=true" >> $GITHUB_OUTPUT
         else
+          echo "FluentSignals ${{ steps.version.outputs.VERSION }} does not exist on NuGet"
           echo "FLUENTSIGNALS_EXISTS=false" >> $GITHUB_OUTPUT
         fi
         
         # Check FluentSignals.Blazor package
-        if dotnet nuget list source ${{ env.NUGET_FEED }} --source ${{ env.NUGET_FEED }} | grep -q "FluentSignals.Blazor ${{ steps.version.outputs.VERSION }}"; then
+        if check_package "FluentSignals.Blazor" "${{ steps.version.outputs.VERSION }}"; then
+          echo "FluentSignals.Blazor ${{ steps.version.outputs.VERSION }} already exists on NuGet"
           echo "FLUENTSIGNALS_BLAZOR_EXISTS=true" >> $GITHUB_OUTPUT
         else
+          echo "FluentSignals.Blazor ${{ steps.version.outputs.VERSION }} does not exist on NuGet"
           echo "FLUENTSIGNALS_BLAZOR_EXISTS=false" >> $GITHUB_OUTPUT
         fi
     
     - name: Publish FluentSignals to NuGet
       if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false'
       run: |
-        dotnet nuget push ./artifacts/**/FluentSignals.${{ steps.version.outputs.VERSION }}.nupkg \
+        PACKAGE=$(find ./artifacts -name "FluentSignals.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
+        if [ -z "$PACKAGE" ]; then
+          echo "Error: FluentSignals package not found"
+          exit 1
+        fi
+        echo "Publishing package: $PACKAGE"
+        dotnet nuget push "$PACKAGE" \
           --api-key ${{ secrets.NUGET_API_KEY }} \
           --source ${{ env.NUGET_FEED }} \
           --skip-duplicate
@@ -100,7 +133,13 @@ jobs:
     - name: Publish FluentSignals.Blazor to NuGet
       if: steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
       run: |
-        dotnet nuget push ./artifacts/**/FluentSignals.Blazor.${{ steps.version.outputs.VERSION }}.nupkg \
+        PACKAGE=$(find ./artifacts -name "FluentSignals.Blazor.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
+        if [ -z "$PACKAGE" ]; then
+          echo "Error: FluentSignals.Blazor package not found"
+          exit 1
+        fi
+        echo "Publishing package: $PACKAGE"
+        dotnet nuget push "$PACKAGE" \
           --api-key ${{ secrets.NUGET_API_KEY }} \
           --source ${{ env.NUGET_FEED }} \
           --skip-duplicate
