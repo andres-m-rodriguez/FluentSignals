@@ -1,9 +1,9 @@
 name: Publish NuGet Packages
 
-# 1. Give the workflow write access to contents and packages
+# Give the workflow write access to contents and packages
 permissions:
   contents: write      # needed to create tags & GitHub releases
-  packages: write      # needed if you're ever publishing via the GitHub Packages registry
+  packages: write      # needed if you're ever publishing via GitHub Packages
 
 on:
   push:
@@ -44,8 +44,10 @@ jobs:
 
       - name: Pack NuGet packages
         run: |
-          dotnet pack ./FluentSignals/FluentSignals.csproj --configuration Release --no-build --output ./nupkgs
-          dotnet pack ./FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-build --output ./nupkgs
+          dotnet pack ./FluentSignals/FluentSignals.csproj \
+            --configuration Release --no-build --output ./nupkgs
+          dotnet pack ./FluentSignals.Blazor/FluentSignals.Blazor.csproj \
+            --configuration Release --no-build --output ./nupkgs
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -129,12 +131,11 @@ jobs:
             --skip-duplicate
 
       - name: Create GitHub Release
-        if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false' || steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # 2. Pass the token via 'with'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: v${{ steps.version.outputs.VERSION }}
+          tag_name:     v${{ steps.version.outputs.VERSION }}
           release_name: Release v${{ steps.version.outputs.VERSION }}
           body: |
             ## Changes in this Release
@@ -146,6 +147,5 @@ jobs:
             dotnet add package FluentSignals --version ${{ steps.version.outputs.VERSION }}
             dotnet add package FluentSignals.Blazor --version ${{ steps.version.outputs.VERSION }}
             ```
-
           draft: false
           prerelease: false
