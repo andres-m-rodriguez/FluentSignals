@@ -16,6 +16,10 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     private readonly HttpResourceOptions _options;
     private readonly IAsyncPolicy<HttpResponseMessage>? _retryPolicy;
     private Func<Task>? _lastRequest;
+    
+    // Status code handlers
+    private readonly Dictionary<HttpStatusCode, List<Func<HttpResponse, Task>>> _statusHandlers = new();
+    private readonly Dictionary<HttpStatusCode, List<(Type errorType, Func<object, Task> handler, Func<object, bool>? predicate)>> _typedStatusHandlers = new();
 
     public ISignal<HttpStatusCode?> LastStatusCode { get; } = new TypedSignal<HttpStatusCode?>(null);
     
@@ -97,7 +101,7 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     public async Task<HttpResponse> GetAsync(string url, CancellationToken cancellationToken = default)
     {
         _lastRequest = () => GetAsync(url, cancellationToken);
-        return await ExecuteAsync<object>(HttpMethod.Get, url, null, cancellationToken);
+        return await ExecuteAsync(HttpMethod.Get, url, (object?)null, cancellationToken);
     }
     
     public async Task<HttpResponse<T>> GetAsync<T>(string url, CancellationToken cancellationToken = default)
@@ -133,7 +137,7 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     public async Task<HttpResponse> DeleteAsync(string url, CancellationToken cancellationToken = default)
     {
         _lastRequest = () => DeleteAsync(url, cancellationToken);
-        return await ExecuteAsync<object>(HttpMethod.Delete, url, null, cancellationToken);
+        return await ExecuteAsync(HttpMethod.Delete, url, (object?)null, cancellationToken);
     }
     
     public async Task<HttpResponse<T>> DeleteAsync<T>(string url, CancellationToken cancellationToken = default)
@@ -152,6 +156,119 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     {
         _lastRequest = () => PatchAsync<TBody, TResponse>(url, body, cancellationToken);
         return await ExecuteAsync<TResponse>(HttpMethod.Patch, url, body, cancellationToken);
+    }
+
+    // Status Code Handler Registration Methods
+    
+    public HttpResource OnSuccess(Func<HttpResponse, Task> handler)
+    {
+        AddStatusHandler(HttpStatusCode.OK, handler);
+        AddStatusHandler(HttpStatusCode.Created, handler);
+        AddStatusHandler(HttpStatusCode.Accepted, handler);
+        AddStatusHandler(HttpStatusCode.NoContent, handler);
+        return this;
+    }
+    
+    public HttpResource OnSuccess<T>(Func<T, Task> handler)
+    {
+        OnStatusCode<T>(HttpStatusCode.OK, handler);
+        OnStatusCode<T>(HttpStatusCode.Created, handler);
+        OnStatusCode<T>(HttpStatusCode.Accepted, handler);
+        return this;
+    }
+    
+    public HttpResource OnNotFound(Func<HttpResponse, Task> handler)
+    {
+        return OnStatusCode(HttpStatusCode.NotFound, handler);
+    }
+    
+    public HttpResource OnNotFound<T>(Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        return OnStatusCode(HttpStatusCode.NotFound, handler, predicate);
+    }
+    
+    public HttpResource OnBadRequest(Func<HttpResponse, Task> handler)
+    {
+        return OnStatusCode(HttpStatusCode.BadRequest, handler);
+    }
+    
+    public HttpResource OnBadRequest<T>(Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        return OnStatusCode(HttpStatusCode.BadRequest, handler, predicate);
+    }
+    
+    public HttpResource OnUnauthorized(Func<HttpResponse, Task> handler)
+    {
+        return OnStatusCode(HttpStatusCode.Unauthorized, handler);
+    }
+    
+    public HttpResource OnUnauthorized<T>(Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        return OnStatusCode(HttpStatusCode.Unauthorized, handler, predicate);
+    }
+    
+    public HttpResource OnForbidden(Func<HttpResponse, Task> handler)
+    {
+        return OnStatusCode(HttpStatusCode.Forbidden, handler);
+    }
+    
+    public HttpResource OnForbidden<T>(Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        return OnStatusCode(HttpStatusCode.Forbidden, handler, predicate);
+    }
+    
+    public HttpResource OnConflict(Func<HttpResponse, Task> handler)
+    {
+        return OnStatusCode(HttpStatusCode.Conflict, handler);
+    }
+    
+    public HttpResource OnConflict<T>(Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        return OnStatusCode(HttpStatusCode.Conflict, handler, predicate);
+    }
+    
+    public HttpResource OnServerError(Func<HttpResponse, Task> handler)
+    {
+        AddStatusHandler(HttpStatusCode.InternalServerError, handler);
+        AddStatusHandler(HttpStatusCode.BadGateway, handler);
+        AddStatusHandler(HttpStatusCode.ServiceUnavailable, handler);
+        AddStatusHandler(HttpStatusCode.GatewayTimeout, handler);
+        return this;
+    }
+    
+    public HttpResource OnServerError<T>(Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        OnStatusCode<T>(HttpStatusCode.InternalServerError, handler, predicate);
+        OnStatusCode<T>(HttpStatusCode.BadGateway, handler, predicate);
+        OnStatusCode<T>(HttpStatusCode.ServiceUnavailable, handler, predicate);
+        OnStatusCode<T>(HttpStatusCode.GatewayTimeout, handler, predicate);
+        return this;
+    }
+    
+    public HttpResource OnStatusCode(HttpStatusCode statusCode, Func<HttpResponse, Task> handler)
+    {
+        AddStatusHandler(statusCode, handler);
+        return this;
+    }
+    
+    public HttpResource OnStatusCode<T>(HttpStatusCode statusCode, Func<T, Task> handler, Func<T, bool>? predicate = null)
+    {
+        if (!_typedStatusHandlers.ContainsKey(statusCode))
+        {
+            _typedStatusHandlers[statusCode] = new List<(Type, Func<object, Task>, Func<object, bool>?)>();
+        }
+        
+        _typedStatusHandlers[statusCode].Add((typeof(T), async obj => await handler((T)obj), predicate != null ? obj => predicate((T)obj) : null));
+        return this;
+    }
+    
+    private void AddStatusHandler(HttpStatusCode statusCode, Func<HttpResponse, Task> handler)
+    {
+        if (!_statusHandlers.ContainsKey(statusCode))
+        {
+            _statusHandlers[statusCode] = new List<Func<HttpResponse, Task>>();
+        }
+        _statusHandlers[statusCode].Add(handler);
     }
 
     private async Task<HttpResponse> ExecuteAsync<TBody>(HttpMethod method, string url, TBody? body, CancellationToken cancellationToken)
@@ -189,6 +306,9 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
             
             var httpResponse = new HttpResponse(response.StatusCode, response.Headers, responseContent);
             Value = httpResponse;
+            
+            // Invoke status code handlers
+            await InvokeHandlers(httpResponse);
             
             return httpResponse;
         }
@@ -265,6 +385,9 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
             var httpResponse = new HttpResponse<TResponse>(response.StatusCode, response.Headers, responseContent, parsedData);
             Value = httpResponse;
             
+            // Invoke status code handlers
+            await InvokeHandlers(httpResponse);
+            
             return httpResponse;
         }
         catch (HttpRequestException ex)
@@ -293,6 +416,87 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
         if (_lastRequest != null)
         {
             await _lastRequest();
+        }
+    }
+    
+    private async Task InvokeHandlers(HttpResponse response)
+    {
+        // Invoke non-typed handlers
+        if (_statusHandlers.TryGetValue(response.StatusCode, out var handlers))
+        {
+            foreach (var handler in handlers)
+            {
+                await handler(response);
+            }
+        }
+        
+        // For non-typed responses, only invoke typed handlers for error responses
+        // This allows error handling to work even with non-typed HTTP methods
+        if (!response.IsSuccess && _typedStatusHandlers.TryGetValue(response.StatusCode, out var typedHandlers))
+        {
+            await InvokeTypedErrorHandlers(response, typedHandlers);
+        }
+    }
+    
+    private async Task InvokeTypedErrorHandlers(HttpResponse response, 
+        List<(Type errorType, Func<object, Task> handler, Func<object, bool>? predicate)> typedHandlers)
+    {
+        if (string.IsNullOrEmpty(response.Content))
+            return;
+            
+        // Try each registered error type
+        foreach (var (errorType, handler, predicate) in typedHandlers)
+        {
+            try
+            {
+                var errorObject = JsonSerializer.Deserialize(response.Content, errorType, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                // Validate that the JSON structure actually matches the expected type
+                if (errorObject != null && 
+                    JsonValidator.IsValidDeserialization(response.Content, errorType, errorObject) &&
+                    (predicate == null || predicate(errorObject)))
+                {
+                    await handler(errorObject);
+                    // Don't break - multiple handlers might match
+                }
+            }
+            catch (JsonException)
+            {
+                // Skip if deserialization fails - this type doesn't match the response
+            }
+        }
+    }
+    
+    private async Task InvokeHandlers<T>(HttpResponse<T> response)
+    {
+        // First invoke base handlers
+        await InvokeHandlers((HttpResponse)response);
+        
+        // Check for typed handlers
+        if (_typedStatusHandlers.TryGetValue(response.StatusCode, out var typedHandlers))
+        {
+            // For success responses with data
+            if (response.IsSuccess && response.Data != null)
+            {
+                foreach (var (dataType, handler, predicate) in typedHandlers)
+                {
+                    if (dataType == typeof(T))
+                    {
+                        if (predicate == null || predicate(response.Data))
+                        {
+                            await handler(response.Data);
+                        }
+                    }
+                }
+            }
+            // For error responses, invoke typed error handlers
+            else if (!response.IsSuccess)
+            {
+                await InvokeTypedErrorHandlers(response, typedHandlers);
+            }
         }
     }
     

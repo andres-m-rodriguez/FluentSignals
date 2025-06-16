@@ -86,18 +86,107 @@ await userResource.LoadAsync();
 
 ### HTTP Resources
 
+#### Direct Usage
 ```csharp
-services.AddFluentSignalsHttpResource(options =>
+// Setup
+var httpClient = new HttpClient { BaseAddress = new Uri("https://api.example.com/") };
+var resource = new HttpResource(httpClient);
+
+// Subscribe to reactive updates
+resource.Subscribe(response =>
 {
-    options.WithBaseUrl("https://api.example.com")
-           .WithTimeout(TimeSpan.FromSeconds(30));
+    if (response?.IsSuccess == true)
+    {
+        // Handle successful response
+    }
 });
 
-// Create an HTTP resource
-var userResource = new HttpResource<User>("/users/1", httpClient);
+// GET - Fetch data
+var todos = await resource.GetAsync<List<TodoItem>>("todos");
 
-// Subscribe and fetch
-await userResource.LoadAsync();
+// POST - Create new resource
+var newTodo = new TodoItem { Title = "New Task" };
+var created = await resource.PostAsync<TodoItem, TodoItem>("todos", newTodo);
+
+// PUT - Full update
+var updated = new TodoItem { Id = 1, Title = "Updated Task", Completed = true };
+var result = await resource.PutAsync<TodoItem, TodoItem>("todos/1", updated);
+
+// PATCH - Partial update
+var patch = new { completed = true };
+var patched = await resource.PatchAsync<object, TodoItem>("todos/1", patch);
+
+// DELETE - Remove resource
+var deleted = await resource.DeleteAsync("todos/1");
+
+// Access reactive signals
+resource.IsLoading.Subscribe(loading => Console.WriteLine($"Loading: {loading}"));
+resource.Error.Subscribe(error => Console.WriteLine($"Error: {error?.Message}"));
+resource.LastStatusCode.Subscribe(status => Console.WriteLine($"Status: {status}"));
+```
+
+#### Using HttpResourceFactory (Recommended for Blazor)
+```csharp
+// Program.cs - Setup
+builder.Services.AddHttpClient();
+builder.Services.AddFluentSignalsBlazor(options =>
+{
+    options.BaseUrl = "https://api.example.com/";
+    options.Timeout = TimeSpan.FromSeconds(30);
+    options.RetryOptions = new RetryOptions
+    {
+        MaxRetryAttempts = 3,
+        InitialRetryDelay = 100,
+        UseExponentialBackoff = true
+    };
+});
+
+// In your Blazor component or service
+@inject IHttpResourceFactory ResourceFactory
+
+@code {
+    private HttpResource _todosResource;
+    
+    protected override void OnInitialized()
+    {
+        // Create with default options from DI
+        _todosResource = ResourceFactory.Create();
+        
+        // Or create with custom base URL
+        _todosResource = ResourceFactory.CreateWithBaseUrl("https://api.other.com/");
+        
+        // Or create with custom options
+        _todosResource = ResourceFactory.CreateWithOptions(options =>
+        {
+            options.Timeout = TimeSpan.FromSeconds(60);
+            options.DefaultHeaders["Authorization"] = "Bearer token";
+        });
+        
+        // Subscribe to changes
+        _todosResource.Subscribe(response =>
+        {
+            if (response?.IsSuccess == true)
+            {
+                StateHasChanged();
+            }
+        });
+    }
+    
+    // All REST operations work the same way
+    async Task LoadTodos() => await _todosResource.GetAsync<List<TodoItem>>("todos");
+    
+    async Task CreateTodo(TodoItem todo) => 
+        await _todosResource.PostAsync<TodoItem, TodoItem>("todos", todo);
+    
+    async Task UpdateTodo(TodoItem todo) => 
+        await _todosResource.PutAsync<TodoItem, TodoItem>($"todos/{todo.Id}", todo);
+    
+    async Task PatchTodo(int id, object patch) => 
+        await _todosResource.PatchAsync<object, TodoItem>($"todos/{id}", patch);
+    
+    async Task DeleteTodo(int id) => 
+        await _todosResource.DeleteAsync($"todos/{id}");
+}
 ```
 
 ## Advanced Features

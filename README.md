@@ -67,6 +67,88 @@ fullName.Subscribe(name => Console.WriteLine($"Name: {name}"));
 firstName.Value = "Jane"; // Output: Name: Jane Doe
 ```
 
+### HTTP Resources (REST Operations)
+
+```csharp
+// Program.cs - Setup
+builder.Services.AddHttpClient();
+builder.Services.AddFluentSignalsBlazor();
+```
+
+```csharp
+// Example: Complete REST API integration
+public class TodoService
+{
+    private readonly IHttpClientFactory _httpClientFactory;
+    
+    public TodoService(IHttpClientFactory httpClientFactory)
+    {
+        _httpClientFactory = httpClientFactory;
+    }
+    
+    public HttpResource CreateResource()
+    {
+        var httpClient = _httpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri("https://api.example.com/");
+        
+        return new HttpResource(httpClient);
+    }
+}
+
+// Usage in a component
+@code {
+    private HttpResource _resource;
+    private List<TodoItem> _todos;
+    
+    protected override void OnInitialized()
+    {
+        _resource = TodoService.CreateResource();
+        
+        // Subscribe to changes
+        _resource.Subscribe(response =>
+        {
+            if (response?.IsSuccess == true)
+            {
+                _todos = response.GetData<List<TodoItem>>();
+            }
+        });
+    }
+    
+    // GET - Fetch all todos
+    async Task LoadTodos()
+    {
+        await _resource.GetAsync<List<TodoItem>>("todos");
+    }
+    
+    // POST - Create new todo
+    async Task CreateTodo()
+    {
+        var newTodo = new TodoItem { Title = "New Task", Completed = false };
+        await _resource.PostAsync<TodoItem, TodoItem>("todos", newTodo);
+    }
+    
+    // PUT - Update entire todo
+    async Task UpdateTodo(int id)
+    {
+        var updatedTodo = new TodoItem { Id = id, Title = "Updated Task", Completed = true };
+        await _resource.PutAsync<TodoItem, TodoItem>($"todos/{id}", updatedTodo);
+    }
+    
+    // PATCH - Partial update
+    async Task ToggleTodo(int id, bool completed)
+    {
+        var patch = new { completed };
+        await _resource.PatchAsync<object, TodoItem>($"todos/{id}", patch);
+    }
+    
+    // DELETE - Remove todo
+    async Task DeleteTodo(int id)
+    {
+        await _resource.DeleteAsync($"todos/{id}");
+    }
+}
+```
+
 ### SignalBus in Blazor
 
 ```csharp

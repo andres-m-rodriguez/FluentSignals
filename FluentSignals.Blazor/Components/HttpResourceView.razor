@@ -168,7 +168,7 @@
 
     [Parameter]
     public IHttpResourceFactory? HttpResourceFactory { get; set; }
-    
+
     [Parameter]
     public HttpClient? HttpClient { get; set; }
 
@@ -227,7 +227,7 @@
     public EventCallback<HttpResource> OnResourceCreated { get; set; }
 
     private HttpResource? httpResource;
-    
+
     /// <summary>
     /// Gets the underlying HttpResource instance for advanced control
     /// </summary>
@@ -242,7 +242,7 @@
         await base.OnInitializedAsync();
 
         // Check if we're in interactive mode
-        isInteractive = OperatingSystem.IsBrowser();
+        isInteractive = RendererInfo.IsInteractive;
 
         InitializeHttpResource();
         
