@@ -1,0 +1,246 @@
+@page "/signalr-demo"
+@using FluentSignals.Blazor.Components
+@using FluentSignals.Blazor.Resources
+@using FluentSignals.WebAssembly.Components.Pages.Demos
+@using FluentSignals.WebAssembly.Components.Pages.Demos.Models
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@inject ILogger<SignalRDemo> Logger
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">SignalR Real-Time Stock Prices Demo</h1>
+    
+    <div class="alert alert-info mb-4">
+        <h5>ResourceSignalR Demo</h5>
+        <p>This demo showcases the ResourceSignalR component for real-time data updates using SignalR.</p>
+        <ul>
+            <li>Automatic connection management</li>
+            <li>Real-time price updates</li>
+            <li>Connection status indicators</li>
+            <li>Error handling and reconnection</li>
+        </ul>
+    </div>
+
+    <div class="alert alert-warning mb-4">
+        <h5>📚 Using ResourceSignalR Directly</h5>
+        <p>This demo shows how to use <code>ResourceSignalR&lt;T&gt;</code> directly when you need custom behavior:</p>
+        <pre class="mb-0"><code>// Create a ResourceSignalR instance
+var resource = new ResourceSignalR&lt;StockPrice&gt;(
+    hubUrl: "/stock-hub",
+    methodName: "PriceUpdate"
+);
+
+// Subscribe to state changes
+resource.Subscribe(state =>
+{
+    if (state.HasData && state.Data != null)
+    {
+        // Handle updates for all stocks
+        _stockPrices[state.Data.Symbol] = state.Data;
+        StateHasChanged();
+    }
+});
+
+// Connect to SignalR
+await resource.ConnectAsync();</code></pre>
+    </div>
+
+    <div class="row">
+        @foreach (var (symbol, title, cssClass) in _stockConfigs)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header @cssClass text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">@title</h5>
+                        @if (_allStocksResource?.IsConnected == true)
+                        {
+                            <span class="badge bg-light text-dark">Live</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (_individualStocks.ContainsKey(symbol) && _individualStocks[symbol] != null)
+                        {
+                            <StockPriceDisplay Stock="_individualStocks[symbol]" />
+                        }
+                        else if (_allStocksResource?.IsConnected == true)
+                        {
+                            <div class="text-center">
+                                <div class="spinner-border @cssClass.Replace("bg-", "text-")" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Waiting for data...</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center text-muted">
+                                <i class="bi bi-wifi-off" style="font-size: 2rem;"></i>
+                                <p class="mt-2">Connecting to real-time feed...</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-4">
+        <h3>Custom ResourceSignalR Implementation</h3>
+        <p>The demo below shows a custom implementation using ResourceSignalR directly:</p>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">All Stocks - Custom View</h5>
+            </div>
+            <div class="card-body">
+                @if (_allStocksResource != null)
+                {
+                    <div class="mb-3">
+                        <span class="badge @GetConnectionBadgeClass()">
+                            @GetConnectionStatus()
+                        </span>
+                        @if (_allStocksResource.IsConnected)
+                        {
+                            <button class="btn btn-sm btn-outline-primary ms-2" @onclick="RefreshPrices">
+                                Refresh All
+                            </button>
+                        }
+                    </div>
+
+                    @if (_allStocksResource.IsLoading)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    }
+                    else if (_allStocksResource.HasError)
+                    {
+                        <div class="alert alert-danger">
+                            Error: @_allStocksResource.Error?.Message
+                        </div>
+                    }
+                    else if (_allStocksResource.HasData)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Price</th>
+                                        <th>Change</th>
+                                        <th>Volume</th>
+                                        <th>Last Update</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var stock in _stockPrices.Values.OrderBy(s => s.Symbol))
+                                    {
+                                        <tr>
+                                            <td><strong>@stock.Symbol</strong></td>
+                                            <td>$@stock.Price.ToString("F2")</td>
+                                            <td class="@(stock.Change >= 0 ? "text-success" : "text-danger")">
+                                                @stock.Change.ToString("+0.00;-0.00") (@stock.ChangePercent.ToString("+0.00;-0.00")%)
+                                            </td>
+                                            <td>@((stock.Volume / 1_000_000.0).ToString("F1"))M</td>
+                                            <td>@stock.LastUpdate.ToString("HH:mm:ss")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ResourceSignalR<StockPrice>? _allStocksResource;
+    private Dictionary<string, StockPrice> _stockPrices = new();
+    private Dictionary<string, StockPrice> _individualStocks = new();
+    private IDisposable? _subscription;
+    
+    private readonly List<(string symbol, string title, string cssClass)> _stockConfigs = new()
+    {
+        ("AAPL", "Apple Inc. (AAPL)", "bg-primary"),
+        ("MSFT", "Microsoft Corp. (MSFT)", "bg-success"),
+        ("GOOGL", "Alphabet Inc. (GOOGL)", "bg-danger")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Create a custom ResourceSignalR instance
+        _allStocksResource = new ResourceSignalR<StockPrice>(
+            GetHubUrl(),
+            "PriceUpdate",
+            logger: Logger.IsEnabled(LogLevel.Debug) ? Logger as ILogger<ResourceSignalR<StockPrice>> : null
+        );
+
+        // Subscribe to state changes
+        _subscription = _allStocksResource.Subscribe(state =>
+        {
+            if (state.HasData && state.Data != null)
+            {
+                _stockPrices[state.Data.Symbol] = state.Data;
+                _individualStocks[state.Data.Symbol] = state.Data;
+                InvokeAsync(StateHasChanged);
+            }
+        });
+
+        // Connect to SignalR
+        await _allStocksResource.ConnectAsync();
+    }
+
+    private string GetHubUrl()
+    {
+        return Navigation.ToAbsoluteUri("/stock-hub").ToString();
+    }
+
+    private string GetConnectionStatus()
+    {
+        if (_allStocksResource == null) return "Not initialized";
+        
+        return _allStocksResource.ConnectionState switch
+        {
+            HubConnectionState.Connected => "Connected",
+            HubConnectionState.Connecting => "Connecting...",
+            HubConnectionState.Reconnecting => "Reconnecting...",
+            HubConnectionState.Disconnected => "Disconnected",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetConnectionBadgeClass()
+    {
+        if (_allStocksResource == null) return "bg-secondary";
+        
+        return _allStocksResource.ConnectionState switch
+        {
+            HubConnectionState.Connected => "bg-success",
+            HubConnectionState.Connecting or HubConnectionState.Reconnecting => "bg-warning",
+            HubConnectionState.Disconnected => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private async Task RefreshPrices()
+    {
+        if (_allStocksResource != null)
+        {
+            await _allStocksResource.RefreshAsync();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _subscription?.Dispose();
+        
+        if (_allStocksResource != null)
+        {
+            await _allStocksResource.DisposeAsync();
+        }
+    }
+}

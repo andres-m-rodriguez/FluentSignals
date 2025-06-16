@@ -1,0 +1,332 @@
+@typeparam TData
+@using FluentSignals.Blazor.Resources
+@using FluentSignals.Resources
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+
+@if (Resource != null)
+{
+    var state = Resource.State;
+    
+    @if (state.IsLoading && LoadingContent != null)
+    {
+        @LoadingContent
+    }
+    else if (state.HasError && ErrorContent != null)
+    {
+        @ErrorContent(state.Error!)
+    }
+    else if (state.HasData && DataContent != null)
+    {
+        @DataContent(state.Data!)
+    }
+    else if (EmptyContent != null)
+    {
+        @EmptyContent
+    }
+    
+    @if (ShowConnectionStatus && Resource.ConnectionState != HubConnectionState.Connected)
+    {
+        <div class="signalr-connection-status @GetConnectionStatusClass()">
+            <span class="status-icon">@GetConnectionStatusIcon()</span>
+            <span class="status-text">@GetConnectionStatusText()</span>
+            @if (Resource.ConnectionState == HubConnectionState.Disconnected && AutoReconnect)
+            {
+                <button class="reconnect-btn" @onclick="ReconnectAsync">Reconnect</button>
+            }
+        </div>
+    }
+}
+
+@code {
+    /// <summary>
+    /// The SignalR hub URL
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string HubUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The SignalR method name to listen for updates
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string MethodName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional function to fetch initial data
+    /// </summary>
+    [Parameter]
+    public Func<CancellationToken, Task<TData>>? Fetcher { get; set; }
+
+    /// <summary>
+    /// Content to display while loading
+    /// </summary>
+    [Parameter]
+    public RenderFragment? LoadingContent { get; set; }
+
+    /// <summary>
+    /// Content to display when data is available
+    /// </summary>
+    [Parameter]
+    public RenderFragment<TData>? DataContent { get; set; }
+
+    /// <summary>
+    /// Content to display when an error occurs
+    /// </summary>
+    [Parameter]
+    public RenderFragment<Exception>? ErrorContent { get; set; }
+
+    /// <summary>
+    /// Content to display when no data is available
+    /// </summary>
+    [Parameter]
+    public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>
+    /// Whether to automatically connect on initialization
+    /// </summary>
+    [Parameter]
+    public bool AutoConnect { get; set; } = true;
+
+    /// <summary>
+    /// Whether to automatically fetch initial data
+    /// </summary>
+    [Parameter]
+    public bool AutoFetch { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show the connection status indicator
+    /// </summary>
+    [Parameter]
+    public bool ShowConnectionStatus { get; set; } = true;
+
+    /// <summary>
+    /// Whether to automatically reconnect on disconnection
+    /// </summary>
+    [Parameter]
+    public bool AutoReconnect { get; set; } = true;
+
+    /// <summary>
+    /// Action to configure the hub connection
+    /// </summary>
+    [Parameter]
+    public Action<IHubConnectionBuilder>? ConfigureConnection { get; set; }
+
+    /// <summary>
+    /// Callback when the resource state changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<ResourceState<TData>> OnStateChanged { get; set; }
+
+    /// <summary>
+    /// Callback when the connection state changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<HubConnectionState> OnConnectionStateChanged { get; set; }
+
+    /// <summary>
+    /// The ResourceSignalR instance
+    /// </summary>
+    public ResourceSignalR<TData>? Resource { get; private set; }
+
+    private IDisposable? _subscription;
+    private HubConnectionState _lastConnectionState;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Create the ResourceSignalR
+        Resource = new ResourceSignalR<TData>(
+            HubUrl,
+            MethodName,
+            Fetcher,
+            ConfigureConnection
+        );
+
+        // Subscribe to state changes
+        _subscription = Resource.Subscribe(async state =>
+        {
+            await InvokeAsync(StateHasChanged);
+            
+            if (OnStateChanged.HasDelegate)
+            {
+                await OnStateChanged.InvokeAsync(state);
+            }
+        });
+
+        // Auto-connect if enabled
+        if (AutoConnect)
+        {
+            await ConnectAsync();
+        }
+
+        // Auto-fetch if enabled and fetcher is provided
+        if (AutoFetch && Fetcher != null)
+        {
+            await Resource.LoadAsync();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Resource != null && _lastConnectionState != Resource.ConnectionState)
+        {
+            _lastConnectionState = Resource.ConnectionState;
+            if (OnConnectionStateChanged.HasDelegate)
+            {
+                await OnConnectionStateChanged.InvokeAsync(_lastConnectionState);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Connects to the SignalR hub
+    /// </summary>
+    public async Task ConnectAsync()
+    {
+        if (Resource != null)
+        {
+            await Resource.ConnectAsync();
+        }
+    }
+
+    /// <summary>
+    /// Disconnects from the SignalR hub
+    /// </summary>
+    public async Task DisconnectAsync()
+    {
+        if (Resource != null)
+        {
+            await Resource.DisconnectAsync();
+        }
+    }
+
+    /// <summary>
+    /// Reconnects to the SignalR hub
+    /// </summary>
+    public async Task ReconnectAsync()
+    {
+        if (Resource != null)
+        {
+            await Resource.DisconnectAsync();
+            await Resource.ConnectAsync();
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the data by calling the fetcher
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        if (Resource != null)
+        {
+            await Resource.RefreshAsync();
+        }
+    }
+
+    /// <summary>
+    /// Sends data to the SignalR hub
+    /// </summary>
+    public async Task SendAsync(string methodName, params object?[] args)
+    {
+        if (Resource != null)
+        {
+            await Resource.SendAsync(methodName, args);
+        }
+    }
+
+    private string GetConnectionStatusClass()
+    {
+        return Resource?.ConnectionState switch
+        {
+            HubConnectionState.Connecting => "connecting",
+            HubConnectionState.Connected => "connected",
+            HubConnectionState.Reconnecting => "reconnecting",
+            HubConnectionState.Disconnected => "disconnected",
+            _ => "unknown"
+        };
+    }
+
+    private string GetConnectionStatusIcon()
+    {
+        return Resource?.ConnectionState switch
+        {
+            HubConnectionState.Connecting => "⟳",
+            HubConnectionState.Connected => "✓",
+            HubConnectionState.Reconnecting => "↻",
+            HubConnectionState.Disconnected => "✗",
+            _ => "?"
+        };
+    }
+
+    private string GetConnectionStatusText()
+    {
+        return Resource?.ConnectionState switch
+        {
+            HubConnectionState.Connecting => "Connecting...",
+            HubConnectionState.Connected => "Connected",
+            HubConnectionState.Reconnecting => "Reconnecting...",
+            HubConnectionState.Disconnected => "Disconnected",
+            _ => "Unknown"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _subscription?.Dispose();
+        
+        if (Resource != null)
+        {
+            await Resource.DisposeAsync();
+        }
+    }
+}
+
+<style>
+    .signalr-connection-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+
+    .signalr-connection-status.connecting {
+        background-color: #FEF3C7;
+        color: #92400E;
+    }
+
+    .signalr-connection-status.connected {
+        background-color: #D1FAE5;
+        color: #065F46;
+    }
+
+    .signalr-connection-status.reconnecting {
+        background-color: #DBEAFE;
+        color: #1E40AF;
+    }
+
+    .signalr-connection-status.disconnected {
+        background-color: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .status-icon {
+        font-weight: bold;
+    }
+
+    .reconnect-btn {
+        padding: 0.125rem 0.5rem;
+        margin-left: 0.5rem;
+        border: 1px solid currentColor;
+        border-radius: 0.25rem;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    .reconnect-btn:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+</style>

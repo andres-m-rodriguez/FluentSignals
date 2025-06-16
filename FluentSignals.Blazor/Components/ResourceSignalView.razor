@@ -1,0 +1,177 @@
+@typeparam TData
+@using FluentSignals.Resources
+@implements IDisposable
+
+@if (Resource != null)
+{
+    var state = Resource.State;
+    
+    @if (state.IsLoading && LoadingContent != null)
+    {
+        @LoadingContent
+    }
+    else if (state.HasError && ErrorContent != null)
+    {
+        @ErrorContent(state.Error!)
+    }
+    else if (state.HasData && DataContent != null)
+    {
+        @DataContent(state.Data!)
+    }
+    else if (EmptyContent != null)
+    {
+        @EmptyContent
+    }
+}
+
+@code {
+    /// <summary>
+    /// The ResourceSignal to display
+    /// </summary>
+    [Parameter]
+    public ResourceSignal<TData>? Resource { get; set; }
+
+    /// <summary>
+    /// Function to create/fetch the resource
+    /// </summary>
+    [Parameter]
+    public Func<CancellationToken, Task<TData>>? Fetcher { get; set; }
+
+    /// <summary>
+    /// Initial data for the resource
+    /// </summary>
+    [Parameter]
+    public TData? InitialData { get; set; }
+
+    /// <summary>
+    /// Content to display while loading
+    /// </summary>
+    [Parameter]
+    public RenderFragment? LoadingContent { get; set; }
+
+    /// <summary>
+    /// Content to display when data is available
+    /// </summary>
+    [Parameter]
+    public RenderFragment<TData>? DataContent { get; set; }
+
+    /// <summary>
+    /// Content to display when an error occurs
+    /// </summary>
+    [Parameter]
+    public RenderFragment<Exception>? ErrorContent { get; set; }
+
+    /// <summary>
+    /// Content to display when no data is available
+    /// </summary>
+    [Parameter]
+    public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>
+    /// Whether to automatically fetch data on initialization
+    /// </summary>
+    [Parameter]
+    public bool AutoFetch { get; set; } = true;
+
+    /// <summary>
+    /// Callback when the resource state changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<ResourceState<TData>> OnStateChanged { get; set; }
+
+    private IDisposable? _subscription;
+    private bool _resourceCreated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Create resource if not provided
+        if (Resource == null && Fetcher != null)
+        {
+            Resource = new ResourceSignal<TData>(Fetcher, InitialData);
+            _resourceCreated = true;
+        }
+
+        if (Resource != null)
+        {
+            // Subscribe to state changes
+            _subscription = Resource.Subscribe(async state =>
+            {
+                await InvokeAsync(StateHasChanged);
+                
+                if (OnStateChanged.HasDelegate)
+                {
+                    await OnStateChanged.InvokeAsync(state);
+                }
+            });
+
+            // Auto-fetch if enabled
+            if (AutoFetch && Resource.Data == null)
+            {
+                await Resource.LoadAsync();
+            }
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // If Resource parameter changed and we created our own, dispose it
+        if (Resource != null && _resourceCreated)
+        {
+            _subscription?.Dispose();
+            Resource.Dispose();
+            _resourceCreated = false;
+        }
+
+        // Re-initialize if needed
+        if (Resource == null && Fetcher != null)
+        {
+            await OnInitializedAsync();
+        }
+    }
+
+    /// <summary>
+    /// Refreshes the resource data
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        if (Resource != null)
+        {
+            await Resource.RefreshAsync();
+        }
+    }
+
+    /// <summary>
+    /// Sets the resource to loading state
+    /// </summary>
+    public void SetLoading()
+    {
+        Resource?.SetLoading();
+    }
+
+    /// <summary>
+    /// Sets the resource data
+    /// </summary>
+    public void SetData(TData data)
+    {
+        Resource?.SetData(data);
+    }
+
+    /// <summary>
+    /// Sets an error on the resource
+    /// </summary>
+    public void SetError(Exception error)
+    {
+        Resource?.SetError(error);
+    }
+
+    public void Dispose()
+    {
+        _subscription?.Dispose();
+        
+        // Only dispose the resource if we created it
+        if (_resourceCreated && Resource != null)
+        {
+            Resource.Dispose();
+        }
+    }
+}

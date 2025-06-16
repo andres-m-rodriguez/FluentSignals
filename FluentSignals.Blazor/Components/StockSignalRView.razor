@@ -1,0 +1,248 @@
+@typeparam TData
+@using FluentSignals.Blazor.Resources
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IAsyncDisposable
+@inherits ComponentBase
+
+@if (ShowConnectionStatus && Resource != null)
+{
+    <div class="signalr-connection-status mb-2">
+        <span class="badge @GetConnectionStatusClass()">
+            @GetConnectionStatus()
+        </span>
+    </div>
+}
+
+@if (Resource != null)
+{
+    var state = Resource.State;
+    
+    @if (state.IsLoading && LoadingContent != null)
+    {
+        @LoadingContent
+    }
+    else if (state.HasError && ErrorContent != null)
+    {
+        @ErrorContent(state.Error!)
+    }
+    else if (Resource.IsConnected)
+    {
+        @if (_lastMatchingData != null && DataContent != null)
+        {
+            @DataContent(_lastMatchingData)
+        }
+        else if (WaitingContent != null)
+        {
+            @WaitingContent
+        }
+        else
+        {
+            <div class="text-center text-muted">
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Waiting for data...</span>
+                </div>
+                <p class="mt-2 mb-0">Waiting for @FilterValue...</p>
+            </div>
+        }
+    }
+    else if (EmptyContent != null)
+    {
+        @EmptyContent
+    }
+    else
+    {
+        <div class="text-center text-muted">
+            <p>Not connected</p>
+        </div>
+    }
+}
+
+@code {
+    /// <summary>
+    /// The SignalR hub URL
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string HubUrl { get; set; } = "";
+
+    /// <summary>
+    /// The SignalR method name to listen to
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string MethodName { get; set; } = "";
+
+    /// <summary>
+    /// Property name to filter on (e.g., "Symbol" for stocks)
+    /// </summary>
+    [Parameter]
+    public string? FilterProperty { get; set; }
+
+    /// <summary>
+    /// Value to filter for (e.g., "AAPL" for Apple stock)
+    /// </summary>
+    [Parameter]
+    public string? FilterValue { get; set; }
+
+    /// <summary>
+    /// Optional function to fetch initial data
+    /// </summary>
+    [Parameter]
+    public Func<CancellationToken, Task<TData>>? Fetcher { get; set; }
+
+    /// <summary>
+    /// Content to display when loading
+    /// </summary>
+    [Parameter]
+    public RenderFragment? LoadingContent { get; set; }
+
+    /// <summary>
+    /// Content to display when data is available and matches filter
+    /// </summary>
+    [Parameter]
+    public RenderFragment<TData>? DataContent { get; set; }
+
+    /// <summary>
+    /// Content to display when waiting for filtered data
+    /// </summary>
+    [Parameter]
+    public RenderFragment? WaitingContent { get; set; }
+
+    /// <summary>
+    /// Content to display when there's an error
+    /// </summary>
+    [Parameter]
+    public RenderFragment<Exception>? ErrorContent { get; set; }
+
+    /// <summary>
+    /// Content to display when there's no data
+    /// </summary>
+    [Parameter]
+    public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>
+    /// Whether to automatically fetch initial data
+    /// </summary>
+    [Parameter]
+    public bool AutoFetch { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show the connection status indicator
+    /// </summary>
+    [Parameter]
+    public bool ShowConnectionStatus { get; set; } = true;
+
+    /// <summary>
+    /// Action to configure the hub connection
+    /// </summary>
+    [Parameter]
+    public Action<IHubConnectionBuilder>? ConfigureConnection { get; set; }
+
+    /// <summary>
+    /// Callback when the resource state changes
+    /// </summary>
+    [Parameter]
+    public EventCallback<ResourceState<TData>> OnStateChanged { get; set; }
+
+    /// <summary>
+    /// The internal ResourceSignalR instance
+    /// </summary>
+    protected ResourceSignalR<TData>? Resource { get; private set; }
+
+    private IDisposable? _subscription;
+    private TData? _lastMatchingData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Create the ResourceSignalR
+        Resource = new ResourceSignalR<TData>(
+            HubUrl,
+            MethodName,
+            Fetcher,
+            ConfigureConnection
+        );
+
+        // Subscribe to state changes
+        _subscription = Resource.Subscribe(async state =>
+        {
+            // Check if we should update based on filter
+            if (state.HasData && state.Data != null)
+            {
+                if (ShouldDisplayData(state.Data))
+                {
+                    _lastMatchingData = state.Data;
+                }
+            }
+
+            await InvokeAsync(StateHasChanged);
+            
+            if (OnStateChanged.HasDelegate)
+            {
+                await OnStateChanged.InvokeAsync(state);
+            }
+        });
+
+        // Connect to SignalR
+        await Resource.ConnectAsync();
+
+        // Auto-fetch if enabled and we have a fetcher
+        if (AutoFetch && Fetcher != null)
+        {
+            await Resource.LoadAsync();
+        }
+    }
+
+    private bool ShouldDisplayData(TData data)
+    {
+        // If no filter is specified, display all data
+        if (string.IsNullOrEmpty(FilterProperty) || string.IsNullOrEmpty(FilterValue))
+        {
+            return true;
+        }
+
+        // Use reflection to get the property value
+        var propertyInfo = typeof(TData).GetProperty(FilterProperty);
+        if (propertyInfo != null)
+        {
+            var value = propertyInfo.GetValue(data)?.ToString();
+            return string.Equals(value, FilterValue, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return true;
+    }
+
+    private string GetConnectionStatus()
+    {
+        if (Resource == null) return "Not initialized";
+        
+        return Resource.ConnectionState switch
+        {
+            HubConnectionState.Connected => "Connected",
+            HubConnectionState.Connecting => "Connecting...",
+            HubConnectionState.Reconnecting => "Reconnecting...",
+            HubConnectionState.Disconnected => "Disconnected",
+            _ => "Unknown"
+        };
+    }
+
+    private string GetConnectionStatusClass()
+    {
+        if (Resource == null) return "bg-secondary";
+        
+        return Resource.ConnectionState switch
+        {
+            HubConnectionState.Connected => "bg-success",
+            HubConnectionState.Connecting or HubConnectionState.Reconnecting => "bg-warning text-dark",
+            HubConnectionState.Disconnected => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _subscription?.Dispose();
+        
+        if (Resource != null)
+        {
+            await Resource.DisposeAsync();
+        }
+    }
+}

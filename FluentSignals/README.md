@@ -9,7 +9,8 @@ A powerful reactive state management library for .NET applications inspired by S
 - 📦 **Typed and untyped signals** - Use `Signal<T>` for type safety or `Signal` for flexibility
 - ⚡ **Async signals** - Built-in support for asynchronous operations
 - 🌊 **Computed signals** - Automatically derive values from other signals
-- 🎯 **Resource management** - HTTP resources with caching and retry policies
+- 🎯 **Resource management** - Generic resource pattern with loading/error states
+- 🌐 **HTTP resources** - Built-in HTTP client with caching and retry policies
 - 🔌 **Extensible** - Easy to extend with custom signal types
 
 ## Installation
@@ -63,6 +64,26 @@ var asyncSignal = new AsyncSignal<string>(async () =>
 await asyncSignal.GetValueAsync(); // Returns "Data loaded!" after 1 second
 ```
 
+### Resource Signals
+
+```csharp
+// Create a resource with a fetcher function
+var userResource = new ResourceSignal<User>(
+    async (ct) => await LoadUserFromDatabase(userId, ct)
+);
+
+// Subscribe to state changes
+userResource.Subscribe(state =>
+{
+    if (state.IsLoading) Console.WriteLine("Loading...");
+    if (state.HasData) Console.WriteLine($"User: {state.Data.Name}");
+    if (state.HasError) Console.WriteLine($"Error: {state.Error.Message}");
+});
+
+// Load the resource
+await userResource.LoadAsync();
+```
+
 ### HTTP Resources
 
 ```csharp
@@ -75,15 +96,7 @@ services.AddFluentSignalsHttpResource(options =>
 // Create an HTTP resource
 var userResource = new HttpResource<User>("/users/1", httpClient);
 
-// Subscribe to state changes
-userResource.Subscribe(state =>
-{
-    if (state.IsLoading) Console.WriteLine("Loading...");
-    if (state.HasData) Console.WriteLine($"User: {state.Data.Name}");
-    if (state.HasError) Console.WriteLine($"Error: {state.Error}");
-});
-
-// Fetch the data
+// Subscribe and fetch
 await userResource.LoadAsync();
 ```
 

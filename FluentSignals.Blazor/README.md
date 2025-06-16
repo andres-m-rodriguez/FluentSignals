@@ -6,7 +6,9 @@ Blazor integration for FluentSignals - A powerful reactive state management libr
 
 - 📡 **SignalBus** - Publish/Subscribe pattern for component communication
 - 📬 **Queue-based subscriptions** - Receive messages even if published before subscription
-- 🌐 **HTTP Resource components** - Ready-to-use Blazor components for HTTP resources
+- 🎯 **Resource components** - Display any async resource with loading/error states
+- 🔌 **SignalR integration** - Real-time data with ResourceSignalRView
+- 🌐 **HTTP Resource components** - Ready-to-use components for HTTP resources
 - 🎯 **SignalComponentBase** - Base component class with signal integration
 - ⚡ **Automatic UI updates** - Components automatically re-render when signals change
 - 🔄 **Lifecycle integration** - Proper subscription cleanup on component disposal
@@ -123,9 +125,40 @@ builder.Services.AddFluentSignalsBlazorWithSignalBus();
 }
 ```
 
-### HTTP Resource Components
+### Resource Components
 
 ```razor
+<!-- Generic Resource View -->
+<ResourceSignalView TData="Product" Fetcher="@LoadProduct">
+    <LoadingContent>
+        <div class="spinner">Loading product...</div>
+    </LoadingContent>
+    <DataContent Context="product">
+        <h3>@product.Name</h3>
+        <p>Price: @product.Price.ToString("C")</p>
+    </DataContent>
+    <ErrorContent Context="error">
+        <div class="error">@error.Message</div>
+    </ErrorContent>
+</ResourceSignalView>
+
+<!-- SignalR Resource View -->
+<ResourceSignalRView TData="StockPrice" 
+                     HubUrl="/stockHub" 
+                     MethodName="PriceUpdate"
+                     ShowConnectionStatus="true">
+    <DataContent Context="stock">
+        <div class="stock-price">
+            <h4>@stock.Symbol</h4>
+            <span class="price">@stock.Price.ToString("C")</span>
+            <span class="change @(stock.Change >= 0 ? "up" : "down")">
+                @stock.Change.ToString("+0.00;-0.00")
+            </span>
+        </div>
+    </DataContent>
+</ResourceSignalRView>
+
+<!-- HTTP Resource View -->
 <HttpResourceView TData="User" Url="/api/users/1">
     <LoadingContent>
         <p>Loading user data...</p>

@@ -1,0 +1,262 @@
+@page "/signalr-demo-filtered"
+@using FluentSignals.Blazor.Components
+@using FluentSignals.WebAssembly.Components.Pages.Demos.Models
+@inject NavigationManager Navigation
+
+<div class="container-fluid py-4">
+    <h1 class="mb-4">SignalR Demo - Using StockSignalRView with Filtering</h1>
+    
+    <div class="alert alert-success mb-4">
+        <h5>Creating a Custom ResourceSignalR Component</h5>
+        <p>This demo uses a custom <code>StockSignalRView</code> component that extends ResourceSignalR with filtering:</p>
+        <ul>
+            <li>All components listen to the same "PriceUpdate" method</li>
+            <li>Each component filters by the Symbol property</li>
+            <li>Shows "Waiting for [symbol]..." when connected but data hasn't arrived yet</li>
+            <li>Clean and reusable approach</li>
+        </ul>
+    </div>
+
+    <div class="alert alert-primary mb-4">
+        <h5>💡 How StockSignalRView Works</h5>
+        <p>The custom component wraps ResourceSignalR and adds filtering capabilities:</p>
+        <pre class="mb-0"><code>// Inside StockSignalRView.razor
+@@code {
+    private ResourceSignalR&lt;TData&gt;? Resource;
+    private TData? _lastMatchingData;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Create the ResourceSignalR
+        Resource = new ResourceSignalR&lt;TData&gt;(
+            HubUrl, MethodName, Fetcher, ConfigureConnection
+        );
+
+        // Subscribe and filter updates
+        _subscription = Resource.Subscribe(state =&gt;
+        {
+            if (state.HasData &amp;&amp; ShouldDisplayData(state.Data))
+            {
+                _lastMatchingData = state.Data;
+            }
+            InvokeAsync(StateHasChanged);
+        });
+
+        await Resource.ConnectAsync();
+    }
+    
+    private bool ShouldDisplayData(TData data)
+    {
+        // Use reflection to check FilterProperty == FilterValue
+        var value = typeof(TData)
+            .GetProperty(FilterProperty)?
+            .GetValue(data)?.ToString();
+        return value == FilterValue;
+    }
+}</code></pre>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Apple Inc. (AAPL)</h5>
+                </div>
+                <div class="card-body">
+                    <StockSignalRView TData="StockPrice" 
+                                      HubUrl="@GetHubUrl()" 
+                                      MethodName="PriceUpdate"
+                                      FilterProperty="Symbol"
+                                      FilterValue="AAPL"
+                                      ShowConnectionStatus="true"
+                                      AutoFetch="false">
+                        <LoadingContent>
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Connecting...</span>
+                                </div>
+                                <p class="mt-2">Connecting to real-time feed...</p>
+                            </div>
+                        </LoadingContent>
+                        <DataContent Context="stock">
+                            <StockPriceDisplay Stock="stock" />
+                        </DataContent>
+                        <WaitingContent>
+                            <div class="text-center text-muted">
+                                <div class="spinner-grow text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Waiting for AAPL data...</p>
+                            </div>
+                        </WaitingContent>
+                        <ErrorContent Context="error">
+                            <div class="alert alert-danger">
+                                <strong>Connection Error:</strong> @error.Message
+                            </div>
+                        </ErrorContent>
+                    </StockSignalRView>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Microsoft Corp. (MSFT)</h5>
+                </div>
+                <div class="card-body">
+                    <StockSignalRView TData="StockPrice" 
+                                      HubUrl="@GetHubUrl()" 
+                                      MethodName="PriceUpdate"
+                                      FilterProperty="Symbol"
+                                      FilterValue="MSFT"
+                                      ShowConnectionStatus="true"
+                                      AutoFetch="false">
+                        <LoadingContent>
+                            <div class="text-center">
+                                <div class="spinner-border text-success" role="status">
+                                    <span class="visually-hidden">Connecting...</span>
+                                </div>
+                                <p class="mt-2">Connecting to real-time feed...</p>
+                            </div>
+                        </LoadingContent>
+                        <DataContent Context="stock">
+                            <StockPriceDisplay Stock="stock" />
+                        </DataContent>
+                        <WaitingContent>
+                            <div class="text-center text-muted">
+                                <div class="spinner-grow text-success" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Waiting for MSFT data...</p>
+                            </div>
+                        </WaitingContent>
+                        <ErrorContent Context="error">
+                            <div class="alert alert-danger">
+                                <strong>Connection Error:</strong> @error.Message
+                            </div>
+                        </ErrorContent>
+                    </StockSignalRView>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Alphabet Inc. (GOOGL)</h5>
+                </div>
+                <div class="card-body">
+                    <StockSignalRView TData="StockPrice" 
+                                      HubUrl="@GetHubUrl()" 
+                                      MethodName="PriceUpdate"
+                                      FilterProperty="Symbol"
+                                      FilterValue="GOOGL"
+                                      ShowConnectionStatus="true"
+                                      AutoFetch="false">
+                        <LoadingContent>
+                            <div class="text-center">
+                                <div class="spinner-border text-danger" role="status">
+                                    <span class="visually-hidden">Connecting...</span>
+                                </div>
+                                <p class="mt-2">Connecting to real-time feed...</p>
+                            </div>
+                        </LoadingContent>
+                        <DataContent Context="stock">
+                            <StockPriceDisplay Stock="stock" />
+                        </DataContent>
+                        <WaitingContent>
+                            <div class="text-center text-muted">
+                                <div class="spinner-grow text-danger" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Waiting for GOOGL data...</p>
+                            </div>
+                        </WaitingContent>
+                        <ErrorContent Context="error">
+                            <div class="alert alert-danger">
+                                <strong>Connection Error:</strong> @error.Message
+                            </div>
+                        </ErrorContent>
+                    </StockSignalRView>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h3>Benefits of Custom ResourceSignalR Components</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">✅ Advantages</h5>
+                        <ul>
+                            <li>Clean component usage - no manual filtering in the parent</li>
+                            <li>Reusable for any data type with filtering needs</li>
+                            <li>Built-in "waiting for data" state</li>
+                            <li>Each component maintains its own filtered state</li>
+                            <li>Works with a single SignalR method for all data</li>
+                            <li>Leverages the power of FluentSignals ResourceSignalR</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">🔧 Usage</h5>
+                        <pre><code>&lt;StockSignalRView TData="StockPrice" 
+                  HubUrl="@GetHubUrl()" 
+                  MethodName="PriceUpdate"
+                  FilterProperty="Symbol"
+                  FilterValue="AAPL"&gt;
+  &lt;DataContent Context="stock"&gt;
+    &lt;StockPriceDisplay Stock="stock" /&gt;
+  &lt;/DataContent&gt;
+&lt;/StockSignalRView&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h3>Creating Your Own Custom ResourceSignalR Components</h3>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Step-by-Step Guide</h5>
+                <ol>
+                    <li><strong>Create a new Razor component</strong> that wraps ResourceSignalR</li>
+                    <li><strong>Add filtering logic</strong> in the subscription callback</li>
+                    <li><strong>Maintain filtered state</strong> separately from the raw SignalR data</li>
+                    <li><strong>Expose parameters</strong> for configuration</li>
+                </ol>
+                
+                <h6 class="mt-3">Key Pattern:</h6>
+                <pre><code>// 1. Create ResourceSignalR instance
+var resource = new ResourceSignalR&lt;TData&gt;(hubUrl, methodName);
+
+// 2. Subscribe with filtering
+resource.Subscribe(state =&gt; {
+    if (state.HasData &amp;&amp; MatchesFilter(state.Data)) {
+        _filteredData = state.Data;
+        StateHasChanged();
+    }
+});
+
+// 3. Connect and use
+await resource.ConnectAsync();</code></pre>
+                
+                <p class="mt-3">This pattern allows you to create specialized components for any real-time scenario while leveraging the full power of FluentSignals!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string GetHubUrl()
+    {
+        return Navigation.ToAbsoluteUri("/stock-hub").ToString();
+    }
+}

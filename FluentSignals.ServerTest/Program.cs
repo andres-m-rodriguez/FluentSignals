@@ -1,6 +1,8 @@
 using FluentSignals.ServerTest.Components;
 using FluentSignals.Blazor.Extensions;
 using FluentSignals.Options.HttpResource;
+using FluentSignals.ServerTest.Hubs;
+using FluentSignals.ServerTest.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,13 @@ builder.Services.AddRazorComponents()
 
 // Add controllers for API endpoints
 builder.Services.AddControllers();
+
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Add the stock price update service
+builder.Services.AddSingleton<StockPriceService>();
+builder.Services.AddHostedService<StockPriceService>(provider => provider.GetRequiredService<StockPriceService>());
 
 // Get the current application URL
 var urls = builder.Configuration["urls"] ?? "https://localhost:5001";
@@ -57,5 +66,8 @@ app.MapRazorComponents<App>()
 
 // Map controller endpoints
 app.MapControllers();
+
+// Map SignalR hub
+app.MapHub<StockPriceHub>("/stock-hub");
 
 app.Run();

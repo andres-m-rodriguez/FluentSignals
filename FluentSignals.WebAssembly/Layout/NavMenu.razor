@@ -50,6 +50,14 @@
                 <span class="nav-icon">🌐</span>
                 <span class="nav-text">HTTP Resource</span>
             </NavLink>
+            <NavLink class="nav-link" href="signalr-demo" @onclick="CloseMenu">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-text">SignalR Resource</span>
+            </NavLink>
+            <NavLink class="nav-link" href="signalr-demo-filtered" @onclick="CloseMenu">
+                <span class="nav-icon">🎯</span>
+                <span class="nav-text">SignalR Filtered</span>
+            </NavLink>
             <NavLink class="nav-link" href="playground" @onclick="CloseMenu">
                 <span class="nav-icon">🎮</span>
                 <span class="nav-text">Playground</span>
@@ -152,6 +160,12 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border-radius: 14px;
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .brand-icon-img {
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
     }
 
     .brand-text {
