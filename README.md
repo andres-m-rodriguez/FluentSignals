@@ -247,6 +247,14 @@ This project uses GitHub Actions for continuous integration and deployment:
 2. Update the package version in `Directory.Build.props`
 3. Push to master to trigger automatic publishing
 
+## 📚 Documentation
+
+- [Complete Documentation](FluentSignals/Documentation/)
+- [Version History](CHANGELOG.md)
+- [HTTP Resource Guide](FluentSignals/Documentation/HttpResourceCrud.md)
+- [Async Signals Guide](FluentSignals/Documentation/AsyncSignals.md)
+- [JSON Deserialization Guide](FluentSignals/Documentation/HttpResourceDeserialization.md)
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

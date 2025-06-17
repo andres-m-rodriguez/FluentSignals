@@ -1,0 +1,737 @@
+@page "/version-history"
+@using FluentSignals.WebAssembly.Components.Common
+
+<PageTitle>Version History - FluentSignals</PageTitle>
+
+<div class="version-history-page">
+    <div class="page-header">
+        <h1>FluentSignals Version History</h1>
+        <p class="lead">Track the evolution of FluentSignals through its releases</p>
+    </div>
+    
+    <div class="version-timeline">
+        <!-- Version 1.1.2 -->
+        <div class="version-card latest @(expandedVersions.Contains("1.1.2") ? "expanded" : "")" @onclick="Toggle112">
+            <div class="version-header">
+                <h2>Version 1.1.2</h2>
+                <span class="version-badge latest-badge">Latest</span>
+                <span class="release-date">January 16, 2025</span>
+                <span class="expand-icon">@(expandedVersions.Contains("1.1.2") ? "▼" : "▶")</span>
+            </div>
+            <div class="version-content" style="@(expandedVersions.Contains("1.1.2") ? "" : "display: none;")">
+                <h3>🎨 Custom JSON Serialization Support</h3>
+                <p>Enhanced HttpResource with configurable JSON serialization options, providing flexibility for complex type handling.</p>
+                
+                <h4>Key Features:</h4>
+                <ul class="feature-list">
+                    <li>
+                        <span class="feature-icon">🔧</span>
+                        <div>
+                            <strong>JsonSerializerOptions Configuration</strong>
+                            <p>Configure global JSON serialization settings through HttpResourceOptions</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🔄</span>
+                        <div>
+                            <strong>Custom Converter Support</strong>
+                            <p>Add custom JsonConverters for complex types and immutable objects</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🐛</span>
+                        <div>
+                            <strong>Bug Fix: Duplicate Handler Calls</strong>
+                            <p>Fixed issue where typed HTTP status handlers were being called twice</p>
+                        </div>
+                    </li>
+                </ul>
+                
+                <CodeBlock Language="csharp" Code="@jsonConfigCode" />
+            </div>
+        </div>
+        
+        <!-- Version 1.1.1 -->
+        <div class="version-card @(expandedVersions.Contains("1.1.1") ? "expanded" : "")" @onclick="Toggle111">
+            <div class="version-header">
+                <h2>Version 1.1.1</h2>
+                <span class="release-date">January 15, 2025</span>
+                <span class="expand-icon">@(expandedVersions.Contains("1.1.1") ? "▼" : "▶")</span>
+            </div>
+            <div class="version-content" style="@(expandedVersions.Contains("1.1.1") ? "" : "display: none;")">
+                <h3>⚡ SignalR Resource Integration</h3>
+                <p>Introduced ResourceSignalR for real-time data synchronization using SignalR connections.</p>
+                
+                <h4>Key Features:</h4>
+                <ul class="feature-list">
+                    <li>
+                        <span class="feature-icon">🔌</span>
+                        <div>
+                            <strong>ResourceSignalR&lt;T&gt;</strong>
+                            <p>Reactive wrapper for SignalR hub connections with automatic reconnection</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">📡</span>
+                        <div>
+                            <strong>Real-time Updates</strong>
+                            <p>Subscribe to server-pushed updates with type-safe event handling</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🎯</span>
+                        <div>
+                            <strong>Filtered Subscriptions</strong>
+                            <p>Filter incoming SignalR messages based on custom predicates</p>
+                        </div>
+                    </li>
+                </ul>
+                
+                <CodeBlock Language="csharp" Code="@signalRCode" />
+            </div>
+        </div>
+        
+        <!-- Version 1.1.0 -->
+        <div class="version-card @(expandedVersions.Contains("1.1.0") ? "expanded" : "")" @onclick="Toggle110">
+            <div class="version-header">
+                <h2>Version 1.1.0</h2>
+                <span class="release-date">January 5, 2025</span>
+                <span class="expand-icon">@(expandedVersions.Contains("1.1.0") ? "▼" : "▶")</span>
+            </div>
+            <div class="version-content" style="@(expandedVersions.Contains("1.1.0") ? "" : "display: none;")">
+                <h3>🌐 Resource Type Introduction</h3>
+                <p>Added the foundational IResource interface and resource management capabilities.</p>
+                
+                <h4>Key Features:</h4>
+                <ul class="feature-list">
+                    <li>
+                        <span class="feature-icon">📦</span>
+                        <div>
+                            <strong>IResource&lt;T&gt; Interface</strong>
+                            <p>Base interface for resource implementations with loading and error states</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🔄</span>
+                        <div>
+                            <strong>HttpResource</strong>
+                            <p>Reactive HTTP client with automatic state management and retry policies</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🎨</span>
+                        <div>
+                            <strong>Resource Components</strong>
+                            <p>Blazor components for displaying resource states (loading, error, data)</p>
+                        </div>
+                    </li>
+                </ul>
+                
+                <CodeBlock Language="csharp" Code="@httpResourceCode" />
+            </div>
+        </div>
+        
+        <!-- Version 1.0.0 -->
+        <div class="version-card @(expandedVersions.Contains("1.0.0") ? "expanded" : "")" @onclick="Toggle100">
+            <div class="version-header">
+                <h2>Version 1.0.0</h2>
+                <span class="release-date">January 4, 2025</span>
+                <span class="expand-icon">@(expandedVersions.Contains("1.0.0") ? "▼" : "▶")</span>
+            </div>
+            <div class="version-content" style="@(expandedVersions.Contains("1.0.0") ? "" : "display: none;")">
+                <h3>🚀 Initial Release</h3>
+                <p>The foundation of FluentSignals - a reactive state management library for .NET applications.</p>
+                
+                <h4>Core Features:</h4>
+                <ul class="feature-list">
+                    <li>
+                        <span class="feature-icon">📡</span>
+                        <div>
+                            <strong>Signal&lt;T&gt;</strong>
+                            <p>Reactive state containers with automatic change notifications</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🔄</span>
+                        <div>
+                            <strong>Computed Signals</strong>
+                            <p>Derived state that automatically updates when dependencies change</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">⚡</span>
+                        <div>
+                            <strong>Async Signals</strong>
+                            <p>Handle asynchronous operations with built-in loading and error states</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🎯</span>
+                        <div>
+                            <strong>Blazor Integration</strong>
+                            <p>Seamless integration with Blazor components for reactive UI updates</p>
+                        </div>
+                    </li>
+                </ul>
+                
+                <CodeBlock Language="csharp" Code="@signalCode" />
+            </div>
+        </div>
+    </div>
+    
+    <div class="roadmap-section">
+        <h2>🗺️ Roadmap</h2>
+        <div class="roadmap-card">
+            <h3>Upcoming Features</h3>
+            <ul class="roadmap-list">
+                <li>
+                    <span class="roadmap-icon">🔐</span>
+                    <strong>Authentication Integration</strong>
+                    <span class="roadmap-status">Planned</span>
+                </li>
+                <li>
+                    <span class="roadmap-icon">📊</span>
+                    <strong>Performance Monitoring</strong>
+                    <span class="roadmap-status">Under Discussion</span>
+                </li>
+                <li>
+                    <span class="roadmap-icon">🧪</span>
+                    <strong>Testing Utilities</strong>
+                    <span class="roadmap-status">Research Phase</span>
+                </li>
+                <li>
+                    <span class="roadmap-icon">📱</span>
+                    <strong>MAUI Support</strong>
+                    <span class="roadmap-status">Community Request</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private HashSet<string> expandedVersions = new HashSet<string> { "1.1.2" }; // Latest version expanded by default
+    
+    private void ToggleVersion(string version)
+    {
+        if (expandedVersions.Contains(version))
+            expandedVersions.Remove(version);
+        else
+            expandedVersions.Add(version);
+    }
+    
+    private void Toggle112() => ToggleVersion("1.1.2");
+    private void Toggle111() => ToggleVersion("1.1.1");
+    private void Toggle110() => ToggleVersion("1.1.0");
+    private void Toggle100() => ToggleVersion("1.0.0");
+    
+    private string jsonConfigCode = @"// Configure custom JSON options
+services.AddFluentSignalsBlazor(options =>
+{
+    options.JsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        Converters = { new MyCustomConverter() }
+    };
+});
+
+// Custom converter example
+public class ConflictTypeConverter : JsonConverter<ConflictType>
+{
+    public override ConflictType Read(ref Utf8JsonReader reader, 
+        Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+        return ConflictType.FromString(value);
+    }
+}";
+
+    private string signalRCode = @"// Create a SignalR resource
+var stockPrices = new ResourceSignalR<StockPrice>(
+    hubUrl: ""/hubs/stock"",
+    eventName: ""ReceiveStockPrice""
+);
+
+// Subscribe to updates
+stockPrices.Subscribe(price => 
+{
+    Console.WriteLine($""{price.Symbol}: ${price.Price}"");
+});
+
+// Start connection
+await stockPrices.StartAsync();";
+
+    private string httpResourceCode = @"// Create an HTTP resource
+var userResource = new HttpResource(httpClient);
+
+// Make reactive HTTP calls
+await userResource.GetAsync<User>(""api/users/123"");
+
+// Subscribe to state changes
+userResource.Subscribe(response => 
+{
+    if (response?.IsSuccess == true)
+        UpdateUI(response.Data);
+});";
+
+    private string signalCode = @"// Create a signal
+var count = new Signal<int>(0);
+
+// Subscribe to changes
+count.Subscribe(value => Console.WriteLine($""Count: {value}""));
+
+// Update the value
+count.Value = 42; // Automatically notifies subscribers";
+}
+
+<style>
+    .version-history-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    
+    .page-header h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1rem;
+    }
+    
+    .page-header .lead {
+        font-size: 1.25rem;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .version-timeline {
+        position: relative;
+        padding-left: 3rem;
+    }
+    
+    .version-timeline::before {
+        content: '';
+        position: absolute;
+        left: 1rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, #667eea, #764ba2);
+        opacity: 0.3;
+    }
+    
+    .version-card {
+        position: relative;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .version-card::before {
+        content: '';
+        position: absolute;
+        left: -2.5rem;
+        top: 2rem;
+        width: 12px;
+        height: 12px;
+        background: #667eea;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px white, 0 0 0 6px #e0e7ff;
+    }
+    
+    .version-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    .version-card.latest {
+        border: 2px solid #667eea;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    }
+    
+    .version-card.latest::before {
+        background: #667eea;
+        width: 16px;
+        height: 16px;
+        left: -2.7rem;
+        animation: pulse 2s infinite;
+    }
+    
+    @@keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 4px white, 0 0 0 6px #e0e7ff;
+        }
+        50% {
+            box-shadow: 0 0 0 8px white, 0 0 0 10px #e0e7ff;
+        }
+        100% {
+            box-shadow: 0 0 0 4px white, 0 0 0 6px #e0e7ff;
+        }
+    }
+    
+    .version-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        position: relative;
+        padding-right: 2.5rem; /* Add padding to prevent overlap with expand icon */
+    }
+    
+    .expand-icon {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2rem;
+        color: #64748b;
+        transition: transform 0.3s ease;
+    }
+    
+    .version-card.expanded .expand-icon {
+        transform: translateY(-50%) rotate(0deg);
+    }
+    
+    .version-header h2 {
+        margin: 0;
+        font-size: 2rem;
+        color: #1e293b;
+    }
+    
+    .version-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    
+    .latest-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .release-date {
+        margin-left: auto;
+        margin-right: 0.5rem; /* Add margin to ensure it doesn't get too close to expand icon */
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+    
+    .version-content {
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .version-content h3 {
+        font-size: 1.5rem;
+        color: #334155;
+        margin-bottom: 1rem;
+    }
+    
+    .version-content h4 {
+        font-size: 1.125rem;
+        color: #475569;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .version-content p {
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .feature-list li {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .feature-list li:hover {
+        background: #f1f5f9;
+        transform: translateX(4px);
+    }
+    
+    .feature-icon {
+        font-size: 1.5rem;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 12px;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .feature-list strong {
+        display: block;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+    
+    .feature-list p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #64748b;
+    }
+    
+    .roadmap-section {
+        margin-top: 4rem;
+        padding-top: 3rem;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .roadmap-section h2 {
+        font-size: 2.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #1e293b;
+    }
+    
+    .roadmap-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .roadmap-card h3 {
+        font-size: 1.5rem;
+        color: #334155;
+        margin-bottom: 1.5rem;
+    }
+    
+    .roadmap-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .roadmap-list li {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .roadmap-list li:hover {
+        background: #f1f5f9;
+    }
+    
+    .roadmap-icon {
+        font-size: 1.25rem;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+    
+    .roadmap-list strong {
+        flex: 1;
+        color: #1e293b;
+    }
+    
+    .roadmap-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: #e0e7ff;
+        color: #4c1d95;
+    }
+    
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .version-history-page {
+            padding: 1rem;
+        }
+        
+        .page-header h1 {
+            font-size: 2rem;
+        }
+        
+        .page-header .lead {
+            font-size: 1rem;
+        }
+        
+        .version-timeline {
+            padding-left: 2rem;
+        }
+        
+        .version-timeline::before {
+            left: 0.5rem;
+        }
+        
+        .version-card {
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .version-card::before {
+            left: -1.5rem;
+        }
+        
+        .version-card.latest::before {
+            left: -1.6rem;
+        }
+        
+        .version-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .version-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .release-date {
+            margin-left: 0;
+        }
+        
+        .feature-list li {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .roadmap-list li {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .roadmap-status {
+            width: 100%;
+            text-align: center;
+        }
+    }
+    
+    @@media (max-width: 480px) {
+        .page-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .version-timeline {
+            padding-left: 1.5rem;
+        }
+        
+        .version-card {
+            padding: 1rem;
+        }
+        
+        .version-content h3 {
+            font-size: 1.25rem;
+        }
+        
+        .roadmap-section h2 {
+            font-size: 2rem;
+        }
+    }
+    
+    /* Dark mode support */
+    @@media (prefers-color-scheme: dark) {
+        .version-card {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        
+        .version-card.latest {
+            background: #1e293b; /* Same as other cards in dark mode */
+            border: 2px solid #667eea; /* Keep the border to indicate latest */
+        }
+        
+        .version-header h2 {
+            color: #f1f5f9;
+        }
+        
+        .version-content h3 {
+            color: #e2e8f0;
+        }
+        
+        .version-content h4 {
+            color: #cbd5e1;
+        }
+        
+        .version-content p {
+            color: #94a3b8;
+        }
+        
+        .feature-list li {
+            background: #0f172a;
+        }
+        
+        .feature-list li:hover {
+            background: #1e293b;
+        }
+        
+        .feature-icon {
+            background: #334155;
+        }
+        
+        .feature-list strong {
+            color: #f1f5f9;
+        }
+        
+        .feature-list p {
+            color: #94a3b8;
+        }
+        
+        .roadmap-card {
+            background: #1e293b;
+        }
+        
+        .roadmap-card h3 {
+            color: #e2e8f0;
+        }
+        
+        .roadmap-list li {
+            background: #0f172a;
+        }
+        
+        .roadmap-list li:hover {
+            background: #1e293b;
+        }
+        
+        .roadmap-icon {
+            background: #334155;
+        }
+        
+        .roadmap-list strong {
+            color: #f1f5f9;
+        }
+    }
+</style>

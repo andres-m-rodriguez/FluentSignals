@@ -15,6 +15,7 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     private readonly HttpClient _httpClient;
     private readonly HttpResourceOptions _options;
     private readonly IAsyncPolicy<HttpResponseMessage>? _retryPolicy;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private Func<Task>? _lastRequest;
     
     // Status code handlers
@@ -40,6 +41,12 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _options = options ?? throw new ArgumentNullException(nameof(options));
+        
+        // Initialize JSON serializer options
+        _jsonSerializerOptions = _options.JsonSerializerOptions ?? new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
         // Configure HttpClient with options
         if (_options.Timeout != default)
@@ -371,10 +378,7 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
             {
                 try
                 {
-                    parsedData = JsonSerializer.Deserialize<TResponse>(responseContent, new JsonSerializerOptions 
-                    { 
-                        PropertyNameCaseInsensitive = true 
-                    });
+                    parsedData = JsonSerializer.Deserialize<TResponse>(responseContent, _jsonSerializerOptions);
                 }
                 catch (JsonException)
                 {
@@ -449,10 +453,7 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
         {
             try
             {
-                var errorObject = JsonSerializer.Deserialize(response.Content, errorType, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                var errorObject = JsonSerializer.Deserialize(response.Content, errorType, _jsonSerializerOptions);
                 
                 // Validate that the JSON structure actually matches the expected type
                 if (errorObject != null && 
@@ -472,8 +473,14 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     
     private async Task InvokeHandlers<T>(HttpResponse<T> response)
     {
-        // First invoke base handlers
-        await InvokeHandlers((HttpResponse)response);
+        // Invoke non-typed handlers only
+        if (_statusHandlers.TryGetValue(response.StatusCode, out var handlers))
+        {
+            foreach (var handler in handlers)
+            {
+                await handler(response);
+            }
+        }
         
         // Check for typed handlers
         if (_typedStatusHandlers.TryGetValue(response.StatusCode, out var typedHandlers))

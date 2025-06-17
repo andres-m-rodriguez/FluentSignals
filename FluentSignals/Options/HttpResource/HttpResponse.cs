@@ -20,15 +20,17 @@ public class HttpResponse
     
     public T? GetData<T>()
     {
+        return GetData<T>(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+    }
+    
+    public T? GetData<T>(JsonSerializerOptions options)
+    {
         if (string.IsNullOrEmpty(Content))
             return default;
             
         try
         {
-            return JsonSerializer.Deserialize<T>(Content, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            return JsonSerializer.Deserialize<T>(Content, options);
         }
         catch (JsonException)
         {

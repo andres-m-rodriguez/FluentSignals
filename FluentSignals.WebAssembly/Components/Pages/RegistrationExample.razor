@@ -1,0 +1,427 @@
+@page "/registration-example"
+@using FluentSignals.Blazor.Http
+@using FluentSignals.Blazor.Components
+@using FluentSignals.WebAssembly.Models
+@using FluentSignals.Implementations.Core
+@using System.Text.Json
+@inject IHttpResourceFactory ResourceFactory
+@inject NavigationManager Navigation
+@inherits SignalComponentBase
+
+<div class="registration-page">
+    <div class="registration-container">
+        <h2>Registration Example</h2>
+        <p>This example demonstrates proper HttpResource handler usage with complex types.</p>
+        
+        <div class="form-section">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" class="form-control @(_usernameError.Value != null ? "error" : "")"
+                       @bind="_username.Value" @bind:event="oninput" />
+                @if (_usernameError.Value != null)
+                {
+                    <span class="error-message">@_usernameError.Value</span>
+                }
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control @(_emailError.Value != null ? "error" : "")"
+                       @bind="_email.Value" @bind:event="oninput" />
+                @if (_emailError.Value != null)
+                {
+                    <span class="error-message">@_emailError.Value</span>
+                }
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" class="form-control @(_passwordError.Value != null ? "error" : "")"
+                       @bind="_password.Value" @bind:event="oninput" />
+                @if (_passwordError.Value != null)
+                {
+                    <span class="error-message">@_passwordError.Value</span>
+                }
+            </div>
+            
+            <button class="btn btn-primary" @onclick="RegisterAsync" disabled="@_isLoading.Value">
+                @if (_isLoading.Value)
+                {
+                    <span>Registering...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </button>
+            
+            @if (_generalError.Value != null)
+            {
+                <div class="general-error">
+                    @_generalError.Value
+                </div>
+            }
+        </div>
+        
+        <div class="code-examples">
+            <h3>Implementation Examples</h3>
+            
+            <div class="example">
+                <h4>Solution 1: Using DTOs</h4>
+                <pre><code>// Use simple DTOs for API responses
+_registrationResource
+    .OnConflict&lt;RegistrationErrorDto&gt;(async error =>
+    {
+        if (error.Field == "username")
+            _usernameError.Value = error.Message;
+        else if (error.Field == "email")
+            _emailError.Value = error.Message;
+    });</code></pre>
+            </div>
+            
+            <div class="example">
+                <h4>Solution 2: Using Dynamic</h4>
+                <pre><code>// Use dynamic for flexible handling
+_registrationResource
+    .OnConflict(async response =>
+    {
+        var content = response.Content;
+        var error = JsonSerializer.Deserialize&lt;JsonElement&gt;(content);
+        
+        if (error.TryGetProperty("conflictType", out var type))
+        {
+            var typeValue = type.GetString();
+            // Handle based on type
+        }
+    });</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // IMPORTANT: Create HttpResource once and reuse it
+    private HttpResource _registrationResource = null!;
+    
+    // Form signals
+    private readonly TypedSignal<string> _username = new("");
+    private readonly TypedSignal<string> _email = new("");
+    private readonly TypedSignal<string> _password = new("");
+    
+    // Error signals
+    private readonly TypedSignal<string?> _usernameError = new(null);
+    private readonly TypedSignal<string?> _emailError = new(null);
+    private readonly TypedSignal<string?> _passwordError = new(null);
+    private readonly TypedSignal<string?> _generalError = new(null);
+    
+    // Loading state
+    private readonly TypedSignal<bool> _isLoading = new(false);
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        
+        // Create HttpResource once
+        _registrationResource = ResourceFactory.Create();
+        
+        // Solution 1: Using simple DTOs (recommended)
+        SetupWithDtos();
+        
+        // Alternative solutions (commented out):
+        // SetupWithDynamic();
+        // SetupWithCustomConverter();
+        
+        // Subscribe to loading state
+        SubscribeToSignal(_registrationResource.IsLoading, isLoading => 
+            _isLoading.Value = isLoading);
+        
+        // Clear errors when user types
+        SubscribeToSignalWithoutUpdate(_username, _ => ClearErrors());
+        SubscribeToSignalWithoutUpdate(_email, _ => ClearErrors());
+        SubscribeToSignalWithoutUpdate(_password, _ => ClearErrors());
+        
+        // Subscribe all signals for UI updates
+        SubscribeForUpdate(
+            _username, _email, _password,
+            _usernameError, _emailError, _passwordError,
+            _generalError, _isLoading
+        );
+    }
+    
+    private void SetupWithDtos()
+    {
+        _registrationResource
+            .OnSuccess<AuthResponse>(response =>
+            {
+                // Registration successful
+                Console.WriteLine($"Registration successful, token: {response.Token}");
+                Navigation.NavigateTo("/dashboard");
+                return Task.CompletedTask;
+            })
+            .OnBadRequest<Dictionary<string, string[]>>(errors =>
+            {
+                // Handle validation errors
+                if (errors.ContainsKey("Username"))
+                    _usernameError.Value = errors["Username"].FirstOrDefault();
+                if (errors.ContainsKey("Email"))
+                    _emailError.Value = errors["Email"].FirstOrDefault();
+                if (errors.ContainsKey("Password"))
+                    _passwordError.Value = errors["Password"].FirstOrDefault();
+                return Task.CompletedTask;
+            })
+            .OnConflict<RegistrationErrorDto>(error =>
+            {
+                // Handle conflicts using DTO
+                if (error.Field == "username")
+                    _usernameError.Value = error.Message;
+                else if (error.Field == "email")
+                    _emailError.Value = error.Message;
+                else
+                    _generalError.Value = error.Message;
+                return Task.CompletedTask;
+            })
+            .OnServerError(response =>
+            {
+                _generalError.Value = "Server error occurred. Please try again later.";
+                return Task.CompletedTask;
+            });
+    }
+    
+    private void SetupWithDynamic()
+    {
+        _registrationResource
+            .OnConflict(response =>
+            {
+                try
+                {
+                    var content = response.Content;
+                    var error = JsonSerializer.Deserialize<JsonElement>(content);
+                    
+                    // Handle different error structures
+                    if (error.TryGetProperty("conflictType", out var conflictType))
+                    {
+                        var message = error.TryGetProperty("message", out var msgProp) 
+                            ? msgProp.GetString() 
+                            : "Already exists";
+                            
+                        var typeValue = conflictType.GetString()?.ToLower();
+                        
+                        if (typeValue?.Contains("username") == true)
+                            _usernameError.Value = message;
+                        else if (typeValue?.Contains("email") == true)
+                            _emailError.Value = message;
+                        else
+                            _generalError.Value = message;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _generalError.Value = "An error occurred during registration.";
+                    Console.WriteLine($"Error parsing conflict response: {ex}");
+                }
+                return Task.CompletedTask;
+            });
+    }
+    
+    private void SetupWithCustomConverter()
+    {
+        // If using custom converter, configure it in Program.cs:
+        // services.AddHttpResourceFactory(options =>
+        // {
+        //     options.JsonSerializerOptions.Converters.Add(new ConflictTypeConverter());
+        // });
+        
+        _registrationResource
+            .OnConflict<UserAlreadyExistsError>(error =>
+            {
+                if (error.IsUsernameConflict)
+                    _usernameError.Value = error.Message;
+                else if (error.IsEmailConflict)
+                    _emailError.Value = error.Message;
+                else
+                    _generalError.Value = error.Message;
+                return Task.CompletedTask;
+            });
+    }
+    
+    private async Task RegisterAsync()
+    {
+        // Clear previous errors
+        ClearErrors();
+        
+        // Basic validation
+        if (string.IsNullOrWhiteSpace(_username.Value))
+        {
+            _usernameError.Value = "Username is required";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(_email.Value))
+        {
+            _emailError.Value = "Email is required";
+            return;
+        }
+        
+        if (string.IsNullOrWhiteSpace(_password.Value))
+        {
+            _passwordError.Value = "Password is required";
+            return;
+        }
+        
+        // Create request
+        var request = new RegisterRequest
+        {
+            Username = _username.Value,
+            Email = _email.Value,
+            Password = _password.Value
+        };
+        
+        // Make API call - handlers will be invoked based on response
+        await _registrationResource.PostAsync("auth/register", request);
+    }
+    
+    private void ClearErrors()
+    {
+        _usernameError.Value = null;
+        _emailError.Value = null;
+        _passwordError.Value = null;
+        _generalError.Value = null;
+    }
+    
+    public override void Dispose()
+    {
+        _registrationResource?.Dispose();
+        base.Dispose();
+    }
+}
+
+<style>
+    .registration-page {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .registration-container {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .registration-container h2 {
+        margin-top: 0;
+        color: #1e293b;
+    }
+    
+    .form-section {
+        max-width: 400px;
+        margin: 2rem 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-control.error {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+    
+    .btn {
+        padding: 0.625rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover:not([disabled]) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .general-error {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: #fef2f2;
+        color: #dc2626;
+        border-radius: 8px;
+        font-size: 0.875rem;
+    }
+    
+    .code-examples {
+        margin-top: 3rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 2rem;
+    }
+    
+    .code-examples h3 {
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+    }
+    
+    .example {
+        margin-bottom: 2rem;
+    }
+    
+    .example h4 {
+        color: #475569;
+        margin-bottom: 0.5rem;
+    }
+    
+    .example pre {
+        background: #f8fafc;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    
+    .example code {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.875rem;
+        color: #1e293b;
+    }
+</style>

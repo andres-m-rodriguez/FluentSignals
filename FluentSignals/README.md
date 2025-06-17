@@ -2,6 +2,15 @@
 
 A powerful reactive state management library for .NET applications inspired by SolidJS signals. FluentSignals provides fine-grained reactivity with automatic dependency tracking, making it perfect for building responsive applications with minimal boilerplate.
 
+## 📦 Latest Version: 1.1.2
+
+### What's New in 1.1.2
+- **Custom JSON Serialization**: Configure JsonSerializerOptions for HttpResource
+- **Bug Fix**: Resolved duplicate handler calls for typed HTTP status handlers
+- **Enhanced Documentation**: Added comprehensive guides for JSON deserialization
+
+See the [full changelog](https://github.com/yourusername/FluentSignals/blob/main/CHANGELOG.md) for version history.
+
 ## Features
 
 - 🚀 **Fine-grained reactivity** - Only update what needs to be updated

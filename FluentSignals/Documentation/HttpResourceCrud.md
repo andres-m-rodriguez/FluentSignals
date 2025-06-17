@@ -58,6 +58,18 @@ builder.Services.AddFluentSignalsBlazor(options =>
             HttpStatusCode.GatewayTimeout
         }
     };
+    
+    // Configure custom JSON serialization options
+    options.JsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = 
+        { 
+            new JsonStringEnumConverter(),
+            // Add your custom converters here
+        }
+    };
 });
 ```
 
@@ -71,7 +83,7 @@ builder.Services.AddFluentSignalsBlazor(options =>
     
     protected override void OnInitialized()
     {
-        // Create with default configuration
+        // IMPORTANT: Create the resource ONCE and store it in a field
         _apiResource = ResourceFactory.Create();
         
         // Or create with custom configuration
@@ -81,6 +93,22 @@ builder.Services.AddFluentSignalsBlazor(options =>
             options.DefaultHeaders["Authorization"] = $"Bearer {authToken}";
         });
     }
+}
+```
+
+### Common Mistake - Creating New Instances
+
+```csharp
+// ❌ WRONG - Creates a new instance every time
+private HttpResource _loginResource => ResourceFactory.Create();
+
+// ✅ CORRECT - Create once and reuse
+private HttpResource _loginResource;
+
+protected override void OnInitialized()
+{
+    _loginResource = ResourceFactory.Create();
+    // Register handlers here...
 }
 ```
 
@@ -641,6 +669,67 @@ public class OptimisticTodoService
 }
 ```
 
+## JSON Serialization Configuration
+
+### Custom JSON Options
+
+Configure custom JSON serialization options globally:
+
+```csharp
+// Program.cs
+services.AddFluentSignalsBlazor(options =>
+{
+    options.JsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = true,
+        Converters = 
+        {
+            new JsonStringEnumConverter(),
+            new DateOnlyJsonConverter(),
+            new YourCustomConverter()
+        }
+    };
+});
+```
+
+### Custom Converters for Complex Types
+
+Handle types with special serialization needs:
+
+```csharp
+public class ImmutableTypeConverter : JsonConverter<ImmutableType>
+{
+    public override ImmutableType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        // Custom deserialization logic
+        var value = reader.GetString();
+        return ImmutableType.FromString(value);
+    }
+    
+    public override void Write(Utf8JsonWriter writer, ImmutableType value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString());
+    }
+}
+```
+
+### Per-Instance Configuration
+
+Create HttpResource with specific JSON options:
+
+```csharp
+var customResource = ResourceFactory.CreateWithOptions(options =>
+{
+    options.JsonSerializerOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = false, // Strict casing
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+});
+```
+
 ## Summary
 
 HttpResource provides a powerful, reactive way to handle CRUD operations in FluentSignals applications. Key benefits include:
@@ -649,6 +738,7 @@ HttpResource provides a powerful, reactive way to handle CRUD operations in Flue
 - **Reactive Updates**: Automatic UI updates through signal subscriptions
 - **Error Handling**: Built-in error states and retry policies
 - **State Management**: Automatic loading/error/success state tracking
+- **JSON Flexibility**: Configurable serialization options with custom converter support
 - **Integration**: Seamless integration with Blazor and dependency injection
 
 By following the patterns and practices in this guide, you can build robust, reactive applications with efficient HTTP communication.

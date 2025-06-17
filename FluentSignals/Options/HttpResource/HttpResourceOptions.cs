@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Text.Json;
 
 namespace FluentSignals.Options.HttpResource;
 
@@ -21,6 +22,12 @@ public class HttpResourceOptions
     public string? HttpClientName { get; set; }
     
     public RetryOptions? RetryOptions { get; set; }
+    
+    /// <summary>
+    /// JSON serialization options used for deserializing HTTP responses.
+    /// If not set, defaults to PropertyNameCaseInsensitive = true.
+    /// </summary>
+    public JsonSerializerOptions? JsonSerializerOptions { get; set; }
 
     public void Validate()
     {

@@ -310,6 +310,102 @@ public class HttpResourceStatusHandlerTests : IDisposable
         _resource.IsLoading.Value.Should().BeFalse();
     }
     
+    [Fact]
+    public async Task TypedHandler_ShouldOnlyBeCalledOnce_NotTwice()
+    {
+        // Arrange
+        var errorData = new UserAlreadyExistsError 
+        { 
+            ConflictType = "Username", 
+            Message = "Username already exists" 
+        };
+        var json = JsonSerializer.Serialize(errorData);
+        
+        _mockHttp.When(HttpMethod.Post, "https://api.test.com/register")
+            .Respond(HttpStatusCode.Conflict, "application/json", json);
+        
+        var callCount = 0;
+        
+        _resource.OnConflict<UserAlreadyExistsError>(error =>
+        {
+            callCount++;
+            return Task.CompletedTask;
+        });
+        
+        // Act
+        await _resource.PostAsync("register", new { username = "test" });
+        
+        // Assert
+        callCount.Should().Be(1, "typed handler should only be called once, not twice");
+    }
+    
+    [Fact]
+    public async Task TypedAndNonTypedHandlers_ShouldBothBeCalled_ButOnlyOnce()
+    {
+        // Arrange
+        var errorData = new UserAlreadyExistsError 
+        { 
+            ConflictType = "Email", 
+            Message = "Email already exists" 
+        };
+        var json = JsonSerializer.Serialize(errorData);
+        
+        _mockHttp.When(HttpMethod.Post, "https://api.test.com/register")
+            .Respond(HttpStatusCode.Conflict, "application/json", json);
+        
+        var typedCallCount = 0;
+        var nonTypedCallCount = 0;
+        
+        // Register both typed and non-typed handlers
+        _resource
+            .OnConflict<UserAlreadyExistsError>(error =>
+            {
+                typedCallCount++;
+                return Task.CompletedTask;
+            })
+            .OnConflict(response =>
+            {
+                nonTypedCallCount++;
+                return Task.CompletedTask;
+            });
+        
+        // Act
+        await _resource.PostAsync("register", new { email = "test@test.com" });
+        
+        // Assert
+        typedCallCount.Should().Be(1, "typed handler should be called exactly once");
+        nonTypedCallCount.Should().Be(1, "non-typed handler should be called exactly once");
+    }
+    
+    [Fact]
+    public async Task TypedHandler_WithGetAsync_ShouldOnlyBeCalledOnce()
+    {
+        // Arrange
+        var errorData = new UserAlreadyExistsError 
+        { 
+            ConflictType = "Username", 
+            Message = "Username already exists" 
+        };
+        var json = JsonSerializer.Serialize(errorData);
+        
+        _mockHttp.When("https://api.test.com/check-username")
+            .Respond(HttpStatusCode.Conflict, "application/json", json);
+        
+        var callCount = 0;
+        
+        _resource.OnConflict<UserAlreadyExistsError>(error =>
+        {
+            callCount++;
+            return Task.CompletedTask;
+        });
+        
+        // Act - Use typed GetAsync
+        await _resource.GetAsync<object>("check-username");
+        
+        // Assert
+        callCount.Should().Be(1, "typed handler should only be called once even with typed GetAsync");
+    }
+    
     // Test models
     private class TestRequest
     {
@@ -326,5 +422,11 @@ public class HttpResourceStatusHandlerTests : IDisposable
     {
         public string Message { get; set; } = string.Empty;
         public string Code { get; set; } = string.Empty;
+    }
+    
+    private class UserAlreadyExistsError
+    {
+        public string ConflictType { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
     }
 }
