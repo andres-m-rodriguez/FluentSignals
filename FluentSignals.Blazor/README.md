@@ -35,186 +35,179 @@ builder.Services.AddFluentSignalsBlazor(options =>
 builder.Services.AddFluentSignalsBlazorWithSignalBus();
 ```
 
-### Using Signals in Components
+## Components
 
-```razor
-@inherits SignalComponentBase
+### HttpResourceView
 
-<h3>Counter: @count.Value</h3>
-<button @onclick="Increment">Increment</button>
+A component for displaying HTTP resources with built-in loading, error, and success states. The component exposes a `Resource` property that provides access to the underlying `HttpResource` for advanced scenarios like custom event handling and manual refresh.
 
-@code {
-    private Signal<int> count = new(0);
+### ResourceSignalView
 
-    private void Increment()
-    {
-        count.Value++;
-    }
-}
-```
+A generic component for displaying any async resource with automatic state management.
 
-### SignalBus - Publishing Messages
+### ResourceSignalRView
 
-```razor
-@inject ISignalPublisher SignalPublisher
+A specialized component for SignalR real-time data with connection status display.
 
-<button @onclick="PublishMessage">Send Message</button>
+### SignalComponentBase
 
-@code {
-    private async Task PublishMessage()
-    {
-        await SignalPublisher.PublishAsync(new UserCreatedEvent 
-        { 
-            UserId = 123, 
-            Name = "John Doe" 
-        });
-    }
-}
-```
+A base component class that provides automatic signal integration and lifecycle management.
 
-### SignalBus - Consuming Messages
+## Typed HTTP Resources with Factory
 
-```razor
-@inject ISignalConsumer<UserCreatedEvent> SignalConsumer
-@implements IDisposable
-
-<h3>New Users</h3>
-<ul>
-    @foreach (var user in users)
-    {
-        <li>@user.Name</li>
-    }
-</ul>
-
-@code {
-    private List<UserCreatedEvent> users = new();
-    private IDisposable? subscription;
-
-    protected override void OnInitialized()
-    {
-        // Standard subscription - only receives new messages
-        subscription = SignalConsumer.Subscribe(message =>
-        {
-            users.Add(message);
-            InvokeAsync(StateHasChanged);
-        });
-    }
-
-    public void Dispose()
-    {
-        subscription?.Dispose();
-    }
-}
-```
-
-### Queue-based Subscriptions
-
-```razor
-@inject ISignalConsumer<NotificationMessage> SignalConsumer
-
-@code {
-    protected override void OnInitialized()
-    {
-        // Queue subscription - receives ALL messages, including those published before subscription
-        subscription = SignalConsumer.SubscribeByQueue(async message =>
-        {
-            notifications.Add(message);
-            await InvokeAsync(StateHasChanged);
-        }, processExistingMessages: true);
-    }
-}
-```
-
-### Resource Components
-
-```razor
-<!-- Generic Resource View -->
-<ResourceSignalView TData="Product" Fetcher="@LoadProduct">
-    <LoadingContent>
-        <div class="spinner">Loading product...</div>
-    </LoadingContent>
-    <DataContent Context="product">
-        <h3>@product.Name</h3>
-        <p>Price: @product.Price.ToString("C")</p>
-    </DataContent>
-    <ErrorContent Context="error">
-        <div class="error">@error.Message</div>
-    </ErrorContent>
-</ResourceSignalView>
-
-<!-- SignalR Resource View -->
-<ResourceSignalRView TData="StockPrice" 
-                     HubUrl="/stockHub" 
-                     MethodName="PriceUpdate"
-                     ShowConnectionStatus="true">
-    <DataContent Context="stock">
-        <div class="stock-price">
-            <h4>@stock.Symbol</h4>
-            <span class="price">@stock.Price.ToString("C")</span>
-            <span class="change @(stock.Change >= 0 ? "up" : "down")">
-                @stock.Change.ToString("+0.00;-0.00")
-            </span>
-        </div>
-    </DataContent>
-</ResourceSignalRView>
-
-<!-- HTTP Resource View -->
-<HttpResourceView TData="User" Url="/api/users/1">
-    <LoadingContent>
-        <p>Loading user data...</p>
-    </LoadingContent>
-    <DataContent Context="user">
-        <h3>@user.Name</h3>
-        <p>Email: @user.Email</p>
-    </DataContent>
-    <ErrorContent Context="error">
-        <p class="error">Failed to load user: @error.Message</p>
-    </ErrorContent>
-</HttpResourceView>
-```
-
-## Advanced Features
-
-### Custom Signal Components
+Create strongly-typed HTTP resource classes with automatic dependency injection:
 
 ```csharp
-public class MyCustomComponent : SignalComponentBase
+// Define your resource with the HttpResource attribute
+[HttpResource("/api/users")]
+public class UserResource : TypedHttpResource
 {
-    private ComputedSignal<string> fullName;
+    // Parameterless constructor required for factory
+    public UserResource() { }
     
-    protected override void OnInitialized()
+    public HttpResourceRequest<User> GetById(int id) => 
+        Get<User>($"{BaseUrl}/{id}");
+    
+    public HttpResourceRequest<IEnumerable<User>> GetAll() => 
+        Get<IEnumerable<User>>(BaseUrl);
+    
+    public HttpResourceRequest<User> Create(User user) => 
+        Post<User>(BaseUrl, user);
+    
+    public HttpResourceRequest<User> Update(int id, User user) => 
+        Put<User>($"{BaseUrl}/{id}", user);
+    
+    public HttpResourceRequest Delete(int id) => 
+        Delete($"{BaseUrl}/{id}");
+}
+```
+
+Register and use typed resources with factory:
+
+```csharp
+// Registration in Program.cs
+services.AddFluentSignalsBlazor(options => 
+{
+    options.BaseUrl = "https://api.example.com";
+});
+services.AddTypedHttpResourceFactory<UserResource>();
+
+// Usage in components
+@inject ITypedHttpResourceFactory<UserResource> UserFactory
+
+@code {
+    private UserResource? users;
+    private HttpResource? userResource;
+    
+    protected override async Task OnInitializedAsync()
     {
-        var firstName = new Signal<string>("John");
-        var lastName = new Signal<string>("Doe");
+        // Create resource with DI-configured HttpClient
+        users = UserFactory.Create();
         
-        fullName = CreateComputed(() => $"{firstName.Value} {lastName.Value}");
+        // Or create with custom options
+        users = UserFactory.Create(options => 
+        {
+            options.Timeout = TimeSpan.FromSeconds(60);
+        });
         
-        // Component will automatically re-render when fullName changes
-        WatchSignal(fullName);
+        // Execute requests
+        userResource = await users.GetById(123).ExecuteAsync();
+        userResource.OnSuccess(() => ShowNotification("User loaded!"));
     }
 }
 ```
 
-### Service Registration
+Alternatively, inject the resource directly:
 
 ```csharp
-// Register a consumer for a specific message type
-builder.Services.AddSignalConsumer<OrderPlacedEvent>();
+@inject UserResource Users
 
-// The consumer can then be injected into components
-@inject ISignalConsumer<OrderPlacedEvent> OrderConsumer
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var resource = await Users.GetById(123).ExecuteAsync();
+        resource.OnSuccess(() => ShowNotification("User loaded!"));
+    }
+}
 ```
 
-## Best Practices
+### Advanced Typed Resources
 
-1. **Always dispose subscriptions** - Use `IDisposable` on your components
-2. **Use queue subscriptions for cross-page messaging** - Messages persist across navigation
-3. **Keep messages immutable** - Create new instances rather than modifying existing ones
-4. **Use typed messages** - Create specific classes for different message types
+Create fully typed custom methods for complex scenarios:
+
+```csharp
+[HttpResource("/api/v2")]
+public class AdvancedApiResource : TypedHttpResource
+{
+    public AdvancedApiResource() { }
+    
+    // Typed search with complex criteria
+    public HttpResourceRequest<SearchResult<Product>> SearchProducts(ProductSearchCriteria criteria)
+    {
+        return Post<ProductSearchCriteria, SearchResult<Product>>($"{BaseUrl}/products/search", criteria)
+            .WithHeader("X-Search-Version", "2.0")
+            .ConfigureResource(r => 
+            {
+                r.OnSuccess(result => Console.WriteLine($"Found {result.Data.TotalCount} products"));
+                r.OnNotFound(() => Console.WriteLine("No products found"));
+            });
+    }
+    
+    // Batch operations with progress tracking
+    public HttpResourceRequest<BatchResult> ProcessBatch(BatchRequest batch)
+    {
+        return Post<BatchRequest, BatchResult>($"{BaseUrl}/batch", batch)
+            .WithHeader("X-Batch-Id", Guid.NewGuid().ToString())
+            .ConfigureResource(r => 
+            {
+                r.IsLoading.Subscribe(loading => 
+                {
+                    if (loading) ShowProgress("Processing batch...");
+                    else HideProgress();
+                });
+            });
+    }
+    
+    // File upload with typed metadata
+    public HttpResourceRequest<UploadResult> UploadFile(Stream file, FileMetadata metadata)
+    {
+        return BuildRequest<UploadResult>($"{BaseUrl}/files")
+            .WithMethod(HttpMethod.Post)
+            .WithBody(new { file, metadata })
+            .WithHeader("Content-Type", "multipart/form-data")
+            .WithQueryParam("category", metadata.Category)
+            .Build()
+            .ConfigureResource(r => r.OnServerError(() => ShowError("Upload failed")));
+    }
+}
+
+// Usage in component
+@inject ITypedHttpResourceFactory<AdvancedApiResource> ApiFactory
+
+@code {
+    private async Task SearchProducts()
+    {
+        var api = ApiFactory.Create();
+        var criteria = new ProductSearchCriteria 
+        { 
+            Query = searchText, 
+            MinPrice = 10, 
+            MaxPrice = 100 
+        };
+        
+        var resource = await api.SearchProducts(criteria).ExecuteAsync();
+        // Resource will handle success/error states automatically
+    }
+}
+```
+
+## SignalBus
+
+The SignalBus provides a publish/subscribe pattern for component communication with support for both standard and queue-based subscriptions.
 
 ## Documentation
 
-For more examples and detailed documentation, visit our [GitHub repository](https://github.com/yourusername/FluentSignals).
+For detailed documentation and examples, visit our [GitHub repository](https://github.com/yourusername/FluentSignals).
 
 ## License
 

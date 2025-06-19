@@ -5,6 +5,29 @@ All notable changes to FluentSignals will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.3] - 2025-01-19
+
+### Added
+- `TypedHttpResource` base class for creating strongly-typed HTTP API clients
+- `ITypedHttpResourceFactory<T>` for dependency injection support
+- `HttpResourceAttribute` for declarative base URL configuration
+- Fluent request builder pattern with `HttpResourceRequest<T>` for type-safe request configuration
+- Support for custom HTTP methods via `SendAsync`
+- `RequestBuilder<T>` for complex request scenarios
+- Assembly scanning for automatic typed resource registration
+- Comprehensive unit and integration tests for typed resources
+
+### Changed
+- **BREAKING**: Removed all example code from FluentSignals.Blazor library (Examples/, SignalBus/Examples/ directories)
+- Moved typed resource functionality from Blazor library to core FluentSignals library
+- Enhanced `HttpResourceView` to expose the `Resource` property for custom event handlers
+- Updated `HttpResource` to handle already-configured HttpClient instances gracefully
+
+### Fixed
+- Fixed HttpClient configuration errors when reusing client instances
+- Fixed header cleanup after request execution
+- Fixed custom HTTP method support in resource requests
+
 ## [1.1.2] - 2024-12-16
 
 ### Added
@@ -79,6 +102,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## Upgrade Guide
+
+### From 1.1.2 to 1.1.3
+
+**Breaking Change**: Example code has been removed from FluentSignals.Blazor. If you were referencing any example components or code, you'll need to copy them to your own project.
+
+To use typed HTTP resources:
+
+```csharp
+// Define your typed resource
+[HttpResource("/api/users")]
+public class UserResource : TypedHttpResource
+{
+    public HttpResourceRequest<User> GetById(int id) => 
+        Get<User>($"{BaseUrl}/{id}");
+}
+
+// Register with DI
+services.AddTypedHttpResourceFactory<UserResource>();
+
+// Use via injection
+public class MyService
+{
+    private readonly UserResource _userResource;
+    
+    public MyService(UserResource userResource)
+    {
+        _userResource = userResource;
+    }
+}
+```
+
+To access HttpResource in HttpResourceView:
+
+```razor
+<HttpResourceView TData="User" OnResourceCreated="HandleResourceCreated">
+    <!-- Content -->
+</HttpResourceView>
+
+@code {
+    private void HandleResourceCreated(HttpResource resource)
+    {
+        resource.OnSuccess(async response => 
+        {
+            // Handle success
+        });
+    }
+}
+```
 
 ### From 1.1.1 to 1.1.2
 

@@ -48,21 +48,29 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
             PropertyNameCaseInsensitive = true
         };
 
-        // Configure HttpClient with options
-        if (_options.Timeout != default)
+        // Only configure HttpClient if it hasn't been used yet
+        try
         {
-            _httpClient.Timeout = _options.Timeout;
-        }
+            // Configure HttpClient with options
+            if (_options.Timeout != default)
+            {
+                _httpClient.Timeout = _options.Timeout;
+            }
 
-        if (!string.IsNullOrEmpty(_options.BaseUrl))
-        {
-            _httpClient.BaseAddress = new Uri(_options.BaseUrl);
-        }
+            if (!string.IsNullOrEmpty(_options.BaseUrl) && _httpClient.BaseAddress == null)
+            {
+                _httpClient.BaseAddress = new Uri(_options.BaseUrl);
+            }
 
-        // Add default headers
-        foreach (var header in _options.DefaultHeaders)
+            // Add default headers
+            foreach (var header in _options.DefaultHeaders)
+            {
+                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+            }
+        }
+        catch (InvalidOperationException)
         {
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
+            // HttpClient has already been used, skip configuration
         }
 
         // Configure retry policy if enabled
@@ -163,6 +171,18 @@ public class HttpResource : AsyncTypedSignal<HttpResponse?>, IResource<HttpRespo
     {
         _lastRequest = () => PatchAsync<TBody, TResponse>(url, body, cancellationToken);
         return await ExecuteAsync<TResponse>(HttpMethod.Patch, url, body, cancellationToken);
+    }
+
+    public async Task<HttpResponse> SendAsync(HttpMethod method, string url, object? body = null, CancellationToken cancellationToken = default)
+    {
+        _lastRequest = () => SendAsync(method, url, body, cancellationToken);
+        return await ExecuteAsync(method, url, body, cancellationToken);
+    }
+    
+    public async Task<HttpResponse<T>> SendAsync<T>(HttpMethod method, string url, object? body = null, CancellationToken cancellationToken = default)
+    {
+        _lastRequest = () => SendAsync<T>(method, url, body, cancellationToken);
+        return await ExecuteAsync<T>(method, url, body, cancellationToken);
     }
 
     // Status Code Handler Registration Methods

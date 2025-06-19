@@ -17,6 +17,7 @@ A powerful reactive state management library for .NET applications inspired by S
 - **SignalBus** - Publish/Subscribe pattern for component communication
 - **Queue-based subscriptions** - Receive messages even if published before subscription
 - **HTTP Resources** - Reactive HTTP data fetching with caching
+- **Typed HTTP Resources** - Strongly-typed API clients with reactive features
 - **Blazor integration** - Seamless integration with Blazor components
 
 ## 📦 Packages

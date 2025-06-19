@@ -78,46 +78,6 @@ This directory contains all the configuration options for the FluentSignals Sign
 - Test mode with fault injection
 - Visualization tools
 
-## Usage Examples
-
-### Basic Configuration
-```csharp
-services.AddSignalBus(options => options
-    .Configure(o => o.GlobalTimeout = TimeSpan.FromSeconds(60))
-    .WithAutoRegistration("MyApp.Handlers")
-    .WithBackpressure(bp => bp.MaxQueueSize = 5000));
-```
-
-### High-Throughput Configuration
-```csharp
-services.AddSignalBusHighThroughput(options => options
-    .WithBatching(b => b.MaxBatchSize = 1000)
-    .WithSerialization(s => s.EnableBinaryOptimization = true));
-```
-
-### Development Configuration
-```csharp
-services.AddSignalBusDevelopment(options => options
-    .WithDebugging(d => {
-        d.EnableInspector = true;
-        d.Inspector.UiPort = 5001;
-    }));
-```
-
-### Distributed Configuration
-```csharp
-services.AddSignalBus(options => options
-    .WithDistributed(d => {
-        d.Enabled = true;
-        d.Transport = TransportType.Redis;
-        d.Connection.ConnectionString = "localhost:6379";
-    })
-    .WithEventSourcing(es => {
-        es.Enabled = true;
-        es.StoreType = EventStoreType.PostgreSql;
-    }));
-```
-
 ## Configuration Builder
 
 The `SignalBusOptionsBuilder` provides a fluent API for configuration with:

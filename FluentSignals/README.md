@@ -198,6 +198,127 @@ builder.Services.AddFluentSignalsBlazor(options =>
 }
 ```
 
+### Typed HTTP Resources
+
+Create strongly-typed HTTP resource classes for better organization and reusability:
+
+```csharp
+using FluentSignals.Options.HttpResource;
+
+// Option 1: Direct instantiation with HttpClient
+public class UserResource : TypedHttpResource
+{
+    public UserResource(HttpClient httpClient) 
+        : base(httpClient, "/api/users") { }
+    
+    public HttpResourceRequest<User> GetById(int id) => 
+        Get<User>($"{BaseUrl}/{id}");
+    
+    public HttpResourceRequest<IEnumerable<User>> GetAll() => 
+        Get<IEnumerable<User>>(BaseUrl);
+    
+    public HttpResourceRequest<User> Create(User user) => 
+        Post<User>(BaseUrl, user);
+    
+    public HttpResourceRequest<User> Update(int id, User user) => 
+        Put<User>($"{BaseUrl}/{id}", user);
+    
+    public HttpResourceRequest Delete(int id) => 
+        Delete($"{BaseUrl}/{id}");
+}
+
+// Direct usage
+var httpClient = new HttpClient { BaseAddress = new Uri("https://api.example.com/") };
+var users = new UserResource(httpClient);
+
+// Execute requests
+var userResource = await users.GetById(123).ExecuteAsync();
+userResource.Subscribe(response => 
+{
+    if (response?.IsSuccess == true)
+    {
+        Console.WriteLine($"User loaded: {response.Data.Name}");
+    }
+});
+
+// Option 2: Using with dependency injection (recommended)
+// Define with attribute for factory-based creation
+[HttpResource("/api/users")]
+public class UserResource : TypedHttpResource
+{
+    public UserResource() { } // Parameterless constructor for factory
+    
+    // Same methods as above...
+}
+
+// Register in DI
+services.AddTypedHttpResource<UserResource>();
+
+// Inject and use
+public class MyService
+{
+    private readonly UserResource _users;
+    
+    public MyService(UserResource users)
+    {
+        _users = users;
+    }
+    
+    public async Task<User> GetUserAsync(int id)
+    {
+        var resource = await _users.GetById(id).ExecuteAsync();
+        return resource.Value?.Data;
+    }
+}
+
+// Advanced: Custom typed methods with full control
+public class AdvancedUserResource : TypedHttpResource
+{
+    public AdvancedUserResource(HttpClient httpClient) 
+        : base(httpClient, "/api/v2") { }
+    
+    // Fully typed search method with custom query parameters
+    public HttpResourceRequest<PagedResult<User>> Search(UserSearchCriteria criteria)
+    {
+        return Get<PagedResult<User>>($"{BaseUrl}/users/search")
+            .WithQueryParam("name", criteria.Name)
+            .WithQueryParam("email", criteria.Email)
+            .WithQueryParam("page", criteria.Page.ToString())
+            .WithQueryParam("pageSize", criteria.PageSize.ToString());
+    }
+    
+    // Bulk operations with typed request/response
+    public HttpResourceRequest<BulkUpdateResult> BulkUpdate(BulkUpdateRequest<User> request)
+    {
+        return Post<BulkUpdateRequest<User>, BulkUpdateResult>($"{BaseUrl}/users/bulk", request)
+            .WithHeader("X-Bulk-Operation", "true")
+            .ConfigureResource(r => r.OnSuccess(() => Console.WriteLine("Bulk update completed")));
+    }
+    
+    // Custom HTTP method with full control
+    public HttpResourceRequest<MergeResult> MergeUsers(int sourceId, int targetId, MergeOptions options)
+    {
+        return Request<MergeOptions, MergeResult>(
+                new HttpMethod("MERGE"), 
+                $"{BaseUrl}/users/{sourceId}/merge/{targetId}", 
+                options)
+            .WithHeader("X-Merge-Strategy", options.Strategy.ToString());
+    }
+    
+    // Complex request using the builder pattern
+    public HttpResourceRequest<ImportResult> Import(Stream csvData, ImportOptions options)
+    {
+        return BuildRequest<ImportResult>($"{BaseUrl}/users/import")
+            .WithMethod(HttpMethod.Post)
+            .WithBody(new { data = csvData, options })
+            .WithHeader("Content-Type", "multipart/form-data")
+            .WithHeader("X-Import-Mode", options.Mode.ToString())
+            .WithQueryParam("validate", options.ValidateBeforeImport.ToString())
+            .Build();
+    }
+}
+```
+
 ## Advanced Features
 
 ### Signal Bus (Pub/Sub)

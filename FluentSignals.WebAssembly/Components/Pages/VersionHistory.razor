@@ -10,11 +10,65 @@
     </div>
     
     <div class="version-timeline">
+        <!-- Version 1.1.3 -->
+        <div class="version-card latest @(expandedVersions.Contains("1.1.3") ? "expanded" : "")" @onclick="Toggle113">
+            <div class="version-header">
+                <h2>Version 1.1.3</h2>
+                <span class="version-badge latest-badge">Latest</span>
+                <span class="release-date">January 19, 2025</span>
+                <span class="expand-icon">@(expandedVersions.Contains("1.1.3") ? "▼" : "▶")</span>
+            </div>
+            <div class="version-content" style="@(expandedVersions.Contains("1.1.3") ? "" : "display: none;")">
+                <h3>🚀 Typed HTTP Resources & Library Improvements</h3>
+                <p>Introduced strongly-typed HTTP resources with factory pattern support and cleaned up the Blazor library for production use.</p>
+                
+                <h4>Key Features:</h4>
+                <ul class="feature-list">
+                    <li>
+                        <span class="feature-icon">📝</span>
+                        <div>
+                            <strong>TypedHttpResource Base Class</strong>
+                            <p>Create type-safe API clients with strongly-typed methods for all HTTP verbs</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🏭</span>
+                        <div>
+                            <strong>Factory Pattern with DI</strong>
+                            <p>ITypedHttpResourceFactory for dependency injection and HttpResourceAttribute for declarative configuration</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🔧</span>
+                        <div>
+                            <strong>Fluent Request Builder</strong>
+                            <p>Chain headers, query parameters, and configuration with full type safety</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🧹</span>
+                        <div>
+                            <strong>Production-Ready Blazor Library</strong>
+                            <p>Removed all example code from FluentSignals.Blazor for cleaner library usage</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="feature-icon">🎯</span>
+                        <div>
+                            <strong>HttpResourceView Enhancements</strong>
+                            <p>Exposed HttpResource property for custom event handlers and manual refresh</p>
+                        </div>
+                    </li>
+                </ul>
+                
+                <CodeBlock Language="csharp" Code="@typedResourceCode" />
+            </div>
+        </div>
+        
         <!-- Version 1.1.2 -->
-        <div class="version-card latest @(expandedVersions.Contains("1.1.2") ? "expanded" : "")" @onclick="Toggle112">
+        <div class="version-card @(expandedVersions.Contains("1.1.2") ? "expanded" : "")" @onclick="Toggle112">
             <div class="version-header">
                 <h2>Version 1.1.2</h2>
-                <span class="version-badge latest-badge">Latest</span>
                 <span class="release-date">January 16, 2025</span>
                 <span class="expand-icon">@(expandedVersions.Contains("1.1.2") ? "▼" : "▶")</span>
             </div>
@@ -210,7 +264,7 @@
 </div>
 
 @code {
-    private HashSet<string> expandedVersions = new HashSet<string> { "1.1.2" }; // Latest version expanded by default
+    private HashSet<string> expandedVersions = new HashSet<string> { "1.1.3" }; // Latest version expanded by default
     
     private void ToggleVersion(string version)
     {
@@ -220,10 +274,50 @@
             expandedVersions.Add(version);
     }
     
+    private void Toggle113() => ToggleVersion("1.1.3");
     private void Toggle112() => ToggleVersion("1.1.2");
     private void Toggle111() => ToggleVersion("1.1.1");
     private void Toggle110() => ToggleVersion("1.1.0");
     private void Toggle100() => ToggleVersion("1.0.0");
+    
+    private string typedResourceCode = @"// Define a typed HTTP resource
+[HttpResource(""/api/users"")]
+public class UserResource : TypedHttpResource
+{
+    public HttpResourceRequest<User> GetById(int id) => 
+        Get<User>($""{BaseUrl}/{id}"");
+    
+    public HttpResourceRequest<PagedResult<User>> Search(SearchCriteria criteria) =>
+        Post<SearchCriteria, PagedResult<User>>($""{BaseUrl}/search"", criteria)
+            .WithHeader(""X-API-Version"", ""2.0"");
+    
+    public HttpResourceRequest<User> Create(User user) =>
+        Post<User, User>(BaseUrl, user);
+}
+
+// Register with DI
+services.AddTypedHttpResourceFactory<UserResource>();
+
+// Use via dependency injection
+public class UserService
+{
+    private readonly UserResource _userResource;
+    
+    public UserService(UserResource userResource)
+    {
+        _userResource = userResource;
+    }
+    
+    public async Task<User> GetUserAsync(int id)
+    {
+        var resource = await _userResource.GetById(id)
+            .ConfigureResource(r => r.OnNotFound(async _ => 
+                Console.WriteLine(""User not found"")))
+            .ExecuteAsync();
+        
+        return resource.Value?.Data;
+    }
+}";
     
     private string jsonConfigCode = @"// Configure custom JSON options
 services.AddFluentSignalsBlazor(options =>

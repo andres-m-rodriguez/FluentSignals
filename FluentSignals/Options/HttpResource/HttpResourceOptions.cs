@@ -50,4 +50,23 @@ public class HttpResourceOptions
                 throw new ArgumentOutOfRangeException(nameof(ClientSource), ClientSource, "Invalid HttpClientSource value.");
         }
     }
+
+    /// <summary>
+    /// Creates a deep copy of the current options
+    /// </summary>
+    public HttpResourceOptions Clone()
+    {
+        return new HttpResourceOptions
+        {
+            BaseUrl = BaseUrl,
+            Timeout = Timeout,
+            DefaultHeaders = new Dictionary<string, string>(DefaultHeaders),
+            ClientSource = ClientSource,
+            HttpClient = HttpClient,
+            HttpClientFactory = HttpClientFactory,
+            HttpClientName = HttpClientName,
+            RetryOptions = RetryOptions?.Clone(),
+            JsonSerializerOptions = JsonSerializerOptions
+        };
+    }
 }

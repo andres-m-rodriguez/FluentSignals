@@ -110,81 +110,11 @@
 - Message replay for debugging
 - Chaos engineering support
 
-## Configuration Examples
+## Configuration Presets
 
-### High-Performance Configuration
-```csharp
-services.AddSignalBus(options =>
-{
-    options.UsePreset(SignalBusPreset.HighThroughput);
-    options.Batching.Enabled = true;
-    options.Batching.MaxBatchSize = 1000;
-    options.BackpressureOptions.MaxConcurrentMessages = 200;
-});
-```
-
-### Reliable Messaging Configuration
-```csharp
-services.AddSignalBus(options =>
-{
-    options.Deduplication.Enabled = true;
-    options.LifecycleHooks.OnError = async (msg, ex) => 
-        await errorLogger.LogError(ex);
-    options.EventSourcing.Enabled = true;
-});
-```
-
-### Development Configuration
-```csharp
-services.AddSignalBus(options =>
-{
-    options.UsePreset(SignalBusPreset.Development);
-    options.Debugging.LogAllMessages = true;
-    options.Debugging.EnableDiagnosticsDashboard = true;
-});
-```
-
-## Advanced Usage Patterns
-
-### 1. **Saga Pattern**
-```csharp
-// Long-running business processes
-public class OrderSaga : ISaga<OrderPlaced, OrderCompleted>
-{
-    public async Task Handle(OrderPlaced message)
-    {
-        // Process order steps
-    }
-}
-```
-
-### 2. **Event Aggregation**
-```csharp
-// Aggregate multiple events into summaries
-consumer.SubscribeAggregated<PriceUpdate>(
-    window: TimeSpan.FromSeconds(5),
-    aggregator: updates => updates.Average(u => u.Price)
-);
-```
-
-### 3. **Circuit Breaker**
-```csharp
-// Protect against cascading failures
-options.CircuitBreaker = new CircuitBreakerOptions
-{
-    FailureThreshold = 5,
-    ResetTimeout = TimeSpan.FromMinutes(1)
-};
-```
-
-### 4. **Message Replay**
-```csharp
-// Replay historical messages
-await signalBus.ReplayMessages<OrderEvent>(
-    from: DateTime.UtcNow.AddDays(-1),
-    filter: e => e.Status == "Failed"
-);
-```
+- **HighThroughput** - Optimized for maximum performance
+- **Reliable** - Focus on message delivery guarantees
+- **Development** - Enhanced debugging and diagnostics
 
 ## Performance Characteristics
 
