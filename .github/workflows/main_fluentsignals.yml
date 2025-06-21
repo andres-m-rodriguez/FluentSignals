@@ -24,13 +24,13 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Clean solution
-        run: dotnet clean --configuration Release
+        run: dotnet clean ./FluentSignals.Web/FluentSignals.Web.Server/FluentSignals.Web.Server.csproj --configuration Release
         
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore ./FluentSignals.Web/FluentSignals.Web.Server/FluentSignals.Web.Server.csproj
         
       - name: Build with dotnet
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build ./FluentSignals.Web/FluentSignals.Web.Server/FluentSignals.Web.Server.csproj --configuration Release --no-restore
         
       - name: dotnet publish
         run: dotnet publish ./FluentSignals.Web/FluentSignals.Web.Server/FluentSignals.Web.Server.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp" --no-build
@@ -54,6 +54,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: .net-app
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -68,6 +69,6 @@ jobs:
         with:
           app-name: 'FluentSignals'
           slot-name: 'Production'
-          package: .
+          package: .net-app
           clean: true
           
