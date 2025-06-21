@@ -1,45 +1,18 @@
 <Project>
   <PropertyGroup>
-    <!-- Version management -->
-    <Version>1.1.3</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    
-    <!-- Common package properties -->
-    <Authors>Andres Rodriguez</Authors>
-    <Company>Andres Rodriguez</Company>
-    <Copyright>Copyright © $(Company) $([System.DateTime]::Now.Year)</Copyright>
-    <NeutralLanguage>en-US</NeutralLanguage>
-    
-    <!-- Repository information -->
-    <PackageProjectUrl>https://github.com/yourusername/FluentSignals</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/yourusername/FluentSignals</RepositoryUrl>
+    <Version>2.0.0</Version>
+    <Authors>Andres M Rodriguez</Authors>
+    <Company>FluentSignals</Company>
+    <Copyright>Copyright © 2024 Andres M Rodriguez</Copyright>
+    <PackageProjectUrl>https://github.com/andres-m-rodriguez/FluentSignals</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/andres-m-rodriguez/FluentSignals</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    
-    <!-- Build configuration -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <TargetFramework>net9.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
-    
-    <!-- Package configuration -->
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    
-    <!-- Deterministic builds -->
-    <Deterministic>true</Deterministic>
-    
-    <!-- Source Link -->
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-  </ItemGroup>
 </Project>

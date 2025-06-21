@@ -1,0 +1,498 @@
+/* Global styles */
+::deep html {
+    scroll-behavior: smooth;
+}
+
+/* Home container - centered content */
+::deep .home-container {
+    background-color: #000;
+    color: #fff;
+    width: 100%;
+}
+
+/* Hero Section */
+::deep .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 2rem 1rem;
+}
+
+::deep .hero-background {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+::deep .grid-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    opacity: 0.6;
+}
+
+/* Subtle gradient animation */
+::deep .subtle-gradient {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 255, 255, 0.05) 0%,
+        transparent 70%
+    );
+    opacity: 0.5;
+    animation: subtlePulse 8s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+    0%, 100% { 
+        opacity: 0.5;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.3;
+        transform: scale(1.1);
+    }
+}
+
+
+/* Particles */
+::deep .particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+::deep .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    animation: particleFloat var(--particle-duration) linear var(--particle-delay) infinite;
+    left: calc(var(--particle-delay) * 10%);
+}
+
+::deep .hero-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 800px;
+    width: 100%;
+    animation: heroFadeIn 1s ease-out;
+}
+
+::deep .hero-title {
+    font-size: clamp(2.5rem, 7vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.2));
+    animation: titleGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from {
+        filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.2));
+    }
+    to {
+        filter: drop-shadow(0 0 50px rgba(255, 255, 255, 0.3));
+    }
+}
+
+::deep .title-line {
+    display: block;
+    opacity: 0;
+    animation: titleReveal 0.8s ease-out forwards;
+}
+
+::deep .title-line:nth-child(2) {
+    animation-delay: 0.2s;
+    background: linear-gradient(90deg, #fff 0%, #666 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+::deep .hero-subtitle {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: #999;
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+    animation: heroFadeIn 1s ease-out 0.4s backwards;
+}
+
+::deep .hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    animation: heroFadeIn 1s ease-out 0.6s backwards;
+}
+
+/* Modern Buttons */
+::deep .btn-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+::deep .btn-modern.primary {
+    background-color: #fff;
+    color: #000;
+}
+
+::deep .btn-modern.primary:hover {
+    background-color: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+::deep .btn-modern.secondary {
+    background-color: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+::deep .btn-modern.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+::deep .btn-icon {
+    transition: transform 0.2s;
+}
+
+::deep .btn-modern:hover .btn-icon {
+    transform: translateX(2px);
+}
+
+/* Features Section */
+::deep .features {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+::deep .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+::deep .feature-card {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2.5rem;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+::deep .feature-card:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+::deep .feature-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+}
+
+::deep .icon-glow {
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+::deep .feature-card:hover .icon-glow {
+    opacity: 1;
+}
+
+::deep .feature-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+::deep .feature-card p {
+    color: #999;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Code Demo Section */
+::deep .code-demo {
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+::deep .code-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+::deep .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+::deep .code-title {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+::deep .code-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+::deep .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+::deep .code-content {
+    padding: 2rem;
+    margin: 0;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    overflow-x: auto;
+}
+
+::deep .code-content code {
+    color: #e0e0e0;
+}
+
+/* Simple monochrome syntax highlighting */
+::deep .comment { 
+    color: #666;
+}
+::deep .keyword { 
+    color: #fff;
+    font-weight: 500;
+}
+::deep .type { 
+    color: #bbb;
+}
+::deep .method { 
+    color: #ddd;
+}
+::deep .string { 
+    color: #888;
+}
+::deep .number { 
+    color: #aaa;
+}
+
+/* Get Started Section */
+::deep .get-started {
+    text-align: center;
+    padding: 4rem 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+::deep .get-started h2 {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+::deep .get-started p {
+    font-size: 1.125rem;
+    color: #999;
+    margin-bottom: 3rem;
+}
+
+::deep .start-actions {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+::deep .start-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.2s;
+    min-width: 160px;
+}
+
+::deep .start-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+::deep .link-icon {
+    font-size: 2rem;
+}
+
+::deep .link-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Scroll animations */
+@supports (animation-timeline: view()) {
+    ::deep .scroll-item {
+        animation: fadeInUp linear both;
+        animation-timeline: view();
+        animation-range: entry 15% cover 40%;
+    }
+}
+
+@supports not (animation-timeline: view()) {
+    ::deep .scroll-reveal {
+        position: relative;
+    }
+    
+    ::deep .scroll-item {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                    transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    ::deep .scroll-item.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    ::deep .scroll-item:nth-child(1) { transition-delay: 0.1s; }
+    ::deep .scroll-item:nth-child(2) { transition-delay: 0.2s; }
+    ::deep .scroll-item:nth-child(3) { transition-delay: 0.3s; }
+    ::deep .scroll-item:nth-child(4) { transition-delay: 0.4s; }
+}
+
+/* Simple Animations */
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(100vh);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.5;
+    }
+    90% {
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(-10vh);
+        opacity: 0;
+    }
+}
+
+@keyframes heroFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes titleReveal {
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    ::deep .hero {
+        min-height: 80vh;
+    }
+
+    ::deep .hero-actions {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    ::deep .btn-modern {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    ::deep .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    ::deep .start-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    ::deep .start-link {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    ::deep .code-content {
+        font-size: 0.75rem;
+        padding: 1.5rem;
+    }
+}

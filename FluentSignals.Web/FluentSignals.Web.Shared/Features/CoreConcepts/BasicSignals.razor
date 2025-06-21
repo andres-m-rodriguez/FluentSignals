@@ -1,0 +1,357 @@
+@page "/concepts/basic-signals"
+@namespace FluentSignals.Web.Shared.Features.CoreConcepts
+
+<PageTitle>Basic Signals - FluentSignals</PageTitle>
+
+<div class="concept-page content-page">
+    <div class="concept-hero">
+        <h1 class="concept-title">Basic Signals</h1>
+        <p class="concept-subtitle">The foundation of reactive state management</p>
+    </div>
+
+    <section class="concept-section">
+        <h2>What are Signals?</h2>
+        <p>
+            Signals are the core primitive of FluentSignals. They are reactive values that notify subscribers 
+            whenever they change. Think of them as smart variables that automatically update your UI or trigger 
+            side effects when their value changes.
+        </p>
+    </section>
+
+    <section class="concept-section">
+        <h2>Creating a Signal</h2>
+        <p>Creating a signal is straightforward. You can create typed signals with <code>Signal&lt;T&gt;</code>:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="comment">// Create a signal with an initial value</span>
+<span class="keyword">var</span> count = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
+
+<span class="comment">// Create a signal with a string</span>
+<span class="keyword">var</span> name = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">string</span>&gt;(<span class="string">"John"</span>);
+
+<span class="comment">// Create a signal with a complex type</span>
+<span class="keyword">var</span> user = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">User</span>&gt;(<span class="keyword">new</span> <span class="type">User</span> { Id = <span class="number">1</span>, Name = <span class="string">"Alice"</span> });</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Reading Signal Values</h2>
+        <p>Access the current value of a signal using the <code>Value</code> property:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> count = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">10</span>);
+
+<span class="comment">// Read the value</span>
+<span class="type">Console</span>.<span class="method">WriteLine</span>(count.Value); <span class="comment">// Output: 10</span>
+
+<span class="comment">// Use in expressions</span>
+<span class="keyword">var</span> doubled = count.Value * <span class="number">2</span>;</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Updating Signal Values</h2>
+        <p>Update a signal by setting its <code>Value</code> property. This automatically notifies all subscribers:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> count = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
+
+<span class="comment">// Update the value</span>
+count.Value = <span class="number">5</span>;
+
+<span class="comment">// Increment</span>
+count.Value++;</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Subscribing to Changes</h2>
+        <p>Subscribe to be notified whenever a signal changes:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> temperature = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">double</span>&gt;(<span class="number">20.0</span>);
+
+<span class="comment">// Subscribe to changes</span>
+<span class="keyword">var</span> subscription = temperature.<span class="method">Subscribe</span>(value =&gt; 
+{
+    <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Temperature changed to: {value}°C"</span>);
+});
+
+<span class="comment">// Changes trigger the subscription</span>
+temperature.Value = <span class="number">25.0</span>; <span class="comment">// Output: Temperature changed to: 25.0°C</span>
+temperature.Value = <span class="number">30.0</span>; <span class="comment">// Output: Temperature changed to: 30.0°C</span>
+
+<span class="comment">// Dispose when done</span>
+subscription.<span class="method">Dispose</span>();</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Complete Example</h2>
+        <div class="code-example">
+            <pre><code>// Create a counter signal
+var counter = new Signal&lt;int&gt;(0);
+var updateCount = 0;
+var logEntries = new List&lt;string&gt;();
+
+// Subscribe to changes
+var subscription = counter.Subscribe(value =&gt; 
+{
+    updateCount++;
+    logEntries.Add($"{DateTime.Now:HH:mm:ss} - Value changed to {value}");
+    Console.WriteLine($"Counter: {value}, Updates: {updateCount}");
+});
+
+// Update the counter
+counter.Value = 1;  // Triggers subscription
+counter.Value = 2;  // Triggers subscription
+counter.Value = 2;  // No change, no trigger
+
+// Cleanup when done
+subscription.Dispose();</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Best Practices</h2>
+        <ul class="best-practices">
+            <li>
+                <strong>Dispose subscriptions</strong> - Always dispose subscriptions when they're no longer needed 
+                to prevent memory leaks.
+            </li>
+            <li>
+                <strong>Use typed signals</strong> - Prefer <code>Signal&lt;T&gt;</code> over untyped signals for 
+                compile-time type safety.
+            </li>
+            <li>
+                <strong>Avoid excessive updates</strong> - Batch updates when possible to reduce the number of 
+                notifications.
+            </li>
+            <li>
+                <strong>Keep signals simple</strong> - Signals should represent simple state. For derived values, 
+                use computed signals.
+            </li>
+        </ul>
+    </section>
+
+    <section class="concept-section">
+        <h2>Common Patterns</h2>
+        
+        <h3>Toggle Pattern</h3>
+        <div class="code-example">
+            <pre><code>var isVisible = new Signal&lt;bool&gt;(false);
+
+// Toggle visibility
+void ToggleVisibility() =&gt; isVisible.Value = !isVisible.Value;</code></pre>
+        </div>
+
+        <h3>Update with Previous Value</h3>
+        <div class="code-example">
+            <pre><code>var score = new Signal&lt;int&gt;(0);
+
+// Update based on previous value
+void AddBonus(int bonus) =&gt; score.Value = score.Value + bonus;</code></pre>
+        </div>
+
+        <h3>Conditional Updates</h3>
+        <div class="code-example">
+            <pre><code>var temperature = new Signal&lt;double&gt;(20.0);
+
+// Only update if value is different
+void SetTemperature(double newTemp)
+{
+    if (Math.Abs(temperature.Value - newTemp) > 0.01)
+    {
+        temperature.Value = newTemp;
+    }
+}</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Next Steps</h2>
+        <p>
+            Now that you understand basic signals, explore:
+        </p>
+        <div class="next-steps">
+            <a href="/concepts/typed-signals" class="next-link">
+                <span class="next-icon">📦</span>
+                <span class="next-text">Typed Signals</span>
+            </a>
+            <a href="/concepts/computed-signals" class="next-link">
+                <span class="next-icon">🔄</span>
+                <span class="next-text">Computed Signals</span>
+            </a>
+            <a href="/concepts/async-signals" class="next-link">
+                <span class="next-icon">⚡</span>
+                <span class="next-text">Async Signals</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<style>
+    .content-page {
+        padding: 2rem 1rem;
+        background-color: #000;
+        min-height: 100vh;
+    }
+    
+    .concept-page {
+        max-width: 900px;
+        margin: 0 auto;
+        color: #e0e0e0;
+    }
+
+    .concept-hero {
+        text-align: center;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .concept-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #999 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .concept-subtitle {
+        font-size: 1.25rem;
+        color: #999;
+    }
+
+    .concept-section {
+        margin-bottom: 3rem;
+    }
+
+    .concept-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .concept-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: #fff;
+    }
+
+    .concept-section p {
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .code-example {
+        background-color: #0a0a0a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+    }
+
+    .code-example pre {
+        margin: 0;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+
+    .code-example code {
+        color: #fff;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    /* Syntax highlighting */
+    .code-example .keyword {
+        color: #ff79c6;
+    }
+    
+    .code-example .type {
+        color: #8be9fd;
+    }
+    
+    .code-example .string {
+        color: #f1fa8c;
+    }
+    
+    .code-example .comment {
+        color: #6272a4;
+    }
+    
+    .code-example .method {
+        color: #50fa7b;
+    }
+    
+    .code-example .number {
+        color: #bd93f9;
+    }
+
+
+    .best-practices {
+        list-style: none;
+        padding: 0;
+    }
+
+    .best-practices li {
+        padding: 0.75rem 0;
+        padding-left: 2rem;
+        position: relative;
+        color: #ccc;
+    }
+
+    .best-practices li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .best-practices strong {
+        color: #fff;
+    }
+
+    .next-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .next-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: #fff;
+        transition: all 0.2s;
+    }
+
+    .next-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .next-icon {
+        font-size: 2rem;
+    }
+
+    .next-text {
+        font-weight: 500;
+    }
+</style>
+

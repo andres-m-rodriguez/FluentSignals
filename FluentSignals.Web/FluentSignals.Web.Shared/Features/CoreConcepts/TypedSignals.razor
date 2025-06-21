@@ -1,0 +1,418 @@
+@page "/concepts/typed-signals"
+@namespace FluentSignals.Web.Shared.Features.CoreConcepts
+
+<PageTitle>Typed Signals - FluentSignals</PageTitle>
+
+<div class="concept-page">
+    <div class="concept-hero">
+        <h1 class="concept-title">Typed Signals</h1>
+        <p class="concept-subtitle">Type-safe reactive state with complex objects</p>
+    </div>
+
+    <section class="concept-section">
+        <h2>Why Typed Signals?</h2>
+        <p>
+            Typed signals provide compile-time type safety for your reactive state. They ensure that your signals 
+            can only contain values of a specific type, preventing runtime errors and providing better IntelliSense 
+            support in your IDE.
+        </p>
+    </section>
+
+    <section class="concept-section">
+        <h2>Creating Typed Signals</h2>
+        <p>Use <code>TypedSignal&lt;T&gt;</code> or the generic <code>Signal&lt;T&gt;</code> for type-safe signals:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="comment">// Simple types</span>
+<span class="keyword">var</span> age = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">int</span>&gt;(<span class="number">25</span>);
+<span class="keyword">var</span> price = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">19.99m</span>);
+<span class="keyword">var</span> isActive = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">bool</span>&gt;(<span class="keyword">true</span>);
+
+<span class="comment">// Complex types</span>
+<span class="keyword">var</span> user = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">User</span>&gt;(<span class="keyword">new</span> <span class="type">User</span> { Id = <span class="number">1</span>, Name = <span class="string">"Alice"</span> });
+<span class="keyword">var</span> items = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">Product</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">Product</span>&gt;());
+
+<span class="comment">// Nullable types</span>
+<span class="keyword">var</span> selectedItem = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">Product?</span>&gt;(<span class="keyword">null</span>);</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Working with Complex Objects</h2>
+        <p>Typed signals excel at managing complex state objects:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="keyword">public class</span> <span class="type">UserProfile</span>
+{
+    <span class="keyword">public int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Name { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public string</span> Email { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">DateTime</span> CreatedAt { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">List</span>&lt;<span class="keyword">string</span>&gt; Roles { <span class="keyword">get</span>; <span class="keyword">set</span>; } = <span class="keyword">new</span>();
+}
+
+<span class="comment">// Create a signal with a complex object</span>
+<span class="keyword">var</span> profile = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">UserProfile</span>&gt;(<span class="keyword">new</span> <span class="type">UserProfile</span>
+{
+    Id = <span class="number">1</span>,
+    Name = <span class="string">"John Doe"</span>,
+    Email = <span class="string">"john@example.com"</span>,
+    CreatedAt = <span class="type">DateTime</span>.Now
+});
+
+<span class="comment">// Update the entire object</span>
+profile.Value = <span class="keyword">new</span> <span class="type">UserProfile</span> { <span class="comment">/* new data */</span> };
+
+<span class="comment">// Read properties</span>
+<span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"User: {profile.Value.Name}"</span>);</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Updating Nested Properties</h2>
+        <p>When working with complex objects, you need to create new instances to trigger updates:</p>
+        
+        <div class="code-example">
+            <pre><code>// ❌ This won't trigger updates
+profile.Value.Name = "Jane Doe"; // Signal won't notify subscribers
+
+// ✅ Create a new object to trigger updates
+profile.Value = new UserProfile
+{
+    Id = profile.Value.Id,
+    Name = "Jane Doe", // Changed property
+    Email = profile.Value.Email,
+    CreatedAt = profile.Value.CreatedAt,
+    Roles = profile.Value.Roles
+};
+
+// ✅ Or use with pattern for cleaner syntax
+profile.Value = profile.Value with { Name = "Jane Doe" }; // For records</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Collections in Typed Signals</h2>
+        <p>Managing collections requires special attention to trigger updates:</p>
+        
+        <div class="code-example">
+            <pre><code>var todos = new TypedSignal&lt;List&lt;TodoItem&gt;&gt;(new List&lt;TodoItem&gt;());
+
+// ❌ This won't trigger updates
+todos.Value.Add(new TodoItem { Title = "New Task" });
+
+// ✅ Create a new list to trigger updates
+todos.Value = todos.Value.Concat(new[] { new TodoItem { Title = "New Task" } }).ToList();
+
+// ✅ Or use spread pattern
+todos.Value = [..todos.Value, new TodoItem { Title = "New Task" }];
+
+// ✅ For removing items
+todos.Value = todos.Value.Where(t => t.Id != itemId).ToList();
+
+// ✅ For updating items
+todos.Value = todos.Value.Select(t => t.Id == itemId 
+    ? t with { Completed = true } 
+    : t).ToList();</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Complete Example: Todo List</h2>
+        <div class="code-example">
+            <pre><code>// Define a todo item record
+public record TodoItem(int Id, string Title, bool Completed = false);
+
+// Create a typed signal for the todo list
+var todos = new TypedSignal&lt;List&lt;TodoItem&gt;&gt;(new List&lt;TodoItem&gt;());
+var updateCount = 0;
+
+// Subscribe to changes
+todos.Subscribe(todoList =&gt; 
+{
+    updateCount++;
+    Console.WriteLine($"Todos updated ({updateCount} times): {todoList.Count} items");
+});
+
+// Add a new todo
+void AddTodo(string title)
+{
+    var newTodo = new TodoItem(Random.Next(1000), title);
+    todos.Value = [..todos.Value, newTodo];
+}
+
+// Toggle completion
+void ToggleTodo(int id)
+{
+    todos.Value = todos.Value.Select(t =&gt; 
+        t.Id == id ? t with { Completed = !t.Completed } : t
+    ).ToList();
+}
+
+// Remove a todo
+void RemoveTodo(int id)
+{
+    todos.Value = todos.Value.Where(t =&gt; t.Id != id).ToList();
+}
+
+// Usage
+AddTodo("Learn FluentSignals");     // Triggers update
+AddTodo("Build reactive app");      // Triggers update
+ToggleTodo(todos.Value[0].Id);      // Triggers update
+RemoveTodo(todos.Value[1].Id);      // Triggers update</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Type Constraints</h2>
+        <p>You can create custom typed signal classes with constraints:</p>
+        
+        <div class="code-example">
+            <pre><code>// Signal that only accepts positive numbers
+public class PositiveSignal&lt;T&gt; : TypedSignal&lt;T&gt; where T : INumber&lt;T&gt;
+{
+    public PositiveSignal(T initialValue) : base(initialValue)
+    {
+        if (initialValue.CompareTo(T.Zero) &lt; 0)
+            throw new ArgumentException("Value must be positive");
+    }
+
+    public override T Value
+    {
+        get => base.Value;
+        set
+        {
+            if (value.CompareTo(T.Zero) &lt; 0)
+                throw new ArgumentException("Value must be positive");
+            base.Value = value;
+        }
+    }
+}</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Best Practices</h2>
+        <ul class="best-practices">
+            <li>
+                <strong>Use immutable updates</strong> - Always create new objects instead of mutating existing ones 
+                to ensure change detection works correctly.
+            </li>
+            <li>
+                <strong>Consider using records</strong> - C# records provide built-in immutability and the 
+                <code>with</code> expression for easy updates.
+            </li>
+            <li>
+                <strong>Avoid deep nesting</strong> - Deeply nested objects can be hard to update. Consider 
+                flattening your state structure.
+            </li>
+            <li>
+                <strong>Use appropriate collection types</strong> - <code>ImmutableList&lt;T&gt;</code> or 
+                <code>ImmutableArray&lt;T&gt;</code> can help enforce immutability.
+            </li>
+        </ul>
+    </section>
+
+    <section class="concept-section">
+        <h2>Performance Tips</h2>
+        <div class="code-example">
+            <pre><code>// For large collections, consider using specialized update methods
+public static class SignalExtensions
+{
+    public static void AddItem&lt;T&gt;(this TypedSignal&lt;List&lt;T&gt;&gt; signal, T item)
+    {
+        signal.Value = [..signal.Value, item];
+    }
+    
+    public static void RemoveItem&lt;T&gt;(this TypedSignal&lt;List&lt;T&gt;&gt; signal, Predicate&lt;T&gt; predicate)
+    {
+        signal.Value = signal.Value.Where(x => !predicate(x)).ToList();
+    }
+    
+    public static void UpdateItem&lt;T&gt;(this TypedSignal&lt;List&lt;T&gt;&gt; signal, 
+        Predicate&lt;T&gt; predicate, Func&lt;T, T&gt; updater)
+    {
+        signal.Value = signal.Value.Select(x => predicate(x) ? updater(x) : x).ToList();
+    }
+}</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Next Steps</h2>
+        <p>
+            Continue learning about advanced signal types:
+        </p>
+        <div class="next-steps">
+            <a href="/concepts/computed-signals" class="next-link">
+                <span class="next-icon">🔄</span>
+                <span class="next-text">Computed Signals</span>
+            </a>
+            <a href="/concepts/async-signals" class="next-link">
+                <span class="next-icon">⚡</span>
+                <span class="next-text">Async Signals</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<style>
+    .concept-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        color: #e0e0e0;
+    }
+
+    .concept-hero {
+        text-align: center;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .concept-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #999 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .concept-subtitle {
+        font-size: 1.25rem;
+        color: #999;
+    }
+
+    .concept-section {
+        margin-bottom: 3rem;
+    }
+
+    .concept-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .concept-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: #fff;
+    }
+
+    .concept-section p {
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .code-example {
+        background-color: #0a0a0a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+    }
+
+    .code-example pre {
+        margin: 0;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+
+    .code-example code {
+        color: #fff;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    /* Syntax highlighting */
+    .code-example .keyword {
+        color: #ff79c6;
+    }
+    
+    .code-example .type {
+        color: #8be9fd;
+    }
+    
+    .code-example .string {
+        color: #f1fa8c;
+    }
+    
+    .code-example .comment {
+        color: #6272a4;
+    }
+    
+    .code-example .method {
+        color: #50fa7b;
+    }
+    
+    .code-example .number {
+        color: #bd93f9;
+    }
+
+
+    .best-practices {
+        list-style: none;
+        padding: 0;
+    }
+
+    .best-practices li {
+        padding: 0.75rem 0;
+        padding-left: 2rem;
+        position: relative;
+        color: #ccc;
+    }
+
+    .best-practices li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .best-practices strong {
+        color: #fff;
+    }
+
+    .next-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .next-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: #fff;
+        transition: all 0.2s;
+    }
+
+    .next-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .next-icon {
+        font-size: 2rem;
+    }
+
+    .next-text {
+        font-weight: 500;
+    }
+</style>
+

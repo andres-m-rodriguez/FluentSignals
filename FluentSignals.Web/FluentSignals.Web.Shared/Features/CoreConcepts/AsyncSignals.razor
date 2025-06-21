@@ -1,0 +1,508 @@
+@page "/concepts/async-signals"
+@namespace FluentSignals.Web.Shared.Features.CoreConcepts
+
+<PageTitle>Async Signals - FluentSignals</PageTitle>
+
+<div class="concept-page">
+    <div class="concept-hero">
+        <h1 class="concept-title">Async Signals</h1>
+        <p class="concept-subtitle">Managing asynchronous operations with reactive state</p>
+    </div>
+
+    <section class="concept-section">
+        <h2>Understanding Async Signals</h2>
+        <p>
+            Async signals extend the power of reactive state management to asynchronous operations. They automatically 
+            track loading states, handle errors, and provide reactive updates throughout the async operation lifecycle. 
+            FluentSignals provides two types:
+        </p>
+        <ul class="feature-list">
+            <li><strong>AsyncSignal</strong> - For async operations without a return value</li>
+            <li><strong>AsyncTypedSignal&lt;T&gt;</strong> - For async operations that produce a typed result</li>
+        </ul>
+    </section>
+
+    <section class="concept-section">
+        <h2>AsyncSignal Basics</h2>
+        <p>Use <code>AsyncSignal</code> for operations that perform side effects without returning data:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="comment">// Create an async signal</span>
+<span class="keyword">var</span> saveSignal = <span class="keyword">new</span> <span class="type">AsyncSignal</span>();
+
+<span class="comment">// Subscribe to loading state</span>
+saveSignal.IsLoading.<span class="method">Subscribe</span>(isLoading =&gt; 
+    <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Saving: {isLoading}"</span>));
+
+<span class="comment">// Subscribe to errors</span>
+saveSignal.Error.<span class="method">Subscribe</span>(error =&gt; 
+{
+    <span class="keyword">if</span> (error != <span class="keyword">null</span>)
+        <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Save failed: {error.Message}"</span>);
+});
+
+<span class="comment">// Run an async operation</span>
+<span class="keyword">await</span> saveSignal.<span class="method">RunAsync</span>(<span class="keyword">async</span> () =&gt;
+{
+    <span class="keyword">await</span> databaseService.<span class="method">SaveDataAsync</span>();
+    <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">"Data saved successfully!"</span>);
+});</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>AsyncTypedSignal with Results</h2>
+        <p>Use <code>AsyncTypedSignal&lt;T&gt;</code> when your async operation returns data:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="comment">// Create an async typed signal with initial value</span>
+<span class="keyword">var</span> userSignal = <span class="keyword">new</span> <span class="type">AsyncTypedSignal</span>&lt;<span class="type">User?</span>&gt;(<span class="keyword">null</span>);
+
+<span class="comment">// Subscribe to value changes</span>
+userSignal.<span class="method">Subscribe</span>(user =&gt;
+{
+    <span class="keyword">if</span> (user != <span class="keyword">null</span>)
+        <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"User loaded: {user.Name}"</span>);
+});
+
+<span class="comment">// Load data asynchronously</span>
+<span class="keyword">await</span> userSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+{
+    <span class="keyword">return await</span> userService.<span class="method">GetUserAsync</span>(userId);
+});
+
+<span class="comment">// Access the loaded value</span>
+<span class="keyword">var</span> currentUser = userSignal.Value;</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Loading and Error States</h2>
+        <p>Both async signal types provide automatic state management:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> dataSignal = <span class="keyword">new</span> <span class="type">AsyncTypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">Product</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">Product</span>&gt;());
+
+<span class="comment">// Create comprehensive state handling</span>
+dataSignal.IsLoading.<span class="method">Subscribe</span>(isLoading =&gt;
+{
+    loadingSpinner.Visible = isLoading;
+    contentPanel.Enabled = !isLoading;
+});
+
+dataSignal.Error.<span class="method">Subscribe</span>(error =&gt;
+{
+    errorPanel.Visible = error != <span class="keyword">null</span>;
+    <span class="keyword">if</span> (error != <span class="keyword">null</span>)
+        errorMessage.Text = error.Message;
+});
+
+<span class="comment">// States update automatically during operation</span>
+<span class="keyword">await</span> dataSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+{
+    <span class="comment">// IsLoading becomes true</span>
+    <span class="keyword">var</span> products = <span class="keyword">await</span> productService.<span class="method">GetProductsAsync</span>();
+    <span class="comment">// IsLoading becomes false, Error is cleared</span>
+    <span class="keyword">return</span> products;
+});</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Complete Example: User Profile Loader</h2>
+        <div class="code-example">
+            <pre><code><span class="comment">// Define a user record</span>
+<span class="keyword">public record</span> <span class="type">User</span>(<span class="keyword">string</span> Name, <span class="keyword">string</span> Email, <span class="keyword">string</span> Role, <span class="type">DateTime</span> LastLogin);
+
+<span class="comment">// Create an async typed signal</span>
+<span class="keyword">var</span> userSignal = <span class="keyword">new</span> <span class="type">AsyncTypedSignal</span>&lt;<span class="type">User?</span>&gt;(<span class="keyword">null</span>);
+
+<span class="comment">// Subscribe to all state changes</span>
+userSignal.<span class="method">Subscribe</span>(user =&gt; {
+    <span class="keyword">if</span> (user != <span class="keyword">null</span>)
+        <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"User loaded: {user.Name}"</span>);
+});
+
+userSignal.IsLoading.<span class="method">Subscribe</span>(isLoading =&gt; {
+    <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Loading: {isLoading}"</span>);
+});
+
+userSignal.Error.<span class="method">Subscribe</span>(error =&gt; {
+    <span class="keyword">if</span> (error != <span class="keyword">null</span>)
+        <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Error: {error.Message}"</span>);
+});
+
+<span class="comment">// Load user successfully</span>
+<span class="keyword">async</span> <span class="type">Task</span> <span class="method">LoadUserSuccess</span>()
+{
+    <span class="keyword">await</span> userSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+    {
+        <span class="comment">// Simulate API call</span>
+        <span class="keyword">await</span> <span class="type">Task</span>.<span class="method">Delay</span>(<span class="number">1500</span>);
+        
+        <span class="keyword">return new</span> <span class="type">User</span>(
+            <span class="string">"John Doe"</span>,
+            <span class="string">"john.doe@example.com"</span>,
+            <span class="string">"Administrator"</span>,
+            <span class="type">DateTime</span>.Now.<span class="method">AddHours</span>(<span class="number">-2</span>)
+        );
+    });
+}
+
+<span class="comment">// Load user with error</span>
+<span class="keyword">async</span> <span class="type">Task</span> <span class="method">LoadUserError</span>()
+{
+    <span class="keyword">await</span> userSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+    {
+        <span class="comment">// Simulate API call</span>
+        <span class="keyword">await</span> <span class="type">Task</span>.<span class="method">Delay</span>(<span class="number">1000</span>);
+        
+        <span class="keyword">throw new</span> <span class="type">Exception</span>(<span class="string">"Failed to connect to user service"</span>);
+    });
+}
+
+<span class="comment">// Usage</span>
+<span class="keyword">await</span> <span class="method">LoadUserSuccess</span>(); <span class="comment">// Sets IsLoading to true, then false, updates Value</span>
+<span class="keyword">await</span> <span class="method">LoadUserError</span>();   <span class="comment">// Sets IsLoading to true, then false, sets Error</span></code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Error Handling Patterns</h2>
+        
+        <h3>Automatic Retry</h3>
+        <div class="code-example">
+            <pre><code><span class="keyword">async</span> <span class="type">Task</span> <span class="method">LoadWithRetry</span>&lt;<span class="type">T</span>&gt;(<span class="type">AsyncTypedSignal</span>&lt;<span class="type">T</span>&gt; signal, 
+    <span class="type">Func</span>&lt;<span class="type">Task</span>&lt;<span class="type">T</span>&gt;&gt; loader, <span class="keyword">int</span> maxAttempts = <span class="number">3</span>)
+{
+    <span class="keyword">for</span> (<span class="keyword">int</span> attempt = <span class="number">1</span>; attempt &lt;= maxAttempts; attempt++)
+    {
+        <span class="keyword">await</span> signal.<span class="method">LoadAsync</span>(loader);
+        
+        <span class="keyword">if</span> (signal.Error.Value == <span class="keyword">null</span>)
+            <span class="keyword">break</span>; <span class="comment">// Success</span>
+            
+        <span class="keyword">if</span> (attempt &lt; maxAttempts)
+        {
+            <span class="comment">// Exponential backoff</span>
+            <span class="keyword">await</span> <span class="type">Task</span>.<span class="method">Delay</span>(<span class="type">TimeSpan</span>.<span class="method">FromSeconds</span>(<span class="type">Math</span>.<span class="method">Pow</span>(<span class="number">2</span>, attempt)));
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h3>Fallback Values</h3>
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> configSignal = <span class="keyword">new</span> <span class="type">AsyncTypedSignal</span>&lt;<span class="type">Config</span>&gt;(<span class="type">Config</span>.Default);
+
+<span class="keyword">await</span> configSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+{
+    <span class="keyword">try</span>
+    {
+        <span class="keyword">return await</span> configService.<span class="method">LoadAsync</span>();
+    }
+    <span class="keyword">catch</span> (<span class="type">Exception</span> ex)
+    {
+        logger.<span class="method">LogWarning</span>(ex, <span class="string">"Failed to load config, using default"</span>);
+        <span class="keyword">return</span> <span class="type">Config</span>.Default; <span class="comment">// Fallback to default</span>
+    }
+});</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Common Use Cases</h2>
+        
+        <h3>Search with Debouncing</h3>
+        <div class="code-example">
+            <pre><code><span class="keyword">private</span> <span class="type">CancellationTokenSource?</span> _searchCts;
+
+<span class="keyword">public async</span> <span class="type">Task</span> <span class="method">SearchAsync</span>(<span class="keyword">string</span> query)
+{
+    <span class="comment">// Cancel previous search</span>
+    _searchCts?.<span class="method">Cancel</span>();
+    _searchCts = <span class="keyword">new</span> <span class="type">CancellationTokenSource</span>();
+    <span class="keyword">var</span> token = _searchCts.Token;
+    
+    <span class="comment">// Debounce</span>
+    <span class="keyword">await</span> <span class="type">Task</span>.<span class="method">Delay</span>(<span class="number">300</span>, token);
+    
+    <span class="keyword">await</span> _searchResults.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+    {
+        token.<span class="method">ThrowIfCancellationRequested</span>();
+        <span class="keyword">return await</span> searchService.<span class="method">SearchAsync</span>(query, token);
+    });
+}</code></pre>
+        </div>
+
+        <h3>Form Submission</h3>
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> submitSignal = <span class="keyword">new</span> <span class="type">AsyncSignal</span>();
+
+<span class="comment">// Disable form during submission</span>
+submitSignal.IsLoading.<span class="method">Subscribe</span>(isSubmitting =&gt;
+{
+    submitButton.Enabled = !isSubmitting;
+    form.ReadOnly = isSubmitting;
+});
+
+<span class="comment">// Handle submission</span>
+<span class="keyword">await</span> submitSignal.<span class="method">RunAsync</span>(<span class="keyword">async</span> () =&gt;
+{
+    <span class="keyword">var</span> data = form.<span class="method">GetData</span>();
+    <span class="keyword">await</span> api.<span class="method">SubmitAsync</span>(data);
+    navigationService.<span class="method">NavigateTo</span>(<span class="string">"/success"</span>);
+});</code></pre>
+        </div>
+
+        <h3>Real-time Updates</h3>
+        <div class="code-example">
+            <pre><code><span class="keyword">public class</span> <span class="type">LiveDataViewModel</span> : <span class="type">IDisposable</span>
+{
+    <span class="keyword">private readonly</span> <span class="type">AsyncTypedSignal</span>&lt;<span class="type">LiveData</span>&gt; _liveData;
+    <span class="keyword">private readonly</span> <span class="type">Timer</span> _refreshTimer;
+    
+    <span class="keyword">public</span> <span class="method">LiveDataViewModel</span>()
+    {
+        _liveData = <span class="keyword">new</span> <span class="type">AsyncTypedSignal</span>&lt;<span class="type">LiveData</span>&gt;(<span class="keyword">new</span> <span class="type">LiveData</span>());
+        
+        <span class="comment">// Auto-refresh every 5 seconds</span>
+        _refreshTimer = <span class="keyword">new</span> <span class="type">Timer</span>(<span class="keyword">async</span> _ =&gt;
+        {
+            <span class="keyword">await</span> <span class="method">RefreshData</span>();
+        }, <span class="keyword">null</span>, <span class="type">TimeSpan</span>.<span class="method">FromSeconds</span>(<span class="number">5</span>), <span class="type">TimeSpan</span>.<span class="method">FromSeconds</span>(<span class="number">5</span>));
+    }
+    
+    <span class="keyword">private async</span> <span class="type">Task</span> <span class="method">RefreshData</span>()
+    {
+        <span class="keyword">await</span> _liveData.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt;
+        {
+            <span class="keyword">return await</span> liveDataService.<span class="method">GetLatestAsync</span>();
+        });
+    }
+}</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Best Practices</h2>
+        <ul class="best-practices">
+            <li>
+                <strong>Handle concurrent operations</strong> - Use cancellation tokens or semaphores to prevent 
+                race conditions when multiple async operations can be triggered.
+            </li>
+            <li>
+                <strong>Provide initial values</strong> - Always provide sensible initial values for AsyncTypedSignal 
+                to avoid null reference issues.
+            </li>
+            <li>
+                <strong>Clean up subscriptions</strong> - Dispose of signal subscriptions to prevent memory leaks, 
+                especially in components with lifecycles.
+            </li>
+            <li>
+                <strong>Consider error recovery</strong> - Implement retry logic or fallback strategies for critical 
+                operations that may fail.
+            </li>
+            <li>
+                <strong>Show loading states</strong> - Always provide visual feedback during async operations using 
+                the IsLoading signal.
+            </li>
+        </ul>
+    </section>
+
+    <section class="concept-section">
+        <h2>Advanced Patterns</h2>
+        
+        <h3>Combining Multiple Async Operations</h3>
+        <div class="code-example">
+            <pre><code><span class="comment">// Load related data in sequence</span>
+<span class="keyword">await</span> userSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt; 
+    <span class="keyword">await</span> userService.<span class="method">GetUserAsync</span>(userId));
+
+<span class="keyword">if</span> (userSignal.Value != <span class="keyword">null</span>)
+{
+    <span class="comment">// Load dependent data in parallel</span>
+    <span class="keyword">var</span> profileTask = profileSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt; 
+        <span class="keyword">await</span> profileService.<span class="method">GetProfileAsync</span>(userSignal.Value.Id));
+        
+    <span class="keyword">var</span> ordersTask = ordersSignal.<span class="method">LoadAsync</span>(<span class="keyword">async</span> () =&gt; 
+        <span class="keyword">await</span> orderService.<span class="method">GetOrdersAsync</span>(userSignal.Value.Id));
+    
+    <span class="keyword">await</span> <span class="type">Task</span>.<span class="method">WhenAll</span>(profileTask, ordersTask);
+}</code></pre>
+        </div>
+
+        <h3>State Machine Pattern</h3>
+        <div class="code-example">
+            <pre><code><span class="keyword">public enum</span> <span class="type">ProcessState</span> { Idle, Validating, Processing, Completed, Failed }
+
+<span class="keyword">var</span> state = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">ProcessState</span>&gt;(<span class="type">ProcessState</span>.Idle);
+<span class="keyword">var</span> processSignal = <span class="keyword">new</span> <span class="type">AsyncSignal</span>();
+
+<span class="comment">// Update state based on async operations</span>
+processSignal.IsLoading.<span class="method">Subscribe</span>(isLoading =&gt;
+{
+    <span class="keyword">if</span> (isLoading) state.Value = <span class="type">ProcessState</span>.Processing;
+});
+
+processSignal.Error.<span class="method">Subscribe</span>(error =&gt;
+{
+    <span class="keyword">if</span> (error != <span class="keyword">null</span>) state.Value = <span class="type">ProcessState</span>.Failed;
+});</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Summary</h2>
+        <p>
+            Async signals provide a powerful way to manage asynchronous operations in your reactive applications. 
+            They automatically handle loading states, error management, and ensure your UI stays responsive and 
+            up-to-date throughout the entire async lifecycle.
+        </p>
+        <p>
+            By combining async signals with other FluentSignals features, you can build robust applications that 
+            gracefully handle complex asynchronous workflows while maintaining clean, reactive code.
+        </p>
+    </section>
+</div>
+
+<style>
+    .concept-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        color: #e0e0e0;
+    }
+
+    .concept-hero {
+        text-align: center;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .concept-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #999 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .concept-subtitle {
+        font-size: 1.25rem;
+        color: #999;
+    }
+
+    .concept-section {
+        margin-bottom: 3rem;
+    }
+
+    .concept-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .concept-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: #fff;
+    }
+
+    .concept-section p {
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0;
+    }
+
+    .feature-list li {
+        padding: 0.5rem 0;
+        color: #ccc;
+    }
+
+    .feature-list strong {
+        color: #fff;
+    }
+
+    .code-example {
+        background-color: #0a0a0a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+    }
+
+    .code-example pre {
+        margin: 0;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+
+    .code-example code {
+        color: #fff;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    /* Syntax highlighting */
+    .code-example .keyword {
+        color: #ff79c6;
+    }
+    
+    .code-example .type {
+        color: #8be9fd;
+    }
+    
+    .code-example .string {
+        color: #f1fa8c;
+    }
+    
+    .code-example .comment {
+        color: #6272a4;
+    }
+    
+    .code-example .method {
+        color: #50fa7b;
+    }
+    
+    .code-example .number {
+        color: #bd93f9;
+    }
+
+
+    .best-practices {
+        list-style: none;
+        padding: 0;
+    }
+
+    .best-practices li {
+        padding: 0.75rem 0;
+        padding-left: 2rem;
+        position: relative;
+        color: #ccc;
+    }
+
+    .best-practices li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .best-practices strong {
+        color: #fff;
+    }
+</style>
+

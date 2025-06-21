@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    
+    <!-- NuGet Package Properties -->
+    <PackageId>FluentSignals.Http</PackageId>
+    <Product>FluentSignals.Http</Product>
+    <Description>HTTP client extensions for FluentSignals including reactive HTTP resources, typed API clients, interceptors, caching, and advanced features for building robust HTTP integrations.</Description>
+    <PackageTags>fluentsignals;http;api-client;typed-resources;interceptors;caching;reactive</PackageTags>
+    <PackageReleaseNotes>Initial release of FluentSignals.Http - HTTP client extensions extracted from FluentSignals core library.</PackageReleaseNotes>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FluentSignals\FluentSignals.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.0.0-preview.4.24267.6" />
+    <PackageReference Include="Polly" Version="8.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

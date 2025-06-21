@@ -1,0 +1,409 @@
+@namespace FluentSignals.Web.Shared.Components
+@implements IDisposable
+@rendermode RenderMode.InteractiveWebAssembly
+<div class="welcome-container @(_isVisible ? "visible" : "hidden") @(_isExiting ? "exiting" : "")" @onclick="Skip">
+    <div class="grid-container">
+        <div class="grid-lines grid-main"></div>
+        <div class="grid-lines grid-secondary"></div>
+        <div class="grid-glow"></div>
+    </div>
+    <div class="welcome-content">
+        <h1 class="welcome-text">
+            <span class="text-reveal">Welcome to FluentSignals</span>
+        </h1>
+        <div class="subtitle">
+            <span class="subtitle-text">Reactive State Management for .NET</span>
+            <div class="subtitle-underline"></div>
+        </div>
+        <div class="skip-hint">Click anywhere to continue</div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public EventCallback OnAnimationComplete { get; set; }
+    
+    private bool _isVisible = true;
+    private bool _isExiting = false;
+    
+    private async Task Skip()
+    {
+        if (_isExiting) return; // Prevent multiple clicks
+        await HideAnimation();
+    }
+
+    private async Task HideAnimation()
+    {
+        _isExiting = true;
+        StateHasChanged();
+        
+        // Wait for zoom animation
+        await Task.Delay(800);
+        
+        _isVisible = false;
+        StateHasChanged();
+        
+        if (OnAnimationComplete.HasDelegate)
+        {
+            await InvokeAsync(async () => await OnAnimationComplete.InvokeAsync());
+        }
+    }
+
+    public void Dispose()
+    {
+        // No timer to dispose
+    }
+}
+
+<style>
+    .welcome-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        cursor: pointer;
+        transition: opacity 0.8s ease-out;
+        overflow: hidden;
+        transform: translateZ(0);
+        will-change: opacity;
+    }
+
+    .welcome-container.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .welcome-container.exiting {
+        animation: zoomIntoApp 0.8s cubic-bezier(0.4, 0, 0, 1) forwards;
+    }
+
+    @@keyframes zoomIntoApp {
+        0% {
+            transform: translateZ(0) scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: translateZ(0) scale(3);
+            opacity: 0;
+        }
+    }
+
+    /* Grid container for Next.js-style maze effect */
+    .grid-container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0, 1);
+    }
+
+    .welcome-container.exiting .grid-container {
+        transform: scale(2) rotateZ(5deg);
+    }
+
+    .grid-lines {
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        top: -50%;
+        left: -50%;
+        transform: translateZ(0);
+        will-change: transform, opacity;
+    }
+
+    .grid-main {
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        background-size: 80px 80px;
+        opacity: 0;
+        animation: gridReveal 1.5s cubic-bezier(0.4, 0, 0.2, 1) 2.7s forwards,
+                   gridDrift 30s linear 4.2s infinite;
+        transform: translateZ(0);
+    }
+
+    .grid-secondary {
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0;
+        animation: gridReveal 2s cubic-bezier(0.4, 0, 0.2, 1) 3s forwards,
+                   gridDrift 40s linear 5s reverse infinite;
+        transform: translateZ(0);
+    }
+
+    .grid-glow {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+        opacity: 0;
+        animation: subtleGlow 4s ease-in-out 3.5s forwards;
+        pointer-events: none;
+        transform: translateZ(0);
+    }
+
+    @@keyframes gridReveal {
+        0% {
+            opacity: 0;
+            transform: translateZ(0) scale(0.98);
+        }
+        100% {
+            opacity: 1;
+            transform: translateZ(0) scale(1);
+        }
+    }
+
+    @@keyframes gridDrift {
+        0% {
+            background-position: 0 0;
+        }
+        100% {
+            background-position: 80px 80px;
+        }
+    }
+
+    @@keyframes subtleGlow {
+        0% {
+            opacity: 0;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+
+
+    .welcome-content {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0, 1);
+    }
+
+    .welcome-container.exiting .welcome-content {
+        transform: scale(1.5);
+    }
+
+    .welcome-text {
+        font-size: clamp(2.5rem, 10vw, 7rem);
+        font-weight: 700;
+        margin: 0;
+        padding: 0;
+        letter-spacing: -0.02em;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        position: relative;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .text-reveal {
+        display: inline-block;
+        position: relative;
+        color: transparent;
+        animation: textFadeIn 0.2s ease-out 3.5s forwards;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        transform: translateZ(0);
+        will-change: color;
+    }
+
+    @@keyframes textFadeIn {
+        to {
+            color: #fff;
+        }
+    }
+
+    /* Main reveal using a mask */
+    .text-reveal::before {
+        content: 'Welcome to FluentSignals';
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: rgba(255, 255, 255, 0);
+        width: 100%;
+        clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+        animation: revealMask 3.5s cubic-bezier(0.4, 0, 0.6, 1) 0s forwards;
+        transform: translateZ(0);
+        will-change: clip-path, opacity, color;
+    }
+
+    @@keyframes revealMask {
+        /* Complete darkness - building suspense */
+        0%, 20% {
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            color: rgba(255, 255, 255, 0);
+            opacity: 0;
+        }
+        /* Very subtle pulse - something is coming */
+        25% {
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            color: rgba(255, 255, 255, 0.05);
+            opacity: 0.3;
+        }
+        30% {
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            color: rgba(255, 255, 255, 0);
+            opacity: 0.8;
+        }
+        /* The reveal begins - continuous smooth motion */
+        35% {
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+            color: rgba(255, 255, 255, 0.9);
+            opacity: 1;
+        }
+        100% {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            color: rgba(255, 255, 255, 1);
+            opacity: 1;
+        }
+    }
+
+    /* Traveling light effect */
+    .text-reveal::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -10%;
+        width: 20%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent,
+            rgba(255,255,255,0.2),
+            transparent
+        );
+        opacity: 0;
+        animation: lightTravel 2s cubic-bezier(0.65, 0, 0.35, 1) 1.5s forwards;
+        mix-blend-mode: screen;
+        transform: translateZ(0);
+        will-change: transform, opacity;
+    }
+
+    @@keyframes lightTravel {
+        0% {
+            transform: translateX(-10%) translateZ(0);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(550%) translateZ(0);
+            opacity: 0;
+        }
+    }
+
+    .subtitle {
+        margin-top: 2rem;
+        position: relative;
+        opacity: 0;
+        animation: subtitleReveal 0.8s cubic-bezier(0.4, 0, 0, 1) 3.2s forwards;
+    }
+
+    .subtitle-text {
+        font-size: clamp(1rem, 2.5vw, 1.5rem);
+        color: #666;
+        font-weight: 300;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        display: inline-block;
+        animation: flashText 0.5s ease-out 4s forwards;
+    }
+
+    @@keyframes flashText {
+        0%, 100% { color: #666; }
+        50% { color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.8); }
+    }
+
+    .subtitle-underline {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #fff, transparent);
+        transform: translateX(-50%);
+        animation: underlineExpand 0.6s cubic-bezier(0.4, 0, 0, 1) 3.4s forwards;
+        box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    @@keyframes subtitleReveal {
+        0% {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            filter: blur(10px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+    @@keyframes underlineExpand {
+        0% {
+            width: 0;
+            opacity: 0;
+        }
+        50% {
+            width: 250px;
+            opacity: 1;
+        }
+        100% {
+            width: 200px;
+            opacity: 1;
+        }
+    }
+
+    .skip-hint {
+        position: absolute;
+        bottom: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #333;
+        font-size: 0.875rem;
+        letter-spacing: 0.1em;
+        opacity: 0;
+        animation: pulseHint 2s ease-in-out 3.7s infinite;
+    }
+
+    @@keyframes pulseHint {
+        0%, 100% {
+            opacity: 0;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .welcome-text {
+            flex-direction: column;
+            gap: 0.2em;
+            font-size: clamp(2rem, 12vw, 4rem);
+        }
+        
+        .subtitle-underline {
+            animation: underlineExpand 1s ease-out 5s forwards;
+        }
+        
+        @@keyframes underlineExpand {
+            100% {
+                width: 150px;
+            }
+        }
+    }
+</style>

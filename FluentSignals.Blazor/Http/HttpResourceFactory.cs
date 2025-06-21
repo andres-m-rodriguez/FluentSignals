@@ -1,4 +1,5 @@
-using FluentSignals.Options.HttpResource;
+using FluentSignals.Http.Options;
+using FluentSignals.Http.Resources;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http;
 

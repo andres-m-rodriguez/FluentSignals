@@ -1,0 +1,295 @@
+::deep .main-layout {
+    min-height: 100vh;
+    display: flex;
+    background-color: #000;
+}
+
+    ::deep .main-layout.visible {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+/* Mobile-first approach */
+::deep .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: #000;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 1001;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    ::deep .sidebar.open {
+        transform: translateX(0);
+    }
+
+/* Backdrop blur overlay for mobile */
+::deep .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+    ::deep .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+/* Hamburger menu */
+::deep .hamburger {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1002;
+    width: 3rem;
+    height: 3rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    ::deep .hamburger:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+::deep .hamburger-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    position: relative;
+}
+
+    ::deep .hamburger-icon span {
+        display: block;
+        position: absolute;
+        height: 2px;
+        width: 100%;
+        background: #fff;
+        transition: all 0.3s ease;
+        left: 0;
+    }
+
+        ::deep .hamburger-icon span:nth-child(1) {
+            top: 0;
+        }
+
+        ::deep .hamburger-icon span:nth-child(2) {
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        ::deep .hamburger-icon span:nth-child(3) {
+            bottom: 0;
+        }
+
+/* Animate hamburger to X when open */
+::deep .hamburger.active .hamburger-icon span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+::deep .hamburger.active .hamburger-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+::deep .hamburger.active .hamburger-icon span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Content wrapper */
+::deep .content-wrapper {
+    flex: 1;
+    width: 100%;
+    min-height: 100vh;
+    background-color: #000;
+}
+
+::deep .main-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+
+/* Sidebar content styles */
+::deep .sidebar-header {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+::deep .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #fff;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+    ::deep .sidebar-logo:hover {
+        opacity: 0.8;
+    }
+
+::deep .logo-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: linear-gradient(135deg, #fff 0%, #999 100%);
+    color: #000;
+    font-weight: 900;
+    font-size: 1rem;
+    border-radius: 0.5rem;
+    letter-spacing: -0.05em;
+}
+
+::deep .logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+::deep .sidebar-nav {
+    flex: 1;
+    padding: 1.5rem 0;
+    overflow-y: auto;
+}
+
+::deep .nav-section {
+    margin-bottom: 2rem;
+}
+
+::deep .nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    padding: 0 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+::deep .nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+::deep .nav-item {
+    display: block;
+    padding: 0.625rem 1.5rem;
+    color: #999;
+    text-decoration: none;
+    transition: all 0.2s;
+    position: relative;
+}
+
+    ::deep .nav-item:hover {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    ::deep .nav-item.active {
+        color: #fff;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+        ::deep .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background-color: #fff;
+        }
+
+::deep .sidebar-footer {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+::deep .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #666;
+    text-decoration: none;
+    transition: color 0.2s;
+    font-size: 0.875rem;
+}
+
+    ::deep .sidebar-link:hover {
+        color: #fff;
+    }
+
+::deep .icon {
+    flex-shrink: 0;
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+    ::deep .hamburger {
+        display: none;
+    }
+
+    ::deep .sidebar {
+        position: sticky;
+        top: 0;
+        transform: translateX(0);
+        width: 280px;
+        height: 100vh;
+    }
+
+    ::deep .sidebar-overlay {
+        display: none;
+    }
+}
+
+/* Scrollbar styling for sidebar */
+::deep .sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+::deep .sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::deep .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+    ::deep .sidebar-nav::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+/* Animation keyframes */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}

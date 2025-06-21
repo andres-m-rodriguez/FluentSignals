@@ -1,0 +1,476 @@
+@page "/concepts/computed-signals"
+@namespace FluentSignals.Web.Shared.Features.CoreConcepts
+
+<PageTitle>Computed Signals - FluentSignals</PageTitle>
+
+<div class="concept-page">
+    <div class="concept-hero">
+        <h1 class="concept-title">Computed Signals</h1>
+        <p class="concept-subtitle">Automatically derive values from other signals</p>
+    </div>
+
+    <section class="concept-section">
+        <h2>What are Computed Signals?</h2>
+        <p>
+            Computed signals are derived values that automatically update when their dependencies change. 
+            They're perfect for calculations, transformations, and aggregations that depend on other reactive values.
+            Think of them as Excel formulas that automatically recalculate when their inputs change.
+        </p>
+    </section>
+
+    <section class="concept-section">
+        <h2>Creating Computed Values</h2>
+        <p>While FluentSignals doesn't have a built-in ComputedSignal class, you can easily create computed values by subscribing to source signals:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="comment">// Basic computed values pattern</span>
+<span class="keyword">var</span> firstName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">"John"</span>);
+<span class="keyword">var</span> lastName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">"Doe"</span>);
+
+<span class="comment">// Create a computed value</span>
+<span class="keyword">var</span> fullName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;($<span class="string">"{firstName.Value} {lastName.Value}"</span>);
+
+<span class="comment">// Update fullName when dependencies change</span>
+firstName.<span class="method">Subscribe</span>(_ =&gt; 
+    fullName.Value = $<span class="string">"{firstName.Value} {lastName.Value}"</span>);
+lastName.<span class="method">Subscribe</span>(_ =&gt; 
+    fullName.Value = $<span class="string">"{firstName.Value} {lastName.Value}"</span>);
+
+<span class="comment">// Now updates are automatic</span>
+firstName.Value = <span class="string">"Jane"</span>;
+<span class="comment">// fullName.Value is now "Jane Doe"</span></code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Multiple Dependencies</h2>
+        <p>Computed signals can depend on multiple signals and automatically track all dependencies:</p>
+        
+        <div class="code-example">
+            <pre><code><span class="keyword">var</span> quantity = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">int</span>&gt;(<span class="number">5</span>);
+<span class="keyword">var</span> pricePerItem = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">10.99m</span>);
+<span class="keyword">var</span> taxRate = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0.08m</span>);
+
+<span class="comment">// Create computed values</span>
+<span class="keyword">var</span> subtotal = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(quantity.Value * pricePerItem.Value);
+<span class="keyword">var</span> tax = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(subtotal.Value * taxRate.Value);
+<span class="keyword">var</span> total = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(subtotal.Value + tax.Value);
+
+<span class="comment">// Helper to update all computed values</span>
+<span class="type">Action</span> updateComputedValues = () =&gt; {
+    subtotal.Value = quantity.Value * pricePerItem.Value;
+    tax.Value = subtotal.Value * taxRate.Value;
+    total.Value = subtotal.Value + tax.Value;
+};
+
+<span class="comment">// Subscribe to changes</span>
+quantity.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
+pricePerItem.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
+taxRate.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
+
+<span class="comment">// All values update when dependencies change</span>
+quantity.Value = <span class="number">10</span>;</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Computed Signals with Collections</h2>
+        <p>Perform aggregations and transformations on collections:</p>
+        
+        <div class="code-example">
+            <pre><code>var items = new TypedSignal&lt;List&lt;OrderItem&gt;&gt;(new List&lt;OrderItem&gt;());
+
+// Create computed aggregations
+var totalItems = new TypedSignal&lt;int&gt;(0);
+var totalPrice = new TypedSignal&lt;decimal&gt;(0m);
+var completedItems = new TypedSignal&lt;List&lt;OrderItem&gt;&gt;(new List&lt;OrderItem&gt;());
+
+// Update function for all computed values
+Action updateAggregations = () =&gt; {
+    totalItems.Value = items.Value.Sum(item =&gt; item.Quantity);
+    totalPrice.Value = items.Value.Sum(item =&gt; item.Price * item.Quantity);
+    completedItems.Value = items.Value.Where(item =&gt; item.IsCompleted).ToList();
+};
+
+// Subscribe to changes
+items.Subscribe(_ =&gt; updateAggregations());
+
+// Complex aggregation
+var orderSummary = new TypedSignal&lt;OrderSummary&gt;(new OrderSummary());
+
+items.Subscribe(_ =&gt; {
+    orderSummary.Value = new OrderSummary
+    {
+        TotalItems = items.Value.Count,
+        TotalQuantity = items.Value.Sum(i =&gt; i.Quantity),
+        TotalPrice = items.Value.Sum(i =&gt; i.Price * i.Quantity),
+        AveragePrice = items.Value.Any() ? items.Value.Average(i =&gt; i.Price) : 0
+    };
+});</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Complete Example: Shopping Cart Calculator</h2>
+        <div class="code-example">
+            <pre><code>// Source signals for shopping cart
+var quantity = new TypedSignal&lt;int&gt;(1);
+var pricePerItem = new TypedSignal&lt;decimal&gt;(19.99m);
+var discountPercent = new TypedSignal&lt;decimal&gt;(10m);
+var taxRate = new TypedSignal&lt;decimal&gt;(8.5m);
+
+// Computed values that update automatically
+var subtotal = new TypedSignal&lt;decimal&gt;(quantity.Value * pricePerItem.Value);
+var discountAmount = new TypedSignal&lt;decimal&gt;(0m);
+var afterDiscount = new TypedSignal&lt;decimal&gt;(0m);
+var taxAmount = new TypedSignal&lt;decimal&gt;(0m);
+var total = new TypedSignal&lt;decimal&gt;(0m);
+
+// Update function for all computed values
+Action updateComputedValues = () =&gt; {
+    subtotal.Value = quantity.Value * pricePerItem.Value;
+    discountAmount.Value = subtotal.Value * (discountPercent.Value / 100);
+    afterDiscount.Value = subtotal.Value - discountAmount.Value;
+    taxAmount.Value = afterDiscount.Value * (taxRate.Value / 100);
+    total.Value = afterDiscount.Value + taxAmount.Value;
+    
+    Console.WriteLine($"Total: ${total.Value:F2}");
+};
+
+// Subscribe to changes in source signals
+quantity.Subscribe(_ =&gt; updateComputedValues());
+pricePerItem.Subscribe(_ =&gt; updateComputedValues());
+discountPercent.Subscribe(_ =&gt; updateComputedValues());
+taxRate.Subscribe(_ =&gt; updateComputedValues());
+
+// Initial calculation
+updateComputedValues();
+
+// Example updates
+quantity.Value = 3;          // Updates all computed values
+discountPercent.Value = 20;  // Updates discount, afterDiscount, tax, and total
+pricePerItem.Value = 24.99m; // Updates all computed values</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Conditional Computations</h2>
+        <p>Computed signals can include conditional logic:</p>
+        
+        <div class="code-example">
+            <pre><code>var isLoggedIn = new TypedSignal&lt;bool&gt;(false);
+var userName = new TypedSignal&lt;string&gt;("");
+var guestName = new TypedSignal&lt;string&gt;("Guest");
+
+// Computed display name
+var displayName = new TypedSignal&lt;string&gt;(
+    isLoggedIn.Value ? userName.Value : guestName.Value
+);
+
+// Update display name when dependencies change
+Action updateDisplayName = () =&gt; 
+    displayName.Value = isLoggedIn.Value ? userName.Value : guestName.Value;
+
+isLoggedIn.Subscribe(_ =&gt; updateDisplayName());
+userName.Subscribe(_ =&gt; updateDisplayName());
+guestName.Subscribe(_ =&gt; updateDisplayName());
+
+// Computed welcome message
+var welcomeMessage = new TypedSignal&lt;string&gt;("Please log in to continue");
+
+Action updateWelcomeMessage = () =&gt; {
+    if (!isLoggedIn.Value)
+        welcomeMessage.Value = "Please log in to continue";
+    else
+        welcomeMessage.Value = string.IsNullOrEmpty(userName.Value) 
+            ? "Welcome back!" 
+            : $"Welcome back, {userName.Value}!";
+};
+
+isLoggedIn.Subscribe(_ =&gt; updateWelcomeMessage());
+userName.Subscribe(_ =&gt; updateWelcomeMessage());</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Performance Optimization</h2>
+        <p>When creating computed values, you can optimize by only updating when needed:</p>
+        
+        <div class="code-example">
+            <pre><code>var source = new TypedSignal&lt;int&gt;(10);
+var expensiveResult = new TypedSignal&lt;int&gt;(0);
+var computeCount = 0;
+
+// Track computation count
+Action computeExpensiveValue = () =&gt; {
+    Console.WriteLine("Computing...");
+    computeCount++;
+    
+    // Simulate expensive operation
+    Thread.Sleep(100);
+    
+    expensiveResult.Value = source.Value * ComplexCalculation();
+};
+
+// Only compute when source changes
+source.Subscribe(_ =&gt; computeExpensiveValue());
+
+// Initial computation
+computeExpensiveValue();
+
+// Access the value multiple times - no recomputation
+var result1 = expensiveResult.Value; // Already computed
+var result2 = expensiveResult.Value; // Still the same value
+
+// Change source - triggers recomputation
+source.Value = 42; // This triggers the computation</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Best Practices</h2>
+        <ul class="best-practices">
+            <li>
+                <strong>Keep computations pure</strong> - Avoid side effects in computation functions. They should 
+                only calculate and return values.
+            </li>
+            <li>
+                <strong>Avoid circular dependencies</strong> - Don't create computed signals that depend on each 
+                other in a circular manner.
+            </li>
+            <li>
+                <strong>Use for derived state</strong> - If a value can be calculated from other values, use a 
+                computed signal instead of managing it separately.
+            </li>
+            <li>
+                <strong>Consider performance</strong> - For expensive computations, consider whether you need 
+                real-time updates or if manual calculation would be better.
+            </li>
+        </ul>
+    </section>
+
+    <section class="concept-section">
+        <h2>Advanced Patterns</h2>
+        
+        <h3>Chained Computed Values</h3>
+        <div class="code-example">
+            <pre><code>// Build complex calculations step by step
+var basePrice = new TypedSignal&lt;decimal&gt;(100);
+var quantity = new TypedSignal&lt;int&gt;(1);
+
+// Create chained computed values
+var subtotal = new TypedSignal&lt;decimal&gt;(basePrice.Value * quantity.Value);
+var withShipping = new TypedSignal&lt;decimal&gt;(subtotal.Value + (subtotal.Value > 50 ? 0 : 10));
+var withTax = new TypedSignal&lt;decimal&gt;(withShipping.Value * 1.08m);
+var finalPrice = new TypedSignal&lt;decimal&gt;(Math.Round(withTax.Value, 2));
+
+// Update chain when base values change
+Action updateChain = () =&gt; {
+    subtotal.Value = basePrice.Value * quantity.Value;
+    withShipping.Value = subtotal.Value + (subtotal.Value > 50 ? 0 : 10);
+    withTax.Value = withShipping.Value * 1.08m;
+    finalPrice.Value = Math.Round(withTax.Value, 2);
+};
+
+basePrice.Subscribe(_ =&gt; updateChain());
+quantity.Subscribe(_ =&gt; updateChain());</code></pre>
+        </div>
+
+        <h3>Dynamic Dependencies</h3>
+        <div class="code-example">
+            <pre><code>// Dependencies can change based on conditions
+var useMetric = new TypedSignal&lt;bool&gt;(true);
+var celsius = new TypedSignal&lt;double&gt;(20);
+var fahrenheit = new TypedSignal&lt;double&gt;(68);
+
+// Temperature display with dynamic dependencies
+var temperature = new TypedSignal&lt;string&gt;(
+    useMetric.Value ? $"{celsius.Value}°C" : $"{fahrenheit.Value}°F"
+);
+
+// Update based on all possible dependencies
+Action updateTemperature = () =&gt; 
+    temperature.Value = useMetric.Value 
+        ? $"{celsius.Value}°C" 
+        : $"{fahrenheit.Value}°F";
+
+useMetric.Subscribe(_ =&gt; updateTemperature());
+celsius.Subscribe(_ =&gt; updateTemperature());
+fahrenheit.Subscribe(_ =&gt; updateTemperature());</code></pre>
+        </div>
+    </section>
+
+    <section class="concept-section">
+        <h2>Next Steps</h2>
+        <p>
+            Explore async operations with signals:
+        </p>
+        <div class="next-steps">
+            <a href="/concepts/async-signals" class="next-link">
+                <span class="next-icon">⚡</span>
+                <span class="next-text">Async Signals</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<style>
+    .concept-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+        color: #e0e0e0;
+    }
+
+    .concept-hero {
+        text-align: center;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .concept-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #999 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .concept-subtitle {
+        font-size: 1.25rem;
+        color: #999;
+    }
+
+    .concept-section {
+        margin-bottom: 3rem;
+    }
+
+    .concept-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .concept-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: #fff;
+    }
+
+    .concept-section p {
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .code-example {
+        background-color: #0a0a0a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+    }
+
+    .code-example pre {
+        margin: 0;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    }
+
+    .code-example code {
+        color: #fff;
+        font-size: 0.875rem;
+        line-height: 1.6;
+    }
+
+    /* Syntax highlighting */
+    .code-example .keyword {
+        color: #ff79c6;
+    }
+    
+    .code-example .type {
+        color: #8be9fd;
+    }
+    
+    .code-example .string {
+        color: #f1fa8c;
+    }
+    
+    .code-example .comment {
+        color: #6272a4;
+    }
+    
+    .code-example .method {
+        color: #50fa7b;
+    }
+    
+    .code-example .number {
+        color: #bd93f9;
+    }
+
+
+    .best-practices {
+        list-style: none;
+        padding: 0;
+    }
+
+    .best-practices li {
+        padding: 0.75rem 0;
+        padding-left: 2rem;
+        position: relative;
+        color: #ccc;
+    }
+
+    .best-practices li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .best-practices strong {
+        color: #fff;
+    }
+
+    .next-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .next-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: #fff;
+        transition: all 0.2s;
+    }
+
+    .next-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .next-icon {
+        font-size: 2rem;
+    }
+
+    .next-text {
+        font-weight: 500;
+    }
+</style>
+

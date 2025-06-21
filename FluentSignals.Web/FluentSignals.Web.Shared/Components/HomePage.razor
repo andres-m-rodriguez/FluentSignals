@@ -1,0 +1,444 @@
+@page "/"
+@namespace FluentSignals.Web.Shared.Components
+@rendermode RenderMode.InteractiveWebAssembly
+
+<PageTitle>FluentSignals - Reactive State Management for .NET</PageTitle>
+
+<div class="home-page">
+<section class="hero">
+        <div class="hero-background">
+            <div class="grid-overlay"></div>
+            <div class="subtle-gradient"></div>
+            <div class="particles">
+                @for (int i = 0; i < 10; i++)
+                {
+                    <div class="particle" style="--particle-delay: @(i * 0.1)s; --particle-duration: @(10 + (i % 5) * 2)s;"></div>
+                }
+            </div>
+        </div>
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="title-line">Reactive State</span>
+                <span class="title-line">Management for .NET</span>
+            </h1>
+            <p class="hero-subtitle">
+                Build blazing-fast, type-safe reactive applications with FluentSignals.
+            </p>
+            <div class="hero-actions">
+                <a href="/quickstart" class="btn-modern primary">
+                    Get Started
+                    <svg class="btn-icon" viewBox="0 0 20 20" width="16" height="16">
+                        <path fill="currentColor" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"/>
+                    </svg>
+                </a>
+                <a href="/installation" class="btn-modern secondary">Get Started</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <div class="icon-glow"></div>
+                    <span>⚡</span>
+                </div>
+                <h3>Lightning Fast</h3>
+                <p>Optimized for performance with minimal overhead and efficient change propagation.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <div class="icon-glow"></div>
+                    <span>🔄</span>
+                </div>
+                <h3>Truly Reactive</h3>
+                <p>Automatic UI updates when data changes. No manual state management required.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <div class="icon-glow"></div>
+                    <span>🛡️</span>
+                </div>
+                <h3>Type Safe</h3>
+                <p>Full IntelliSense support with compile-time safety. No runtime surprises.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="code-demo">
+        <div class="code-wrapper">
+            <div class="code-header">
+                <span class="code-title">Simple & Powerful</span>
+                <div class="code-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            </div>
+            <pre class="code-content"><code><span class="comment">// Create a reactive signal</span>
+<span class="keyword">var</span> counter = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
+
+<span class="comment">// Subscribe to changes</span>
+counter.<span class="method">Subscribe</span>(value =&gt; 
+{
+    <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">$"Counter: {value}"</span>);
+});
+
+<span class="comment">// Update the value</span>
+counter.Value = <span class="number">42</span>; <span class="comment">// Triggers update</span></code></pre>
+        </div>
+    </section>
+
+    <section class="get-started">
+        <h2>Start Building Today</h2>
+        <p>Join the growing community of developers using FluentSignals.</p>
+        <div class="start-actions">
+            <a href="/installation" class="start-link">
+                <span class="link-icon">📦</span>
+                <span class="link-text">Installation</span>
+            </a>
+            <a href="https://github.com/andres-m-rodriguez/FluentSignals" class="start-link">
+                <span class="link-icon">⭐</span>
+                <span class="link-text">Star on GitHub</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<style>
+    /* Home page container */
+    .home-page {
+        overflow-x: hidden;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw !important;
+        margin-right: -50vw !important;
+        width: 100vw;
+    }
+
+    /* Hero Section */
+    .hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .hero-background {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    .grid-overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        opacity: 0;
+        animation: gridFadeIn 2s ease-out forwards, gridMove 20s linear infinite;
+    }
+
+    .grid-overlay.secondary {
+        background-size: 100px 100px;
+        animation: gridFadeIn 2s ease-out 0.5s forwards, gridMove 30s linear reverse infinite;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        max-width: 800px;
+        width: 100%;
+        padding: 0 2rem;
+        margin: 0 auto;
+        animation: heroFadeIn 1s ease-out;
+    }
+
+    .hero-title {
+        font-size: clamp(2.5rem, 7vw, 4.5rem);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+    }
+
+    .title-line {
+        display: block;
+        opacity: 0;
+        animation: titleReveal 0.8s ease-out forwards;
+    }
+
+    .title-line:nth-child(2) {
+        animation-delay: 0.2s;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .hero-subtitle {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        color: #999;
+        max-width: 600px;
+        margin: 0 auto 2.5rem;
+        animation: heroFadeIn 1s ease-out 0.4s backwards;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: heroFadeIn 1s ease-out 0.6s backwards;
+    }
+
+    /* Modern Buttons */
+    .btn-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .btn-modern.primary {
+        background-color: rgba(255, 255, 255, 0.9);
+        color: #000;
+    }
+
+    .btn-modern.primary:hover {
+        background-color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .btn-modern.secondary {
+        background-color: transparent;
+        color: rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-modern.secondary:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Features Section */
+    .features {
+        padding: 4rem 2rem;
+        margin: 0;
+        width: 100%;
+        background-color: #000;
+    }
+    
+    .feature-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .feature-card {
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        text-align: center;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .feature-icon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 4rem;
+        margin-bottom: 1.5rem;
+        font-size: 2rem;
+    }
+
+    .feature-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #fff;
+    }
+
+    .feature-card p {
+        color: #999;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* Code Demo Section */
+    .code-demo {
+        padding: 4rem 2rem;
+        margin: 0;
+        width: 100%;
+        background-color: #000;
+    }
+
+    .code-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #0a0a0a;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        overflow: hidden;
+    }
+
+    .code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        background-color: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .code-content {
+        padding: 2rem;
+        margin: 0;
+        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        overflow-x: auto;
+    }
+
+    .code-content code {
+        color: #fff;
+    }
+
+    .comment { color: #666; }
+    .keyword { color: #ff79c6; }
+    .type { color: #8be9fd; }
+    .method { color: #50fa7b; }
+    .string { color: #f1fa8c; }
+    .number { color: #bd93f9; }
+
+    /* Get Started Section */
+    .get-started {
+        text-align: center;
+        padding: 4rem 2rem;
+        margin: 0;
+        width: 100%;
+        background-color: #000;
+    }
+
+    .get-started h2 {
+        font-size: clamp(2rem, 4vw, 2.5rem);
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .get-started p {
+        font-size: 1.125rem;
+        color: #999;
+        margin-bottom: 3rem;
+    }
+
+    .start-actions {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .start-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 2rem;
+        background-color: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        text-decoration: none;
+        color: #fff;
+        transition: all 0.2s;
+        min-width: 160px;
+    }
+
+    .start-link:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    /* Animations */
+    @@keyframes gridFadeIn {
+        to { opacity: 1; }
+    }
+
+    @@keyframes gridMove {
+        to { background-position: 50px 50px; }
+    }
+
+    @@keyframes heroFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes titleReveal {
+        to { opacity: 1; }
+    }
+
+    /* All content visible by default - no scroll animations */
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .hero-actions {
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .btn-modern {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .start-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .start-link {
+            width: 100%;
+            max-width: 300px;
+        }
+    }
+</style>
+

@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.6" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FluentSignals\FluentSignals.csproj" />
+    <ProjectReference Include="..\..\FluentSignals.Blazor\FluentSignals.Blazor.csproj" />
+    <ProjectReference Include="..\Libs\FluentSignals.Web.Contracts\FluentSignals.Web.Contracts.csproj" />
+    <ProjectReference Include="..\Libs\FluentSignals.Web.DataAccess\FluentSignals.Web.DataAccess.csproj" />
+    <ProjectReference Include="..\Libs\FluentSignals.Web.Database\FluentSignals.Web.Database.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\" />
+  </ItemGroup>
+
+</Project>

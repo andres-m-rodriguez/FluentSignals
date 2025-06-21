@@ -1,4 +1,5 @@
-using FluentSignals.Options.HttpResource;
+using FluentSignals.Http.Options;
+using FluentSignals.Http.Resources;
 using System.Net.Http;
 
 namespace FluentSignals.Blazor.Http;

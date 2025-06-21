@@ -207,7 +207,7 @@ The SignalBus provides a publish/subscribe pattern for component communication w
 
 ## Documentation
 
-For detailed documentation and examples, visit our [GitHub repository](https://github.com/yourusername/FluentSignals).
+For detailed documentation and examples, visit our [GitHub repository](https://github.com/andres-m-rodriguez/FluentSignals).
 
 ## License
 

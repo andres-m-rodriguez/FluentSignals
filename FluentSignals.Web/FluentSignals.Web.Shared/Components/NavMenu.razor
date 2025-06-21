@@ -1,0 +1,44 @@
+@namespace FluentSignals.Web.Shared.Components
+@rendermode InteractiveWebAssembly
+@implements IDisposable
+
+<nav class="sidebar-nav">
+    <div class="nav-section">
+        <h3 class="nav-section-title">Getting Started</h3>
+        <ul class="nav-list">
+            <li><NavLink href="/" class="nav-item" Match="NavLinkMatch.All">Overview</NavLink></li>
+            <li><NavLink href="/installation" class="nav-item">Installation</NavLink></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3 class="nav-section-title">Core Concepts</h3>
+        <ul class="nav-list">
+            <li><NavLink href="/concepts/basic-signals" class="nav-item">Basic Signals</NavLink></li>
+            <li><NavLink href="/concepts/typed-signals" class="nav-item">Typed Signals</NavLink></li>
+            <li><NavLink href="/concepts/computed-signals" class="nav-item">Computed Signals</NavLink></li>
+            <li><NavLink href="/concepts/async-signals" class="nav-item">Async Signals</NavLink></li>
+        </ul>
+    </div>
+    
+</nav>
+
+@code {
+    [Inject]
+    private NavigationManager Navigation { get; set; } = default!;
+    
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+    
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

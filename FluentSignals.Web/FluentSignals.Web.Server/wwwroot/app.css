@@ -1,0 +1,79 @@
+/* FluentSignals Web App Styles */
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body, #app {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+}
+
+/* Dark Mode Scrollbar - Applied globally */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0a0a;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Firefox */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #333 #0a0a0a;
+}
+
+/* Error Boundary Styles */
+.blazor-error-boundary {
+    background: linear-gradient(90deg, rgba(179, 33, 33, 0.9) 0%, rgba(139, 0, 0, 0.9) 100%);
+    padding: 1rem 1rem 1rem 3.7rem;
+    color: white;
+    border-radius: var(--radius-md);
+    margin: 1rem;
+    position: relative;
+    font-family: inherit;
+}
+
+.blazor-error-boundary::before {
+    content: "⚠";
+    position: absolute;
+    left: 1rem;
+    font-size: 1.5rem;
+}
+
+.blazor-error-boundary::after {
+    content: "An error has occurred.";
+}
+
+/* Form validation styles compatible with dark theme */
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid #26b050;
+}
+
+.invalid {
+    outline: 1px solid #e50000;
+}
+
+.validation-message {
+    color: #e50000;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}

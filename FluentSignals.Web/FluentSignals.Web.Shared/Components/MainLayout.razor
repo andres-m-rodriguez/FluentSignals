@@ -1,0 +1,75 @@
+@namespace FluentSignals.Web.Shared.Components
+@inherits LayoutComponentBase
+
+@if (_showWelcome)
+{
+    <WelcomeAnimation OnAnimationComplete="OnWelcomeComplete" />
+}
+ 
+<div class="main-layout @(!_showWelcome ? "visible" : "")">
+    <MobileNav />
+    
+    <div class="content-wrapper">
+        <main class="main-content">
+            @Body
+        </main>
+    </div>
+</div>
+
+<style>
+    /* Ensure proper layout */
+    .main-layout {
+        min-height: 100vh;
+        display: flex;
+        background-color: #000;
+    }
+
+    .main-layout.visible {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Content wrapper */
+    .content-wrapper {
+        flex: 1;
+        width: 100%;
+        min-height: 100vh;
+        background-color: #000;
+        margin: 0;
+        padding: 0;
+    }
+
+    .main-content {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+
+    /* Desktop styles */
+    @@media (min-width: 769px) {
+        .main-layout {
+            display: flex;
+        }
+
+        .content-wrapper {
+            margin-left: 0;
+            flex: 1;
+        }
+    }
+</style>
+
+@code {
+    private bool _showWelcome = true;
+
+    private void OnWelcomeComplete()
+    {
+        _showWelcome = false;
+        StateHasChanged();
+    }
+}
+

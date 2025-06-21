@@ -1,151 +1,117 @@
 name: Publish NuGet Packages
 
-# Give the workflow write access to contents and packages
-permissions:
-  contents: write      # needed to create tags & GitHub releases
-  packages: write      # needed if you're ever publishing via GitHub Packages
-
 on:
   push:
-    branches: [ master, main ]
+    branches:
+      - master
+      - main
     paths:
       - 'FluentSignals/**'
       - 'FluentSignals.Blazor/**'
-      - '.github/workflows/publish-nuget.yml'
+      - 'Libs/FluentSignals.Http/**'
+      - 'Libs/FluentSignals.SignalBus/**'
+      - 'Libs/FluentSignals.SignalR/**'
+      - 'Directory.Build.props'
   workflow_dispatch:
-
-env:
-  DOTNET_VERSION: '9.0.x'
-  NUGET_FEED: https://api.nuget.org/v3/index.json
+    inputs:
+      version_override:
+        description: 'Version override (leave empty to use Directory.Build.props version)'
+        required: false
+        type: string
 
 jobs:
-  build-and-test:
+  build-and-publish:
     runs-on: ubuntu-latest
-    name: Build and Test
-
+    
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
 
-      - name: Restore dependencies
-        run: dotnet restore
+    - name: Restore dependencies
+      run: dotnet restore
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
 
-      - name: Pack NuGet packages
-        run: |
-          dotnet pack ./FluentSignals/FluentSignals.csproj \
-            --configuration Release --no-build --output ./nupkgs
-          dotnet pack ./FluentSignals.Blazor/FluentSignals.Blazor.csproj \
-            --configuration Release --no-build --output ./nupkgs
+    - name: Extract version
+      id: extract_version
+      run: |
+        if [ -n "${{ github.event.inputs.version_override }}" ]; then
+          VERSION="${{ github.event.inputs.version_override }}"
+        else
+          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            ./nupkgs/*.nupkg
-            ./nupkgs/*.snupkg
+    # Pack all packages
+    - name: Pack FluentSignals
+      run: dotnet pack FluentSignals/FluentSignals.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
 
-  publish-nuget:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    name: Publish to NuGet
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    - name: Pack FluentSignals.Http
+      run: dotnet pack Libs/FluentSignals.Http/FluentSignals.Http.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
 
-    steps:
-      - uses: actions/checkout@v4
+    - name: Pack FluentSignals.SignalBus
+      run: dotnet pack Libs/FluentSignals.SignalBus/FluentSignals.SignalBus.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+    - name: Pack FluentSignals.SignalR
+      run: dotnet pack Libs/FluentSignals.SignalR/FluentSignals.SignalR.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: ./artifacts
+    - name: Pack FluentSignals.Blazor
+      run: dotnet pack FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
 
-      - name: List downloaded artifacts
-        run: |
-          echo "Contents of artifacts directory:"
-          find ./artifacts -type f -name "*.nupkg" | sort
+    # Push all packages to NuGet
+    - name: Push FluentSignals to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-      - name: Get version from props
-        id: version
-        run: |
-          VERSION=$(grep '<Version>' Directory.Build.props \
-                    | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' \
-                    | head -1)
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-          echo "Package version: $VERSION"
+    - name: Push FluentSignals.Http to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.Http.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-      - name: Check if version exists on NuGet
-        id: version-check
-        run: |
-          check_package() {
-            pkg=$1; ver=$2
-            url="https://api.nuget.org/v3-flatcontainer/${pkg,,}/${ver}/${pkg,,}.nuspec"
-            curl -s -f -o /dev/null "$url"
-          }
+    - name: Push FluentSignals.SignalBus to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.SignalBus.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-          if check_package "FluentSignals" "${{ steps.version.outputs.VERSION }}"; then
-            echo "FLUENTSIGNALS_EXISTS=true" >> $GITHUB_OUTPUT
-          else
-            echo "FLUENTSIGNALS_EXISTS=false" >> $GITHUB_OUTPUT
-          fi
+    - name: Push FluentSignals.SignalR to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.SignalR.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-          if check_package "FluentSignals.Blazor" "${{ steps.version.outputs.VERSION }}"; then
-            echo "FLUENTSIGNALS_BLAZOR_EXISTS=true" >> $GITHUB_OUTPUT
-          else
-            echo "FLUENTSIGNALS_BLAZOR_EXISTS=false" >> $GITHUB_OUTPUT
-          fi
+    - name: Push FluentSignals.Blazor to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.Blazor.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-      - name: Publish FluentSignals to NuGet
-        if: steps.version-check.outputs.FLUENTSIGNALS_EXISTS == 'false'
-        run: |
-          PACKAGE=$(find ./artifacts -name "FluentSignals.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
-          dotnet nuget push "$PACKAGE" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source ${{ env.NUGET_FEED }} \
-            --skip-duplicate
-
-      - name: Publish FluentSignals.Blazor to NuGet
-        if: steps.version-check.outputs.FLUENTSIGNALS_BLAZOR_EXISTS == 'false'
-        run: |
-          PACKAGE=$(find ./artifacts -name "FluentSignals.Blazor.${{ steps.version.outputs.VERSION }}.nupkg" -type f | head -1)
-          dotnet nuget push "$PACKAGE" \
-            --api-key ${{ secrets.NUGET_API_KEY }} \
-            --source ${{ env.NUGET_FEED }} \
-            --skip-duplicate
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name:     v${{ steps.version.outputs.VERSION }}
-          release_name: Release v${{ steps.version.outputs.VERSION }}
-          body: |
-            ## Changes in this Release
-            - FluentSignals v${{ steps.version.outputs.VERSION }}
-            - FluentSignals.Blazor v${{ steps.version.outputs.VERSION }}
-
-            ### Installation
-            ```bash
-            dotnet add package FluentSignals --version ${{ steps.version.outputs.VERSION }}
-            dotnet add package FluentSignals.Blazor --version ${{ steps.version.outputs.VERSION }}
-            ```
-          draft: false
-          prerelease: false
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.extract_version.outputs.VERSION }}
+        name: Release v${{ steps.extract_version.outputs.VERSION }}
+        body: |
+          ## FluentSignals v${{ steps.extract_version.outputs.VERSION }}
+          
+          ### Packages Published:
+          - FluentSignals
+          - FluentSignals.Http
+          - FluentSignals.SignalBus
+          - FluentSignals.SignalR
+          - FluentSignals.Blazor
+          
+          ### Installation:
+          ```bash
+          dotnet add package FluentSignals --version ${{ steps.extract_version.outputs.VERSION }}
+          dotnet add package FluentSignals.Http --version ${{ steps.extract_version.outputs.VERSION }}
+          dotnet add package FluentSignals.SignalBus --version ${{ steps.extract_version.outputs.VERSION }}
+          dotnet add package FluentSignals.SignalR --version ${{ steps.extract_version.outputs.VERSION }}
+          dotnet add package FluentSignals.Blazor --version ${{ steps.extract_version.outputs.VERSION }}
+          ```
+          
+          See [installation guide](https://github.com/andres-m-rodriguez/FluentSignals#installation) for more details.
+        files: ./artifacts/*.nupkg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

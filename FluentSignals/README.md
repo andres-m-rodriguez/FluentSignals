@@ -9,7 +9,7 @@ A powerful reactive state management library for .NET applications inspired by S
 - **Bug Fix**: Resolved duplicate handler calls for typed HTTP status handlers
 - **Enhanced Documentation**: Added comprehensive guides for JSON deserialization
 
-See the [full changelog](https://github.com/yourusername/FluentSignals/blob/main/CHANGELOG.md) for version history.
+See the [full changelog](https://github.com/andres-m-rodriguez/FluentSignals/blob/main/CHANGELOG.md) for version history.
 
 ## Features
 
@@ -319,6 +319,154 @@ public class AdvancedUserResource : TypedHttpResource
 }
 ```
 
+### Advanced TypedHttpResource Features
+
+#### Interceptors for Cross-Cutting Concerns
+
+```csharp
+// Create a resource with interceptors
+public class SecureUserResource : TypedHttpResourceWithInterceptors
+{
+    public SecureUserResource(HttpClient httpClient, ITokenProvider tokenProvider, ILogger<SecureUserResource> logger)
+        : base(httpClient, "/api/users")
+    {
+        // Add authentication
+        AddInterceptor(new BearerTokenInterceptor(tokenProvider.GetTokenAsync));
+        
+        // Add logging
+        AddInterceptor(new LoggingInterceptor(logger));
+        
+        // Add retry logic
+        AddInterceptor(new RetryInterceptor(maxRetries: 3, delay: TimeSpan.FromSeconds(1)));
+    }
+}
+
+// Custom interceptor
+public class ApiKeyInterceptor : IHttpResourceInterceptor
+{
+    private readonly string _apiKey;
+    
+    public ApiKeyInterceptor(string apiKey) => _apiKey = apiKey;
+    
+    public Task<HttpRequestMessage> OnRequestAsync(HttpRequestMessage request)
+    {
+        request.Headers.Add("X-Api-Key", _apiKey);
+        return Task.FromResult(request);
+    }
+    
+    public Task<HttpResponseMessage> OnResponseAsync(HttpResponseMessage response) => 
+        Task.FromResult(response);
+    
+    public Task OnExceptionAsync(HttpRequestMessage request, Exception exception) => 
+        Task.CompletedTask;
+}
+```
+
+#### Response Caching
+
+```csharp
+// Use built-in memory cache
+var cache = new MemoryResponseCache();
+
+// Cache responses
+var user = await userResource.GetById(123)
+    .WithCache(cache, "user_123", TimeSpan.FromMinutes(5))
+    .ExecuteAsync();
+
+// Or with automatic cache key generation
+var users = await userResource.GetAll()
+    .WithCache(cache, TimeSpan.FromMinutes(10))
+    .ExecuteAsync();
+```
+
+#### Pagination Support
+
+```csharp
+// Simple pagination
+var pagedUsers = await userResource.GetUsers()
+    .WithPaging(page: 2, pageSize: 50, sortBy: "name", sortDescending: true)
+    .ExecuteAsync();
+
+// Advanced pagination with filters
+var request = new PagedRequest<User>
+{
+    Page = 1,
+    PageSize = 20,
+    SortBy = "createdAt",
+    SortDescending = true,
+    Filters = new Dictionary<string, string>
+    {
+        ["department"] = "Engineering",
+        ["active"] = "true"
+    }
+};
+
+var result = await userResource.SearchUsers()
+    .WithPaging(request)
+    .ExecuteAsync();
+```
+
+#### Bulk Operations
+
+```csharp
+public class BulkUserResource : TypedHttpResourceWithBulk
+{
+    // Import users with progress tracking
+    public async Task<BulkResult<User>> ImportUsers(List<CreateUserDto> users)
+    {
+        return await ExecuteBulkAsync<CreateUserDto, User>(
+            "/api/users/import",
+            users,
+            batchSize: 100,
+            onProgress: progress =>
+            {
+                Console.WriteLine($"Progress: {progress.PercentComplete}% ({progress.ProcessedItems}/{progress.TotalItems})");
+            });
+    }
+    
+    // Parallel bulk operations for better performance
+    public async Task<BulkResult<User>> ImportUsersParallel(List<CreateUserDto> users)
+    {
+        return await ExecuteBulkParallelAsync<CreateUserDto, User>(
+            "/api/users/import",
+            users,
+            batchSize: 100,
+            maxParallelism: 4);
+    }
+}
+```
+
+#### Fluent Extensions
+
+```csharp
+// Combine multiple features
+var result = await userResource
+    .SearchUsers("john")
+    .WithPaging(1, 20)                              // Add pagination
+    .WithCache(cache, TimeSpan.FromMinutes(5))      // Cache results
+    .WithBearerToken(token)                         // Add auth token
+    .WithTimeout(TimeSpan.FromSeconds(30))          // Set timeout
+    .WithRetry(3, TimeSpan.FromSeconds(1))          // Configure retry
+    .WithCancellation(cancellationToken)            // Support cancellation
+    .ExecuteAsync();
+```
+
+#### Testing with Mocks
+
+```csharp
+// Create mock responses for testing
+var mockUser = new User { Id = 1, Name = "Test User" };
+var mockRequest = new MockHttpResourceRequest<User>(mockUser, HttpStatusCode.OK);
+
+// Test error scenarios
+var errorRequest = new MockHttpResourceRequest<User>(
+    new HttpRequestException("Network error"));
+
+// Add delay to simulate network latency
+var slowRequest = new MockHttpResourceRequest<User>(
+    mockUser, HttpStatusCode.OK, delay: TimeSpan.FromSeconds(2));
+```
+
 ## Advanced Features
 
 ### Signal Bus (Pub/Sub)
@@ -354,7 +502,7 @@ FluentSignals integrates seamlessly with Blazor applications. See the `FluentSig
 
 ## Documentation
 
-For more detailed documentation, examples, and API reference, visit our [GitHub repository](https://github.com/yourusername/FluentSignals).
+For more detailed documentation, examples, and API reference, visit our [GitHub repository](https://github.com/andres-m-rodriguez/FluentSignals).
 
 ## License
 
