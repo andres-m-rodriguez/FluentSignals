@@ -29,9 +29,6 @@
     <Folder Include="Common\" />
   </ItemGroup>
 
-  <!-- Ensure static files are included as web assets -->
-  <ItemGroup>
-    <Content Include="wwwroot\**\*" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
+  <!-- Static files from wwwroot are automatically included by SDK -->
 
 </Project>
