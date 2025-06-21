@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -21,7 +21,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0'
+          dotnet-version: '9.x'
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -31,6 +31,7 @@ jobs:
         
       - name: dotnet publish
         run: dotnet publish ./FluentSignals.Web/FluentSignals.Web.Server/FluentSignals.Web.Server.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp --no-self-contained
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -39,7 +40,7 @@ jobs:
           path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
     
     permissions:
@@ -55,9 +56,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_CB4903E8CCCA4435A146D6CD9425137F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_06E6CA5317744463AA3CC5E282D13659 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A22AEB3CD2D845E189D5C456C4884638 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_BD66FEBA78434EA293577A296646F926 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_86ED1C64455643D5A0395D7F359BE17A }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6B8573CCFE6C4B06A9551677B1A7D0F1 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
