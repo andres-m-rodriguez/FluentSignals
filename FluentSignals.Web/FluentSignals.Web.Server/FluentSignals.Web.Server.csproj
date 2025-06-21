@@ -7,11 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\Icon.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\Icon.png" />
+    <!-- Ensure Icon.png is included as content and copied to output -->
+    <Content Include="wwwroot\Icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
