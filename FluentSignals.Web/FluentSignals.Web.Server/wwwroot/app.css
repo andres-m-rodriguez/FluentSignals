@@ -15,7 +15,7 @@ html, body, #app {
     overflow-x: hidden;
 }
 
-/* Dark Mode Scrollbar - Applied globally */
+/* Dark Mode Scrollbar - Applied globallies */
 ::-webkit-scrollbar {
     width: 12px;
     height: 12px;
