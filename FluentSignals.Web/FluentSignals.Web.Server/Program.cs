@@ -3,10 +3,11 @@ using FluentSignals.Web.Server.Components;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder
-    .Services.AddRazorComponents()
+
+builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
 
 var app = builder.Build();
 
@@ -24,6 +25,9 @@ else
 
 app.UseStatusCodePagesWithRedirects("/NotFound");
 app.UseHttpsRedirection();
+
+// Add static files middleware for production
+app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
