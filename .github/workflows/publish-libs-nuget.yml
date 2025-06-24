@@ -1,0 +1,101 @@
+name: Publish Libs NuGet Packages
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    paths:
+      - 'Libs/**'
+      - 'Directory.Build.props'
+  workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Version override (leave empty to use Directory.Build.props version)'
+        required: false
+        type: string
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test Libs
+      run: |
+        dotnet test Libs/FluentSignals.Http.Tests/FluentSignals.Http.Tests.csproj --configuration Release --no-build --verbosity normal
+
+    - name: Extract version
+      id: extract_version
+      run: |
+        if [ -n "${{ github.event.inputs.version_override }}" ]; then
+          VERSION="${{ github.event.inputs.version_override }}"
+        else
+          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+
+    # Pack all Libs packages
+    - name: Pack FluentSignals.Http
+      run: dotnet pack Libs/FluentSignals.Http/FluentSignals.Http.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
+
+    - name: Pack FluentSignals.SignalBus
+      run: dotnet pack Libs/FluentSignals.SignalBus/FluentSignals.SignalBus.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
+
+    - name: Pack FluentSignals.SignalR
+      run: dotnet pack Libs/FluentSignals.SignalR/FluentSignals.SignalR.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
+
+    # Push all packages to NuGet
+    - name: Push FluentSignals.Http to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.Http.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Push FluentSignals.SignalBus to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.SignalBus.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Push FluentSignals.SignalR to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.SignalR.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: libs-v${{ steps.extract_version.outputs.VERSION }}
+        name: Libs Release v${{ steps.extract_version.outputs.VERSION }}
+        body: |
+          ## FluentSignals Libraries v${{ steps.extract_version.outputs.VERSION }}
+          
+          ### Packages Published:
+          - FluentSignals.Http
+          - FluentSignals.SignalBus
+          - FluentSignals.SignalR
+          
+          ### Installation:
+          ```bash
+          dotnet add package FluentSignals.Http --version ${{ steps.extract_version.outputs.VERSION }}
+          dotnet add package FluentSignals.SignalBus --version ${{ steps.extract_version.outputs.VERSION }}
+          dotnet add package FluentSignals.SignalR --version ${{ steps.extract_version.outputs.VERSION }}
+          ```
+          
+          See individual library READMEs for more details:
+          - [FluentSignals.Http](https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.Http)
+          - [FluentSignals.SignalBus](https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.SignalBus)
+          - [FluentSignals.SignalR](https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.SignalR)
+        files: ./artifacts/*.nupkg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
