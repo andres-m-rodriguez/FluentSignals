@@ -1,0 +1,63 @@
+@namespace FluentSignals.Web.Shared.Common.Components
+
+<div class="code-wrapper @GetLanguageClass()">
+    @if (!string.IsNullOrEmpty(Title) || ShowDots || Language != CodeLanguage.None)
+    {
+        <div class="code-header">
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <span class="code-title">@Title</span>
+            }
+            else if (Language != CodeLanguage.None)
+            {
+                <span class="code-language">@GetLanguageDisplay()</span>
+            }
+            @if (ShowDots)
+            {
+                <div class="code-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+            }
+        </div>
+    }
+    <pre class="code-content"><code class="language-@GetLanguageClass()">@ChildContent</code></pre>
+</div>
+
+@code {
+    public enum CodeLanguage
+    {
+        None,
+        CSharp,
+        XML,
+        CLI,
+        PowerShell,
+        JSON
+    }
+
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public bool ShowDots { get; set; } = true;
+    [Parameter] public CodeLanguage Language { get; set; } = CodeLanguage.CSharp;
+    [Parameter] public RenderFragment ChildContent { get; set; } = default!;
+
+    private string GetLanguageClass() => Language switch
+    {
+        CodeLanguage.CSharp => "lang-csharp",
+        CodeLanguage.XML => "lang-xml",
+        CodeLanguage.CLI => "lang-cli",
+        CodeLanguage.PowerShell => "lang-powershell",
+        CodeLanguage.JSON => "lang-json",
+        _ => "lang-none"
+    };
+
+    private string GetLanguageDisplay() => Language switch
+    {
+        CodeLanguage.CSharp => "C#",
+        CodeLanguage.XML => "XML",
+        CodeLanguage.CLI => "CLI",
+        CodeLanguage.PowerShell => "PowerShell",
+        CodeLanguage.JSON => "JSON",
+        _ => ""
+    };
+}

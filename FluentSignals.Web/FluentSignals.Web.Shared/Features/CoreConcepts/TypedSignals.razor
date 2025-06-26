@@ -1,5 +1,6 @@
 @page "/concepts/typed-signals"
 @namespace FluentSignals.Web.Shared.Features.CoreConcepts
+@using FluentSignals.Web.Shared.Common.Components
 
 <PageTitle>Typed Signals - FluentSignals</PageTitle>
 
@@ -22,8 +23,8 @@
         <h2>Creating Typed Signals</h2>
         <p>Use <code>TypedSignal&lt;T&gt;</code> or the generic <code>Signal&lt;T&gt;</code> for type-safe signals:</p>
         
-        <div class="code-example">
-            <pre><code><span class="comment">// Simple types</span>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Simple types</span>
 <span class="keyword">var</span> age = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">int</span>&gt;(<span class="number">25</span>);
 <span class="keyword">var</span> price = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">19.99m</span>);
 <span class="keyword">var</span> isActive = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">bool</span>&gt;(<span class="keyword">true</span>);
@@ -33,16 +34,16 @@
 <span class="keyword">var</span> items = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">Product</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">Product</span>&gt;());
 
 <span class="comment">// Nullable types</span>
-<span class="keyword">var</span> selectedItem = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">Product?</span>&gt;(<span class="keyword">null</span>);</code></pre>
-        </div>
+<span class="keyword">var</span> selectedItem = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">Product?</span>&gt;(<span class="keyword">null</span>);
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Working with Complex Objects</h2>
         <p>Typed signals excel at managing complex state objects:</p>
         
-        <div class="code-example">
-            <pre><code><span class="keyword">public class</span> <span class="type">UserProfile</span>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">public class</span> <span class="type">UserProfile</span>
 {
     <span class="keyword">public int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
     <span class="keyword">public string</span> Name { <span class="keyword">get</span>; <span class="keyword">set</span>; }
@@ -64,131 +65,131 @@
 profile.Value = <span class="keyword">new</span> <span class="type">UserProfile</span> { <span class="comment">/* new data */</span> };
 
 <span class="comment">// Read properties</span>
-<span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"User: {profile.Value.Name}"</span>);</code></pre>
-        </div>
+<span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"User: {profile.Value.Name}"</span>);
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Updating Nested Properties</h2>
         <p>When working with complex objects, you need to create new instances to trigger updates:</p>
         
-        <div class="code-example">
-            <pre><code>// ❌ This won't trigger updates
-profile.Value.Name = "Jane Doe"; // Signal won't notify subscribers
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// ❌ This won't trigger updates</span>
+profile.Value.Name = <span class="string">"Jane Doe"</span>; <span class="comment">// Signal won't notify subscribers</span>
 
-// ✅ Create a new object to trigger updates
-profile.Value = new UserProfile
+<span class="comment">// ✅ Create a new object to trigger updates</span>
+profile.Value = <span class="keyword">new</span> <span class="type">UserProfile</span>
 {
     Id = profile.Value.Id,
-    Name = "Jane Doe", // Changed property
+    Name = <span class="string">"Jane Doe"</span>, <span class="comment">// Changed property</span>
     Email = profile.Value.Email,
     CreatedAt = profile.Value.CreatedAt,
     Roles = profile.Value.Roles
 };
 
-// ✅ Or use with pattern for cleaner syntax
-profile.Value = profile.Value with { Name = "Jane Doe" }; // For records</code></pre>
-        </div>
+<span class="comment">// ✅ Or use with pattern for cleaner syntax</span>
+profile.Value = profile.Value <span class="keyword">with</span> { Name = <span class="string">"Jane Doe"</span> }; <span class="comment">// For records</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Collections in Typed Signals</h2>
         <p>Managing collections requires special attention to trigger updates:</p>
         
-        <div class="code-example">
-            <pre><code>var todos = new TypedSignal&lt;List&lt;TodoItem&gt;&gt;(new List&lt;TodoItem&gt;());
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">var</span> todos = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">TodoItem</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">TodoItem</span>&gt;());
 
-// ❌ This won't trigger updates
-todos.Value.Add(new TodoItem { Title = "New Task" });
+<span class="comment">// ❌ This won't trigger updates</span>
+todos.Value.<span class="method">Add</span>(<span class="keyword">new</span> <span class="type">TodoItem</span> { Title = <span class="string">"New Task"</span> });
 
-// ✅ Create a new list to trigger updates
-todos.Value = todos.Value.Concat(new[] { new TodoItem { Title = "New Task" } }).ToList();
+<span class="comment">// ✅ Create a new list to trigger updates</span>
+todos.Value = todos.Value.<span class="method">Concat</span>(<span class="keyword">new</span>[] { <span class="keyword">new</span> <span class="type">TodoItem</span> { Title = <span class="string">"New Task"</span> } }).<span class="method">ToList</span>();
 
-// ✅ Or use spread pattern
-todos.Value = [..todos.Value, new TodoItem { Title = "New Task" }];
+<span class="comment">// ✅ Or use spread pattern</span>
+todos.Value = [..todos.Value, <span class="keyword">new</span> <span class="type">TodoItem</span> { Title = <span class="string">"New Task"</span> }];
 
-// ✅ For removing items
-todos.Value = todos.Value.Where(t => t.Id != itemId).ToList();
+<span class="comment">// ✅ For removing items</span>
+todos.Value = todos.Value.<span class="method">Where</span>(t =&gt; t.Id != itemId).<span class="method">ToList</span>();
 
-// ✅ For updating items
-todos.Value = todos.Value.Select(t => t.Id == itemId 
-    ? t with { Completed = true } 
-    : t).ToList();</code></pre>
-        </div>
+<span class="comment">// ✅ For updating items</span>
+todos.Value = todos.Value.<span class="method">Select</span>(t =&gt; t.Id == itemId 
+    ? t <span class="keyword">with</span> { Completed = <span class="keyword">true</span> } 
+    : t).<span class="method">ToList</span>();
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Complete Example: Todo List</h2>
-        <div class="code-example">
-            <pre><code>// Define a todo item record
-public record TodoItem(int Id, string Title, bool Completed = false);
+        <CodeBlock Title="Complete Example: Todo List" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Define a todo item record</span>
+<span class="keyword">public record</span> <span class="type">TodoItem</span>(<span class="type">int</span> Id, <span class="keyword">string</span> Title, <span class="keyword">bool</span> Completed = <span class="keyword">false</span>);
 
-// Create a typed signal for the todo list
-var todos = new TypedSignal&lt;List&lt;TodoItem&gt;&gt;(new List&lt;TodoItem&gt;());
-var updateCount = 0;
+<span class="comment">// Create a typed signal for the todo list</span>
+<span class="keyword">var</span> todos = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">TodoItem</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">TodoItem</span>&gt;());
+<span class="keyword">var</span> updateCount = <span class="number">0</span>;
 
-// Subscribe to changes
-todos.Subscribe(todoList =&gt; 
+<span class="comment">// Subscribe to changes</span>
+todos.<span class="method">Subscribe</span>(todoList =&gt; 
 {
     updateCount++;
-    Console.WriteLine($"Todos updated ({updateCount} times): {todoList.Count} items");
+    <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Todos updated ({updateCount} times): {todoList.Count} items"</span>);
 });
 
-// Add a new todo
-void AddTodo(string title)
+<span class="comment">// Add a new todo</span>
+<span class="keyword">void</span> <span class="method">AddTodo</span>(<span class="keyword">string</span> title)
 {
-    var newTodo = new TodoItem(Random.Next(1000), title);
+    <span class="keyword">var</span> newTodo = <span class="keyword">new</span> <span class="type">TodoItem</span>(<span class="type">Random</span>.<span class="method">Next</span>(<span class="number">1000</span>), title);
     todos.Value = [..todos.Value, newTodo];
 }
 
-// Toggle completion
-void ToggleTodo(int id)
+<span class="comment">// Toggle completion</span>
+<span class="keyword">void</span> <span class="method">ToggleTodo</span>(<span class="type">int</span> id)
 {
-    todos.Value = todos.Value.Select(t =&gt; 
-        t.Id == id ? t with { Completed = !t.Completed } : t
-    ).ToList();
+    todos.Value = todos.Value.<span class="method">Select</span>(t =&gt; 
+        t.Id == id ? t <span class="keyword">with</span> { Completed = !t.Completed } : t
+    ).<span class="method">ToList</span>();
 }
 
-// Remove a todo
-void RemoveTodo(int id)
+<span class="comment">// Remove a todo</span>
+<span class="keyword">void</span> <span class="method">RemoveTodo</span>(<span class="type">int</span> id)
 {
-    todos.Value = todos.Value.Where(t =&gt; t.Id != id).ToList();
+    todos.Value = todos.Value.<span class="method">Where</span>(t =&gt; t.Id != id).<span class="method">ToList</span>();
 }
 
-// Usage
-AddTodo("Learn FluentSignals");     // Triggers update
-AddTodo("Build reactive app");      // Triggers update
-ToggleTodo(todos.Value[0].Id);      // Triggers update
-RemoveTodo(todos.Value[1].Id);      // Triggers update</code></pre>
-        </div>
+<span class="comment">// Usage</span>
+<span class="method">AddTodo</span>(<span class="string">"Learn FluentSignals"</span>);     <span class="comment">// Triggers update</span>
+<span class="method">AddTodo</span>(<span class="string">"Build reactive app"</span>);      <span class="comment">// Triggers update</span>
+<span class="method">ToggleTodo</span>(todos.Value[<span class="number">0</span>].Id);      <span class="comment">// Triggers update</span>
+<span class="method">RemoveTodo</span>(todos.Value[<span class="number">1</span>].Id);      <span class="comment">// Triggers update</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Type Constraints</h2>
         <p>You can create custom typed signal classes with constraints:</p>
         
-        <div class="code-example">
-            <pre><code>// Signal that only accepts positive numbers
-public class PositiveSignal&lt;T&gt; : TypedSignal&lt;T&gt; where T : INumber&lt;T&gt;
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Signal that only accepts positive numbers</span>
+<span class="keyword">public class</span> <span class="type">PositiveSignal</span>&lt;<span class="type">T</span>&gt; : <span class="type">TypedSignal</span>&lt;<span class="type">T</span>&gt; <span class="keyword">where</span> <span class="type">T</span> : <span class="type">INumber</span>&lt;<span class="type">T</span>&gt;
 {
-    public PositiveSignal(T initialValue) : base(initialValue)
+    <span class="keyword">public</span> <span class="method">PositiveSignal</span>(<span class="type">T</span> initialValue) : <span class="keyword">base</span>(initialValue)
     {
-        if (initialValue.CompareTo(T.Zero) &lt; 0)
-            throw new ArgumentException("Value must be positive");
+        <span class="keyword">if</span> (initialValue.<span class="method">CompareTo</span>(<span class="type">T</span>.Zero) &lt; <span class="number">0</span>)
+            <span class="keyword">throw new</span> <span class="type">ArgumentException</span>(<span class="string">"Value must be positive"</span>);
     }
 
-    public override T Value
+    <span class="keyword">public override</span> <span class="type">T</span> Value
     {
-        get => base.Value;
-        set
+        <span class="keyword">get</span> =&gt; <span class="keyword">base</span>.Value;
+        <span class="keyword">set</span>
         {
-            if (value.CompareTo(T.Zero) &lt; 0)
-                throw new ArgumentException("Value must be positive");
-            base.Value = value;
+            <span class="keyword">if</span> (value.<span class="method">CompareTo</span>(<span class="type">T</span>.Zero) &lt; <span class="number">0</span>)
+                <span class="keyword">throw new</span> <span class="type">ArgumentException</span>(<span class="string">"Value must be positive"</span>);
+            <span class="keyword">base</span>.Value = value;
         }
     }
-}</code></pre>
-        </div>
+}
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
@@ -215,27 +216,27 @@ public class PositiveSignal&lt;T&gt; : TypedSignal&lt;T&gt; where T : INumber&lt
 
     <section class="concept-section">
         <h2>Performance Tips</h2>
-        <div class="code-example">
-            <pre><code>// For large collections, consider using specialized update methods
-public static class SignalExtensions
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// For large collections, consider using specialized update methods</span>
+<span class="keyword">public static class</span> <span class="type">SignalExtensions</span>
 {
-    public static void AddItem&lt;T&gt;(this TypedSignal&lt;List&lt;T&gt;&gt; signal, T item)
+    <span class="keyword">public static void</span> <span class="method">AddItem</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">this</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">T</span>&gt;&gt; signal, <span class="type">T</span> item)
     {
         signal.Value = [..signal.Value, item];
     }
     
-    public static void RemoveItem&lt;T&gt;(this TypedSignal&lt;List&lt;T&gt;&gt; signal, Predicate&lt;T&gt; predicate)
+    <span class="keyword">public static void</span> <span class="method">RemoveItem</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">this</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">T</span>&gt;&gt; signal, <span class="type">Predicate</span>&lt;<span class="type">T</span>&gt; predicate)
     {
-        signal.Value = signal.Value.Where(x => !predicate(x)).ToList();
+        signal.Value = signal.Value.<span class="method">Where</span>(x =&gt; !predicate(x)).<span class="method">ToList</span>();
     }
     
-    public static void UpdateItem&lt;T&gt;(this TypedSignal&lt;List&lt;T&gt;&gt; signal, 
-        Predicate&lt;T&gt; predicate, Func&lt;T, T&gt; updater)
+    <span class="keyword">public static void</span> <span class="method">UpdateItem</span>&lt;<span class="type">T</span>&gt;(<span class="keyword">this</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">T</span>&gt;&gt; signal, 
+        <span class="type">Predicate</span>&lt;<span class="type">T</span>&gt; predicate, <span class="type">Func</span>&lt;<span class="type">T</span>, <span class="type">T</span>&gt; updater)
     {
-        signal.Value = signal.Value.Select(x => predicate(x) ? updater(x) : x).ToList();
+        signal.Value = signal.Value.<span class="method">Select</span>(x =&gt; predicate(x) ? updater(x) : x).<span class="method">ToList</span>();
     }
-}</code></pre>
-        </div>
+}
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
@@ -255,7 +256,7 @@ public static class SignalExtensions
         </div>
     </section>
 </div>
-
+ 
 <style>
     .concept-page {
         max-width: 900px;
@@ -309,52 +310,6 @@ public static class SignalExtensions
         margin-bottom: 1rem;
         color: #ccc;
     }
-
-    .code-example {
-        background-color: #0a0a0a;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        overflow-x: auto;
-    }
-
-    .code-example pre {
-        margin: 0;
-        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-    }
-
-    .code-example code {
-        color: #fff;
-        font-size: 0.875rem;
-        line-height: 1.6;
-    }
-
-    /* Syntax highlighting */
-    .code-example .keyword {
-        color: #ff79c6;
-    }
-    
-    .code-example .type {
-        color: #8be9fd;
-    }
-    
-    .code-example .string {
-        color: #f1fa8c;
-    }
-    
-    .code-example .comment {
-        color: #6272a4;
-    }
-    
-    .code-example .method {
-        color: #50fa7b;
-    }
-    
-    .code-example .number {
-        color: #bd93f9;
-    }
-
 
     .best-practices {
         list-style: none;

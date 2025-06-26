@@ -61,55 +61,55 @@
         
         <div class="install-option">
             <h3>Using .NET CLI</h3>
-            <div class="code-block">
-                <pre><code><span class="comment"># Install the core package</span>
-dotnet add package FluentSignals
+            <CodeBlock Language="CodeBlock.CodeLanguage.CLI">
+<span class="comment"># Install the core package</span>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals</span>
 
 <span class="comment"># For Blazor applications</span>
-dotnet add package FluentSignals.Blazor
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Blazor</span>
 
 <span class="comment"># For HTTP operations</span>
-dotnet add package FluentSignals.Http
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Http</span>
 
 <span class="comment"># For real-time features</span>
-dotnet add package FluentSignals.SignalR
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.SignalR</span>
 
 <span class="comment"># For event bus patterns</span>
-dotnet add package FluentSignals.SignalBus</code></pre>
-            </div>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.SignalBus</span>
+            </CodeBlock>
         </div>
 
         <div class="install-option">
             <h3>Using Package Manager</h3>
-            <div class="code-block">
-                <pre><code><span class="comment"># Install the core package</span>
-Install-Package FluentSignals
+            <CodeBlock Language="CodeBlock.CodeLanguage.PowerShell">
+<span class="comment"># Install the core package</span>
+<span class="cmdlet">Install-Package</span> <span class="parameter">FluentSignals</span>
 
 <span class="comment"># For Blazor applications</span>
-Install-Package FluentSignals.Blazor
+<span class="cmdlet">Install-Package</span> <span class="parameter">FluentSignals.Blazor</span>
 
 <span class="comment"># For HTTP operations</span>
-Install-Package FluentSignals.Http
+<span class="cmdlet">Install-Package</span> <span class="parameter">FluentSignals.Http</span>
 
 <span class="comment"># For real-time features</span>
-Install-Package FluentSignals.SignalR
+<span class="cmdlet">Install-Package</span> <span class="parameter">FluentSignals.SignalR</span>
 
 <span class="comment"># For event bus patterns</span>
-Install-Package FluentSignals.SignalBus</code></pre>
-            </div>
+<span class="cmdlet">Install-Package</span> <span class="parameter">FluentSignals.SignalBus</span>
+            </CodeBlock>
         </div>
 
         <div class="install-option">
             <h3>Using PackageReference</h3>
-            <div class="code-block">
-                <pre><code><span class="tag">&lt;ItemGroup&gt;</span>
+            <CodeBlock Language="CodeBlock.CodeLanguage.XML">
+<span class="tag">&lt;ItemGroup&gt;</span>
   <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
   <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.Blazor"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
   <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.Http"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
   <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.SignalR"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
   <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.SignalBus"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
-<span class="tag">&lt;/ItemGroup&gt;</span></code></pre>
-            </div>
+<span class="tag">&lt;/ItemGroup&gt;</span>
+            </CodeBlock>
         </div>
     </section>
 
@@ -119,30 +119,30 @@ Install-Package FluentSignals.SignalBus</code></pre>
         <div class="scenario">
             <h3>Blazor Application</h3>
             <p>For a typical Blazor application with API integration:</p>
-            <div class="code-block">
-                <pre><code>dotnet add package FluentSignals.Blazor
-dotnet add package FluentSignals.Http</code></pre>
-            </div>
+            <CodeBlock Language="CodeBlock.CodeLanguage.CLI">
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Blazor</span>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Http</span>
+            </CodeBlock>
         </div>
 
         <div class="scenario">
             <h3>Real-time Dashboard</h3>
             <p>For applications with real-time updates:</p>
-            <div class="code-block">
-                <pre><code>dotnet add package FluentSignals.Blazor
-dotnet add package FluentSignals.SignalR
-dotnet add package FluentSignals.Http</code></pre>
-            </div>
+            <CodeBlock Language="CodeBlock.CodeLanguage.CLI">
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Blazor</span>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.SignalR</span>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Http</span>
+            </CodeBlock>
         </div>
 
         <div class="scenario">
             <h3>Console Application</h3>
             <p>For console apps or background services:</p>
-            <div class="code-block">
-                <pre><code>dotnet add package FluentSignals
-dotnet add package FluentSignals.Http
-dotnet add package FluentSignals.SignalBus</code></pre>
-            </div>
+            <CodeBlock Language="CodeBlock.CodeLanguage.CLI">
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals</span>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.Http</span>
+<span class="command">dotnet add package</span> <span class="arg">FluentSignals.SignalBus</span>
+            </CodeBlock>
         </div>
     </section>
 
@@ -152,11 +152,11 @@ dotnet add package FluentSignals.SignalBus</code></pre>
         <div class="config-example">
             <h3>Blazor Setup</h3>
             <p>Add FluentSignals services in your Program.cs:</p>
-            <div class="code-block">
-                <pre><code><span class="keyword">using</span> FluentSignals.Extensions;
-<span class="keyword">using</span> FluentSignals.Blazor.Extensions;
+            <CodeBlock Title="Program.cs" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">using</span> <span class="namespace">FluentSignals.Extensions</span>;
+<span class="keyword">using</span> <span class="namespace">FluentSignals.Blazor.Extensions</span>;
 
-<span class="keyword">var</span> builder = WebApplication.CreateBuilder(args);
+<span class="keyword">var</span> builder = WebApplication.<span class="method">CreateBuilder</span>(args);
 
 <span class="comment">// Add FluentSignals services</span>
 builder.Services.<span class="method">AddFluentSignals</span>();
@@ -166,32 +166,32 @@ builder.Services.<span class="method">AddFluentSignalsBlazor</span>();
 builder.Services.<span class="method">AddFluentSignalsHttp</span>(options =>
 {
     options.BaseUrl = <span class="string">"https://api.example.com"</span>;
-    options.DefaultTimeout = TimeSpan.FromSeconds(<span class="number">30</span>);
+    options.DefaultTimeout = TimeSpan.<span class="method">FromSeconds</span>(<span class="number">30</span>);
 });
 
 <span class="comment">// Add SignalR if using real-time features</span>
 builder.Services.<span class="method">AddFluentSignalsSignalR</span>();
 
 <span class="comment">// Add SignalBus if using event patterns</span>
-builder.Services.<span class="method">AddSignalBus</span>();</code></pre>
-            </div>
+builder.Services.<span class="method">AddSignalBus</span>();
+            </CodeBlock>
         </div>
 
         <div class="config-example">
             <h3>Dependency Injection</h3>
             <p>Register your signals and resources:</p>
-            <div class="code-block">
-                <pre><code><span class="comment">// Register signals as scoped or singleton</span>
-builder.Services.AddScoped&lt;<span class="type">Signal</span>&lt;<span class="keyword">int</span>&gt;&gt;();
-builder.Services.AddSingleton&lt;<span class="type">TypedSignal</span>&lt;<span class="type">AppState</span>&gt;&gt;();
+            <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Register signals as scoped or singleton</span>
+builder.Services.<span class="method">AddScoped</span>&lt;<span class="type">Signal</span>&lt;<span class="keyword">int</span>&gt;&gt;();
+builder.Services.<span class="method">AddSingleton</span>&lt;<span class="type">TypedSignal</span>&lt;<span class="type">AppState</span>&gt;&gt;();
 
 <span class="comment">// Register HTTP resources</span>
-builder.Services.AddScoped&lt;<span class="type">ITypedHttpResource</span>&lt;<span class="type">User</span>&gt;&gt;(sp =>
+builder.Services.<span class="method">AddScoped</span>&lt;<span class="type">ITypedHttpResource</span>&lt;<span class="type">User</span>&gt;&gt;(sp =>
 {
-    <span class="keyword">var</span> factory = sp.GetRequiredService&lt;<span class="type">ITypedHttpResourceFactory</span>&gt;();
-    <span class="keyword">return</span> factory.Create&lt;<span class="type">User</span>&gt;(<span class="string">"/api/users"</span>);
-});</code></pre>
-            </div>
+    <span class="keyword">var</span> factory = sp.<span class="method">GetRequiredService</span>&lt;<span class="type">ITypedHttpResourceFactory</span>&gt;();
+    <span class="keyword">return</span> factory.<span class="method">Create</span>&lt;<span class="type">User</span>&gt;(<span class="string">"/api/users"</span>);
+});
+            </CodeBlock>
         </div>
     </section>
 

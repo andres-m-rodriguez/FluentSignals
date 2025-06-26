@@ -1,0 +1,137 @@
+/* Code block wrapper */
+.code-wrapper {
+    background-color: #0a0a0a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin: 1.5rem 0;
+}
+
+/* Code header */
+.code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.code-title {
+    font-size: 0.875rem;
+    color: #999;
+    font-weight: 500;
+}
+
+.code-language {
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Window dots */
+.code-dots {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dot:nth-child(1) { background-color: #ff5f57; }
+.dot:nth-child(2) { background-color: #ffbd2e; }
+.dot:nth-child(3) { background-color: #28ca42; }
+
+/* Code content */
+.code-content {
+    padding: 1.5rem;
+    margin: 0;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    overflow-x: auto;
+}
+
+.code-content code {
+    color: #e0e0e0;
+    font-family: inherit;
+}
+
+/* Syntax highlighting for C# */
+.lang-csharp .comment, .comment { color: #6272a4; }
+.lang-csharp .keyword, .keyword { color: #ff79c6; font-weight: 500; }
+.lang-csharp .type, .type { color: #8be9fd; }
+.lang-csharp .method, .method { color: #50fa7b; }
+.lang-csharp .string, .string { color: #f1fa8c; }
+.lang-csharp .number, .number { color: #bd93f9; }
+.lang-csharp .operator, .operator { color: #ff79c6; }
+.lang-csharp .class-name, .class-name { color: #8be9fd; }
+.lang-csharp .namespace, .namespace { color: #8be9fd; }
+
+/* Syntax highlighting for XML/HTML */
+.lang-xml .tag { color: #8be9fd; }
+.lang-xml .attr { color: #50fa7b; }
+.lang-xml .string { color: #f1fa8c; }
+.lang-xml .comment { color: #6272a4; }
+
+/* Syntax highlighting for CLI */
+.lang-cli .command { color: #50fa7b; }
+.lang-cli .flag { color: #8be9fd; }
+.lang-cli .arg { color: #f1fa8c; }
+.lang-cli .comment { color: #6272a4; }
+.lang-cli .output { color: #999; }
+
+/* Syntax highlighting for PowerShell */
+.lang-powershell .cmdlet { color: #8be9fd; }
+.lang-powershell .parameter { color: #50fa7b; }
+.lang-powershell .string { color: #f1fa8c; }
+.lang-powershell .variable { color: #ff79c6; }
+.lang-powershell .comment { color: #6272a4; }
+
+/* Syntax highlighting for JSON */
+.lang-json .key { color: #8be9fd; }
+.lang-json .string { color: #f1fa8c; }
+.lang-json .number { color: #bd93f9; }
+.lang-json .boolean { color: #ff79c6; }
+.lang-json .null { color: #6272a4; }
+
+/* Scrollbar styling */
+.code-content::-webkit-scrollbar {
+    height: 8px;
+}
+
+.code-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.code-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.code-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .code-wrapper {
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+    }
+    
+    .code-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .code-content {
+        padding: 1rem;
+        font-size: 0.813rem;
+    }
+}

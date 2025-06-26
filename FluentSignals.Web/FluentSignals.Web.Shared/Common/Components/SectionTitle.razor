@@ -1,0 +1,14 @@
+@namespace FluentSignals.Web.Shared.Common.Components
+
+<div class="section-title-wrapper">
+    <h2 class="section-title">@Title</h2>
+    @if (!string.IsNullOrEmpty(Subtitle))
+    {
+        <p class="section-subtitle">@Subtitle</p>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = default!;
+    [Parameter] public string? Subtitle { get; set; }
+}

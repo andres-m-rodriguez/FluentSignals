@@ -196,57 +196,7 @@
     gap: 2rem;
 }
 
-::deep .feature-card {
-    background-color: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1rem;
-    padding: 2.5rem;
-    text-align: center;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-}
-
-::deep .feature-card:hover {
-    background-color: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-}
-
-::deep .feature-icon {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 4rem;
-    height: 4rem;
-    margin-bottom: 1.5rem;
-    font-size: 2rem;
-}
-
-::deep .icon-glow {
-    position: absolute;
-    inset: -10px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-::deep .feature-card:hover .icon-glow {
-    opacity: 1;
-}
-
-::deep .feature-card h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-}
-
-::deep .feature-card p {
-    color: #999;
-    line-height: 1.6;
-    margin: 0;
-}
+/* Feature cards now use FeatureCard component */
 
 /* Code Demo Section */
 ::deep .code-demo {
@@ -255,73 +205,10 @@
     margin: 0 auto;
 }
 
-::deep .code-wrapper {
+/* Code block now uses CodeBlock component */
+::deep .code-demo .code-wrapper {
     max-width: 800px;
     margin: 0 auto;
-    background-color: #0a0a0a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 0.75rem;
-    overflow: hidden;
-}
-
-::deep .code-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
-    background-color: rgba(255, 255, 255, 0.03);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-::deep .code-title {
-    font-size: 0.875rem;
-    color: #666;
-}
-
-::deep .code-dots {
-    display: flex;
-    gap: 0.5rem;
-}
-
-::deep .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-::deep .code-content {
-    padding: 2rem;
-    margin: 0;
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-    font-size: 0.875rem;
-    line-height: 1.6;
-    overflow-x: auto;
-}
-
-::deep .code-content code {
-    color: #e0e0e0;
-}
-
-/* Simple monochrome syntax highlighting */
-::deep .comment { 
-    color: #666;
-}
-::deep .keyword { 
-    color: #fff;
-    font-weight: 500;
-}
-::deep .type { 
-    color: #bbb;
-}
-::deep .method { 
-    color: #ddd;
-}
-::deep .string { 
-    color: #888;
-}
-::deep .number { 
-    color: #aaa;
 }
 
 /* Get Started Section */

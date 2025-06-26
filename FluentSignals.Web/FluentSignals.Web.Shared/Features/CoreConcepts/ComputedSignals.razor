@@ -1,5 +1,6 @@
 @page "/concepts/computed-signals"
 @namespace FluentSignals.Web.Shared.Features.CoreConcepts
+@using FluentSignals.Web.Shared.Common.Components
 
 <PageTitle>Computed Signals - FluentSignals</PageTitle>
 
@@ -22,8 +23,8 @@
         <h2>Creating Computed Values</h2>
         <p>While FluentSignals doesn't have a built-in ComputedSignal class, you can easily create computed values by subscribing to source signals:</p>
         
-        <div class="code-example">
-            <pre><code><span class="comment">// Basic computed values pattern</span>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Basic computed values pattern</span>
 <span class="keyword">var</span> firstName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">"John"</span>);
 <span class="keyword">var</span> lastName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">"Doe"</span>);
 
@@ -38,16 +39,16 @@ lastName.<span class="method">Subscribe</span>(_ =&gt;
 
 <span class="comment">// Now updates are automatic</span>
 firstName.Value = <span class="string">"Jane"</span>;
-<span class="comment">// fullName.Value is now "Jane Doe"</span></code></pre>
-        </div>
+<span class="comment">// fullName.Value is now "Jane Doe"</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Multiple Dependencies</h2>
         <p>Computed signals can depend on multiple signals and automatically track all dependencies:</p>
         
-        <div class="code-example">
-            <pre><code><span class="keyword">var</span> quantity = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">int</span>&gt;(<span class="number">5</span>);
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">var</span> quantity = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">int</span>&gt;(<span class="number">5</span>);
 <span class="keyword">var</span> pricePerItem = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">10.99m</span>);
 <span class="keyword">var</span> taxRate = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0.08m</span>);
 
@@ -69,162 +70,162 @@ pricePerItem.<span class="method">Subscribe</span>(_ =&gt; <span class="method">
 taxRate.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
 
 <span class="comment">// All values update when dependencies change</span>
-quantity.Value = <span class="number">10</span>;</code></pre>
-        </div>
+quantity.Value = <span class="number">10</span>;
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Computed Signals with Collections</h2>
         <p>Perform aggregations and transformations on collections:</p>
         
-        <div class="code-example">
-            <pre><code>var items = new TypedSignal&lt;List&lt;OrderItem&gt;&gt;(new List&lt;OrderItem&gt;());
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">var</span> items = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">OrderItem</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">OrderItem</span>&gt;());
 
-// Create computed aggregations
-var totalItems = new TypedSignal&lt;int&gt;(0);
-var totalPrice = new TypedSignal&lt;decimal&gt;(0m);
-var completedItems = new TypedSignal&lt;List&lt;OrderItem&gt;&gt;(new List&lt;OrderItem&gt;());
+<span class="comment">// Create computed aggregations</span>
+<span class="keyword">var</span> totalItems = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
+<span class="keyword">var</span> totalPrice = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0m</span>);
+<span class="keyword">var</span> completedItems = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">List</span>&lt;<span class="type">OrderItem</span>&gt;&gt;(<span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">OrderItem</span>&gt;());
 
-// Update function for all computed values
-Action updateAggregations = () =&gt; {
-    totalItems.Value = items.Value.Sum(item =&gt; item.Quantity);
-    totalPrice.Value = items.Value.Sum(item =&gt; item.Price * item.Quantity);
-    completedItems.Value = items.Value.Where(item =&gt; item.IsCompleted).ToList();
+<span class="comment">// Update function for all computed values</span>
+<span class="type">Action</span> updateAggregations = () =&gt; {
+    totalItems.Value = items.Value.<span class="method">Sum</span>(item =&gt; item.Quantity);
+    totalPrice.Value = items.Value.<span class="method">Sum</span>(item =&gt; item.Price * item.Quantity);
+    completedItems.Value = items.Value.<span class="method">Where</span>(item =&gt; item.IsCompleted).<span class="method">ToList</span>();
 };
 
-// Subscribe to changes
-items.Subscribe(_ =&gt; updateAggregations());
+<span class="comment">// Subscribe to changes</span>
+items.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateAggregations</span>());
 
-// Complex aggregation
-var orderSummary = new TypedSignal&lt;OrderSummary&gt;(new OrderSummary());
+<span class="comment">// Complex aggregation</span>
+<span class="keyword">var</span> orderSummary = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">OrderSummary</span>&gt;(<span class="keyword">new</span> <span class="type">OrderSummary</span>());
 
-items.Subscribe(_ =&gt; {
-    orderSummary.Value = new OrderSummary
+items.<span class="method">Subscribe</span>(_ =&gt; {
+    orderSummary.Value = <span class="keyword">new</span> <span class="type">OrderSummary</span>
     {
         TotalItems = items.Value.Count,
-        TotalQuantity = items.Value.Sum(i =&gt; i.Quantity),
-        TotalPrice = items.Value.Sum(i =&gt; i.Price * i.Quantity),
-        AveragePrice = items.Value.Any() ? items.Value.Average(i =&gt; i.Price) : 0
+        TotalQuantity = items.Value.<span class="method">Sum</span>(i =&gt; i.Quantity),
+        TotalPrice = items.Value.<span class="method">Sum</span>(i =&gt; i.Price * i.Quantity),
+        AveragePrice = items.Value.<span class="method">Any</span>() ? items.Value.<span class="method">Average</span>(i =&gt; i.Price) : <span class="number">0</span>
     };
-});</code></pre>
-        </div>
+});
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Complete Example: Shopping Cart Calculator</h2>
-        <div class="code-example">
-            <pre><code>// Source signals for shopping cart
-var quantity = new TypedSignal&lt;int&gt;(1);
-var pricePerItem = new TypedSignal&lt;decimal&gt;(19.99m);
-var discountPercent = new TypedSignal&lt;decimal&gt;(10m);
-var taxRate = new TypedSignal&lt;decimal&gt;(8.5m);
+        <CodeBlock Title="Complete Example: Shopping Cart Calculator" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Source signals for shopping cart</span>
+<span class="keyword">var</span> quantity = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt;(<span class="number">1</span>);
+<span class="keyword">var</span> pricePerItem = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">19.99m</span>);
+<span class="keyword">var</span> discountPercent = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">10m</span>);
+<span class="keyword">var</span> taxRate = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">8.5m</span>);
 
-// Computed values that update automatically
-var subtotal = new TypedSignal&lt;decimal&gt;(quantity.Value * pricePerItem.Value);
-var discountAmount = new TypedSignal&lt;decimal&gt;(0m);
-var afterDiscount = new TypedSignal&lt;decimal&gt;(0m);
-var taxAmount = new TypedSignal&lt;decimal&gt;(0m);
-var total = new TypedSignal&lt;decimal&gt;(0m);
+<span class="comment">// Computed values that update automatically</span>
+<span class="keyword">var</span> subtotal = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(quantity.Value * pricePerItem.Value);
+<span class="keyword">var</span> discountAmount = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0m</span>);
+<span class="keyword">var</span> afterDiscount = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0m</span>);
+<span class="keyword">var</span> taxAmount = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0m</span>);
+<span class="keyword">var</span> total = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">0m</span>);
 
-// Update function for all computed values
-Action updateComputedValues = () =&gt; {
+<span class="comment">// Update function for all computed values</span>
+<span class="type">Action</span> updateComputedValues = () =&gt; {
     subtotal.Value = quantity.Value * pricePerItem.Value;
-    discountAmount.Value = subtotal.Value * (discountPercent.Value / 100);
+    discountAmount.Value = subtotal.Value * (discountPercent.Value / <span class="number">100</span>);
     afterDiscount.Value = subtotal.Value - discountAmount.Value;
-    taxAmount.Value = afterDiscount.Value * (taxRate.Value / 100);
+    taxAmount.Value = afterDiscount.Value * (taxRate.Value / <span class="number">100</span>);
     total.Value = afterDiscount.Value + taxAmount.Value;
     
-    Console.WriteLine($"Total: ${total.Value:F2}");
+    <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Total: ${total.Value:F2}"</span>);
 };
 
-// Subscribe to changes in source signals
-quantity.Subscribe(_ =&gt; updateComputedValues());
-pricePerItem.Subscribe(_ =&gt; updateComputedValues());
-discountPercent.Subscribe(_ =&gt; updateComputedValues());
-taxRate.Subscribe(_ =&gt; updateComputedValues());
+<span class="comment">// Subscribe to changes in source signals</span>
+quantity.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
+pricePerItem.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
+discountPercent.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
+taxRate.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateComputedValues</span>());
 
-// Initial calculation
-updateComputedValues();
+<span class="comment">// Initial calculation</span>
+<span class="method">updateComputedValues</span>();
 
-// Example updates
-quantity.Value = 3;          // Updates all computed values
-discountPercent.Value = 20;  // Updates discount, afterDiscount, tax, and total
-pricePerItem.Value = 24.99m; // Updates all computed values</code></pre>
-        </div>
+<span class="comment">// Example updates</span>
+quantity.Value = <span class="number">3</span>;          <span class="comment">// Updates all computed values</span>
+discountPercent.Value = <span class="number">20</span>;  <span class="comment">// Updates discount, afterDiscount, tax, and total</span>
+pricePerItem.Value = <span class="number">24.99m</span>; <span class="comment">// Updates all computed values</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Conditional Computations</h2>
         <p>Computed signals can include conditional logic:</p>
         
-        <div class="code-example">
-            <pre><code>var isLoggedIn = new TypedSignal&lt;bool&gt;(false);
-var userName = new TypedSignal&lt;string&gt;("");
-var guestName = new TypedSignal&lt;string&gt;("Guest");
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">var</span> isLoggedIn = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">bool</span>&gt;(<span class="keyword">false</span>);
+<span class="keyword">var</span> userName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">""</span>);
+<span class="keyword">var</span> guestName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">"Guest"</span>);
 
-// Computed display name
-var displayName = new TypedSignal&lt;string&gt;(
+<span class="comment">// Computed display name</span>
+<span class="keyword">var</span> displayName = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(
     isLoggedIn.Value ? userName.Value : guestName.Value
 );
 
-// Update display name when dependencies change
-Action updateDisplayName = () =&gt; 
+<span class="comment">// Update display name when dependencies change</span>
+<span class="type">Action</span> updateDisplayName = () =&gt; 
     displayName.Value = isLoggedIn.Value ? userName.Value : guestName.Value;
 
-isLoggedIn.Subscribe(_ =&gt; updateDisplayName());
-userName.Subscribe(_ =&gt; updateDisplayName());
-guestName.Subscribe(_ =&gt; updateDisplayName());
+isLoggedIn.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateDisplayName</span>());
+userName.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateDisplayName</span>());
+guestName.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateDisplayName</span>());
 
-// Computed welcome message
-var welcomeMessage = new TypedSignal&lt;string&gt;("Please log in to continue");
+<span class="comment">// Computed welcome message</span>
+<span class="keyword">var</span> welcomeMessage = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(<span class="string">"Please log in to continue"</span>);
 
-Action updateWelcomeMessage = () =&gt; {
-    if (!isLoggedIn.Value)
-        welcomeMessage.Value = "Please log in to continue";
-    else
-        welcomeMessage.Value = string.IsNullOrEmpty(userName.Value) 
-            ? "Welcome back!" 
-            : $"Welcome back, {userName.Value}!";
+<span class="type">Action</span> updateWelcomeMessage = () =&gt; {
+    <span class="keyword">if</span> (!isLoggedIn.Value)
+        welcomeMessage.Value = <span class="string">"Please log in to continue"</span>;
+    <span class="keyword">else</span>
+        welcomeMessage.Value = <span class="keyword">string</span>.<span class="method">IsNullOrEmpty</span>(userName.Value) 
+            ? <span class="string">"Welcome back!"</span> 
+            : $<span class="string">"Welcome back, {userName.Value}!"</span>;
 };
 
-isLoggedIn.Subscribe(_ =&gt; updateWelcomeMessage());
-userName.Subscribe(_ =&gt; updateWelcomeMessage());</code></pre>
-        </div>
+isLoggedIn.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateWelcomeMessage</span>());
+userName.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateWelcomeMessage</span>());
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
         <h2>Performance Optimization</h2>
         <p>When creating computed values, you can optimize by only updating when needed:</p>
         
-        <div class="code-example">
-            <pre><code>var source = new TypedSignal&lt;int&gt;(10);
-var expensiveResult = new TypedSignal&lt;int&gt;(0);
-var computeCount = 0;
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">var</span> source = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt;(<span class="number">10</span>);
+<span class="keyword">var</span> expensiveResult = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
+<span class="keyword">var</span> computeCount = <span class="number">0</span>;
 
-// Track computation count
-Action computeExpensiveValue = () =&gt; {
-    Console.WriteLine("Computing...");
+<span class="comment">// Track computation count</span>
+<span class="type">Action</span> computeExpensiveValue = () =&gt; {
+    <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">"Computing..."</span>);
     computeCount++;
     
-    // Simulate expensive operation
-    Thread.Sleep(100);
+    <span class="comment">// Simulate expensive operation</span>
+    <span class="type">Thread</span>.<span class="method">Sleep</span>(<span class="number">100</span>);
     
-    expensiveResult.Value = source.Value * ComplexCalculation();
+    expensiveResult.Value = source.Value * <span class="method">ComplexCalculation</span>();
 };
 
-// Only compute when source changes
-source.Subscribe(_ =&gt; computeExpensiveValue());
+<span class="comment">// Only compute when source changes</span>
+source.<span class="method">Subscribe</span>(_ =&gt; <span class="method">computeExpensiveValue</span>());
 
-// Initial computation
-computeExpensiveValue();
+<span class="comment">// Initial computation</span>
+<span class="method">computeExpensiveValue</span>();
 
-// Access the value multiple times - no recomputation
-var result1 = expensiveResult.Value; // Already computed
-var result2 = expensiveResult.Value; // Still the same value
+<span class="comment">// Access the value multiple times - no recomputation</span>
+<span class="keyword">var</span> result1 = expensiveResult.Value; <span class="comment">// Already computed</span>
+<span class="keyword">var</span> result2 = expensiveResult.Value; <span class="comment">// Still the same value</span>
 
-// Change source - triggers recomputation
-source.Value = 42; // This triggers the computation</code></pre>
-        </div>
+<span class="comment">// Change source - triggers recomputation</span>
+source.Value = <span class="number">42</span>; <span class="comment">// This triggers the computation</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
@@ -253,51 +254,51 @@ source.Value = 42; // This triggers the computation</code></pre>
         <h2>Advanced Patterns</h2>
         
         <h3>Chained Computed Values</h3>
-        <div class="code-example">
-            <pre><code>// Build complex calculations step by step
-var basePrice = new TypedSignal&lt;decimal&gt;(100);
-var quantity = new TypedSignal&lt;int&gt;(1);
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Build complex calculations step by step</span>
+<span class="keyword">var</span> basePrice = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="number">100</span>);
+<span class="keyword">var</span> quantity = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt;(<span class="number">1</span>);
 
-// Create chained computed values
-var subtotal = new TypedSignal&lt;decimal&gt;(basePrice.Value * quantity.Value);
-var withShipping = new TypedSignal&lt;decimal&gt;(subtotal.Value + (subtotal.Value > 50 ? 0 : 10));
-var withTax = new TypedSignal&lt;decimal&gt;(withShipping.Value * 1.08m);
-var finalPrice = new TypedSignal&lt;decimal&gt;(Math.Round(withTax.Value, 2));
+<span class="comment">// Create chained computed values</span>
+<span class="keyword">var</span> subtotal = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(basePrice.Value * quantity.Value);
+<span class="keyword">var</span> withShipping = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(subtotal.Value + (subtotal.Value &gt; <span class="number">50</span> ? <span class="number">0</span> : <span class="number">10</span>));
+<span class="keyword">var</span> withTax = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(withShipping.Value * <span class="number">1.08m</span>);
+<span class="keyword">var</span> finalPrice = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">decimal</span>&gt;(<span class="type">Math</span>.<span class="method">Round</span>(withTax.Value, <span class="number">2</span>));
 
-// Update chain when base values change
-Action updateChain = () =&gt; {
+<span class="comment">// Update chain when base values change</span>
+<span class="type">Action</span> updateChain = () =&gt; {
     subtotal.Value = basePrice.Value * quantity.Value;
-    withShipping.Value = subtotal.Value + (subtotal.Value > 50 ? 0 : 10);
-    withTax.Value = withShipping.Value * 1.08m;
-    finalPrice.Value = Math.Round(withTax.Value, 2);
+    withShipping.Value = subtotal.Value + (subtotal.Value &gt; <span class="number">50</span> ? <span class="number">0</span> : <span class="number">10</span>);
+    withTax.Value = withShipping.Value * <span class="number">1.08m</span>;
+    finalPrice.Value = <span class="type">Math</span>.<span class="method">Round</span>(withTax.Value, <span class="number">2</span>);
 };
 
-basePrice.Subscribe(_ =&gt; updateChain());
-quantity.Subscribe(_ =&gt; updateChain());</code></pre>
-        </div>
+basePrice.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateChain</span>());
+quantity.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateChain</span>());
+        </CodeBlock>
 
         <h3>Dynamic Dependencies</h3>
-        <div class="code-example">
-            <pre><code>// Dependencies can change based on conditions
-var useMetric = new TypedSignal&lt;bool&gt;(true);
-var celsius = new TypedSignal&lt;double&gt;(20);
-var fahrenheit = new TypedSignal&lt;double&gt;(68);
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Dependencies can change based on conditions</span>
+<span class="keyword">var</span> useMetric = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">bool</span>&gt;(<span class="keyword">true</span>);
+<span class="keyword">var</span> celsius = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">double</span>&gt;(<span class="number">20</span>);
+<span class="keyword">var</span> fahrenheit = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">double</span>&gt;(<span class="number">68</span>);
 
-// Temperature display with dynamic dependencies
-var temperature = new TypedSignal&lt;string&gt;(
-    useMetric.Value ? $"{celsius.Value}°C" : $"{fahrenheit.Value}°F"
+<span class="comment">// Temperature display with dynamic dependencies</span>
+<span class="keyword">var</span> temperature = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="keyword">string</span>&gt;(
+    useMetric.Value ? $<span class="string">"{celsius.Value}°C"</span> : $<span class="string">"{fahrenheit.Value}°F"</span>
 );
 
-// Update based on all possible dependencies
-Action updateTemperature = () =&gt; 
+<span class="comment">// Update based on all possible dependencies</span>
+<span class="type">Action</span> updateTemperature = () =&gt; 
     temperature.Value = useMetric.Value 
-        ? $"{celsius.Value}°C" 
-        : $"{fahrenheit.Value}°F";
+        ? $<span class="string">"{celsius.Value}°C"</span> 
+        : $<span class="string">"{fahrenheit.Value}°F"</span>;
 
-useMetric.Subscribe(_ =&gt; updateTemperature());
-celsius.Subscribe(_ =&gt; updateTemperature());
-fahrenheit.Subscribe(_ =&gt; updateTemperature());</code></pre>
-        </div>
+useMetric.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateTemperature</span>());
+celsius.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateTemperature</span>());
+fahrenheit.<span class="method">Subscribe</span>(_ =&gt; <span class="method">updateTemperature</span>());
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
@@ -367,52 +368,6 @@ fahrenheit.Subscribe(_ =&gt; updateTemperature());</code></pre>
         margin-bottom: 1rem;
         color: #ccc;
     }
-
-    .code-example {
-        background-color: #0a0a0a;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        overflow-x: auto;
-    }
-
-    .code-example pre {
-        margin: 0;
-        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-    }
-
-    .code-example code {
-        color: #fff;
-        font-size: 0.875rem;
-        line-height: 1.6;
-    }
-
-    /* Syntax highlighting */
-    .code-example .keyword {
-        color: #ff79c6;
-    }
-    
-    .code-example .type {
-        color: #8be9fd;
-    }
-    
-    .code-example .string {
-        color: #f1fa8c;
-    }
-    
-    .code-example .comment {
-        color: #6272a4;
-    }
-    
-    .code-example .method {
-        color: #50fa7b;
-    }
-    
-    .code-example .number {
-        color: #bd93f9;
-    }
-
 
     .best-practices {
         list-style: none;

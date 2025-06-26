@@ -1,8 +1,9 @@
 @page "/concepts/basic-signals"
 @namespace FluentSignals.Web.Shared.Features.CoreConcepts
+@using FluentSignals.Implementations.Core
+@using FluentSignals.Web.Shared.Common.Components
 
 <PageTitle>Basic Signals - FluentSignals</PageTitle>
-
 <div class="concept-page content-page">
     <div class="concept-hero">
         <h1 class="concept-title">Basic Signals</h1>
@@ -12,104 +13,188 @@
     <section class="concept-section">
         <h2>What are Signals?</h2>
         <p>
-            Signals are the core primitive of FluentSignals. They are reactive values that notify subscribers 
-            whenever they change. Think of them as smart variables that automatically update your UI or trigger 
-            side effects when their value changes.
+            Signals are the core primitive of FluentSignals. The basic <code>Signal</code> class is the bare-bones 
+            foundation that provides the publish-subscribe pattern. It handles subscriber management and notifications,
+            serving as the base class for all other signal types in the framework.
         </p>
     </section>
 
     <section class="concept-section">
-        <h2>Creating a Signal</h2>
-        <p>Creating a signal is straightforward. You can create typed signals with <code>Signal&lt;T&gt;</code>:</p>
+        <h2>The Core Signal API</h2>
+        <p>The basic <code>Signal</code> class provides these essential methods:</p>
         
-        <div class="code-example">
-            <pre><code><span class="comment">// Create a signal with an initial value</span>
-<span class="keyword">var</span> count = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Create a basic signal</span>
+<span class="keyword">var</span> signal = <span class="keyword">new</span> <span class="type">Signal</span>();
 
-<span class="comment">// Create a signal with a string</span>
-<span class="keyword">var</span> name = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">string</span>&gt;(<span class="string">"John"</span>);
+<span class="comment">// Subscribe another signal to receive notifications</span>
+<span class="keyword">var</span> dependentSignal = <span class="keyword">new</span> <span class="type">Signal</span>();
+<span class="keyword">var</span> subscription = signal.<span class="method">Subscribe</span>(dependentSignal);
 
-<span class="comment">// Create a signal with a complex type</span>
-<span class="keyword">var</span> user = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">User</span>&gt;(<span class="keyword">new</span> <span class="type">User</span> { Id = <span class="number">1</span>, Name = <span class="string">"Alice"</span> });</code></pre>
-        </div>
+<span class="comment">// Manually trigger notifications to all subscribers</span>
+signal.<span class="method">Notify</span>();
+
+<span class="comment">// Unsubscribe when done</span>
+signal.<span class="method">Unsubscribe</span>(subscription.SubscriptionId);
+
+<span class="comment">// Or dispose the subscription</span>
+subscription.<span class="method">Dispose</span>();
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
-        <h2>Reading Signal Values</h2>
-        <p>Access the current value of a signal using the <code>Value</code> property:</p>
+        <h2>Extending Signal for Custom Types</h2>
+        <p>The power of the basic <code>Signal</code> class is that you can extend it to create your own reactive types:</p>
         
-        <div class="code-example">
-            <pre><code><span class="keyword">var</span> count = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">10</span>);
-
-<span class="comment">// Read the value</span>
-<span class="type">Console</span>.<span class="method">WriteLine</span>(count.Value); <span class="comment">// Output: 10</span>
-
-<span class="comment">// Use in expressions</span>
-<span class="keyword">var</span> doubled = count.Value * <span class="number">2</span>;</code></pre>
-        </div>
-    </section>
-
-    <section class="concept-section">
-        <h2>Updating Signal Values</h2>
-        <p>Update a signal by setting its <code>Value</code> property. This automatically notifies all subscribers:</p>
-        
-        <div class="code-example">
-            <pre><code><span class="keyword">var</span> count = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
-
-<span class="comment">// Update the value</span>
-count.Value = <span class="number">5</span>;
-
-<span class="comment">// Increment</span>
-count.Value++;</code></pre>
-        </div>
-    </section>
-
-    <section class="concept-section">
-        <h2>Subscribing to Changes</h2>
-        <p>Subscribe to be notified whenever a signal changes:</p>
-        
-        <div class="code-example">
-            <pre><code><span class="keyword">var</span> temperature = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">double</span>&gt;(<span class="number">20.0</span>);
-
-<span class="comment">// Subscribe to changes</span>
-<span class="keyword">var</span> subscription = temperature.<span class="method">Subscribe</span>(value =&gt; 
+        <CodeBlock Title="Creating a Custom Counter Signal" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">CounterSignal</span> : <span class="type">Signal</span>
 {
-    <span class="type">Console</span>.<span class="method">WriteLine</span>($<span class="string">"Temperature changed to: {value}°C"</span>);
-});
+    <span class="keyword">private</span> <span class="type">int</span> _count;
+    
+    <span class="keyword">public</span> <span class="type">int</span> Count 
+    { 
+        <span class="keyword">get</span> =&gt; _count;
+        <span class="keyword">private</span> <span class="keyword">set</span>
+        {
+            _count = <span class="keyword">value</span>;
+            <span class="method">Notify</span>(); <span class="comment">// Notify all subscribers</span>
+        }
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Increment</span>() =&gt; Count++;
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Decrement</span>() =&gt; Count--;
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Reset</span>() =&gt; Count = <span class="number">0</span>;
+}
 
-<span class="comment">// Changes trigger the subscription</span>
-temperature.Value = <span class="number">25.0</span>; <span class="comment">// Output: Temperature changed to: 25.0°C</span>
-temperature.Value = <span class="number">30.0</span>; <span class="comment">// Output: Temperature changed to: 30.0°C</span>
-
-<span class="comment">// Dispose when done</span>
-subscription.<span class="method">Dispose</span>();</code></pre>
-        </div>
+<span class="comment">// Usage</span>
+<span class="keyword">var</span> counter = <span class="keyword">new</span> <span class="type">CounterSignal</span>();
+counter.<span class="method">Increment</span>(); <span class="comment">// Notifies subscribers</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
-        <h2>Complete Example</h2>
-        <div class="code-example">
-            <pre><code>// Create a counter signal
-var counter = new Signal&lt;int&gt;(0);
-var updateCount = 0;
-var logEntries = new List&lt;string&gt;();
-
-// Subscribe to changes
-var subscription = counter.Subscribe(value =&gt; 
+        <h2>Advanced Custom Signal Example</h2>
+        <p>Here's a more sophisticated example that adds validation and change tracking:</p>
+        
+        <CodeBlock Title="Temperature Signal with Validation" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">TemperatureSignal</span> : <span class="type">Signal</span>
 {
-    updateCount++;
-    logEntries.Add($"{DateTime.Now:HH:mm:ss} - Value changed to {value}");
-    Console.WriteLine($"Counter: {value}, Updates: {updateCount}");
-});
+    <span class="keyword">private</span> <span class="type">double</span> _celsius;
+    <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="type">double</span> _minTemp;
+    <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="type">double</span> _maxTemp;
+    
+    <span class="keyword">public</span> <span class="method">TemperatureSignal</span>(<span class="type">double</span> initial = <span class="number">20.0</span>, 
+                             <span class="type">double</span> min = <span class="number">-273.15</span>, 
+                             <span class="type">double</span> max = <span class="number">1000.0</span>)
+    {
+        _minTemp = min;
+        _maxTemp = max;
+        Celsius = initial;
+    }
+    
+    <span class="keyword">public</span> <span class="type">double</span> Celsius 
+    { 
+        <span class="keyword">get</span> =&gt; _celsius;
+        <span class="keyword">set</span>
+        {
+            <span class="keyword">if</span> (<span class="keyword">value</span> &lt; _minTemp || <span class="keyword">value</span> &gt; _maxTemp)
+                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">ArgumentOutOfRangeException</span>();
+                
+            <span class="keyword">if</span> (<span class="type">Math</span>.<span class="method">Abs</span>(_celsius - <span class="keyword">value</span>) &gt; <span class="number">0.01</span>)
+            {
+                _celsius = <span class="keyword">value</span>;
+                <span class="method">Notify</span>();
+            }
+        }
+    }
+    
+    <span class="keyword">public</span> <span class="type">double</span> Fahrenheit 
+    {
+        <span class="keyword">get</span> =&gt; _celsius * <span class="number">9</span> / <span class="number">5</span> + <span class="number">32</span>;
+        <span class="keyword">set</span> =&gt; Celsius = (<span class="keyword">value</span> - <span class="number">32</span>) * <span class="number">5</span> / <span class="number">9</span>;
+    }
+}
+        </CodeBlock>
+    </section>
 
-// Update the counter
-counter.Value = 1;  // Triggers subscription
-counter.Value = 2;  // Triggers subscription
-counter.Value = 2;  // No change, no trigger
+    <section class="concept-section">
+        <h2>Signal Chaining and Composition</h2>
+        <p>Basic signals can be chained together to create reactive flows:</p>
+        
+        <CodeBlock Title="Creating a Reactive Chain" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Create a chain of signals</span>
+<span class="keyword">var</span> inputSignal = <span class="keyword">new</span> <span class="type">Signal</span>();
+<span class="keyword">var</span> processingSignal = <span class="keyword">new</span> <span class="type">Signal</span>();
+<span class="keyword">var</span> outputSignal = <span class="keyword">new</span> <span class="type">Signal</span>();
 
-// Cleanup when done
-subscription.Dispose();</code></pre>
-        </div>
+<span class="comment">// Chain them together</span>
+inputSignal.<span class="method">Subscribe</span>(processingSignal);
+processingSignal.<span class="method">Subscribe</span>(outputSignal);
+
+<span class="comment">// Override Notify in custom signals for processing</span>
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">ProcessingSignal</span> : <span class="type">Signal</span>
+{
+    <span class="keyword">public</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="method">Notify</span>()
+    {
+        <span class="comment">// Do some processing</span>
+        <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">"Processing..."</span>);
+        
+        <span class="comment">// Then notify subscribers</span>
+        <span class="keyword">base</span>.<span class="method">Notify</span>();
+    }
+}
+
+<span class="comment">// Trigger the chain</span>
+inputSignal.<span class="method">Notify</span>(); <span class="comment">// Cascades through all signals</span>
+        </CodeBlock>
+    </section>
+
+    <section class="concept-section">
+        <h2>Complete Example: Building a State Machine</h2>
+        <CodeBlock Title="State Machine Using Basic Signals" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="keyword">public</span> <span class="keyword">enum</span> <span class="type">State</span> { Idle, Loading, Success, Error }
+
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">StateMachineSignal</span> : <span class="type">Signal</span>
+{
+    <span class="keyword">private</span> <span class="type">State</span> _currentState = <span class="type">State</span>.Idle;
+    <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="type">Dictionary</span>&lt;<span class="type">State</span>, <span class="type">List</span>&lt;<span class="type">State</span>&gt;&gt; _validTransitions;
+    
+    <span class="keyword">public</span> <span class="method">StateMachineSignal</span>()
+    {
+        _validTransitions = <span class="keyword">new</span> <span class="type">Dictionary</span>&lt;<span class="type">State</span>, <span class="type">List</span>&lt;<span class="type">State</span>&gt;&gt;
+        {
+            { <span class="type">State</span>.Idle, <span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">State</span>&gt; { <span class="type">State</span>.Loading } },
+            { <span class="type">State</span>.Loading, <span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">State</span>&gt; { <span class="type">State</span>.Success, <span class="type">State</span>.Error } },
+            { <span class="type">State</span>.Success, <span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">State</span>&gt; { <span class="type">State</span>.Idle } },
+            { <span class="type">State</span>.Error, <span class="keyword">new</span> <span class="type">List</span>&lt;<span class="type">State</span>&gt; { <span class="type">State</span>.Idle, <span class="type">State</span>.Loading } }
+        };
+    }
+    
+    <span class="keyword">public</span> <span class="type">State</span> CurrentState =&gt; _currentState;
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">TransitionTo</span>(<span class="type">State</span> newState)
+    {
+        <span class="keyword">if</span> (!_validTransitions[_currentState].<span class="method">Contains</span>(newState))
+            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">InvalidOperationException</span>(
+                $<span class="string">"Cannot transition from {_currentState} to {newState}"</span>);
+        
+        _currentState = newState;
+        <span class="method">Notify</span>();
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">StartLoading</span>() =&gt; <span class="method">TransitionTo</span>(<span class="type">State</span>.Loading);
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">MarkSuccess</span>() =&gt; <span class="method">TransitionTo</span>(<span class="type">State</span>.Success);
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">MarkError</span>() =&gt; <span class="method">TransitionTo</span>(<span class="type">State</span>.Error);
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Reset</span>() =&gt; <span class="method">TransitionTo</span>(<span class="type">State</span>.Idle);
+}
+
+<span class="comment">// Usage</span>
+<span class="keyword">var</span> stateMachine = <span class="keyword">new</span> <span class="type">StateMachineSignal</span>();
+<span class="keyword">var</span> logger = <span class="keyword">new</span> <span class="type">Signal</span>();
+
+stateMachine.<span class="method">Subscribe</span>(logger);
+stateMachine.<span class="method">StartLoading</span>(); <span class="comment">// Notifies logger</span>
+        </CodeBlock>
     </section>
 
     <section class="concept-section">
@@ -120,52 +205,32 @@ subscription.Dispose();</code></pre>
                 to prevent memory leaks.
             </li>
             <li>
-                <strong>Use typed signals</strong> - Prefer <code>Signal&lt;T&gt;</code> over untyped signals for 
-                compile-time type safety.
+                <strong>Extend for specific needs</strong> - Create custom signal types by extending <code>Signal</code> 
+                when you need specialized behavior.
             </li>
             <li>
                 <strong>Avoid excessive updates</strong> - Batch updates when possible to reduce the number of 
                 notifications.
             </li>
             <li>
-                <strong>Keep signals simple</strong> - Signals should represent simple state. For derived values, 
-                use computed signals.
+                <strong>Override Notify carefully</strong> - When overriding <code>Notify()</code>, always call 
+                <code>base.Notify()</code> to ensure subscribers are notified.
             </li>
         </ul>
     </section>
 
     <section class="concept-section">
-        <h2>Common Patterns</h2>
+        <h2>When to Use Basic Signals</h2>
         
-        <h3>Toggle Pattern</h3>
-        <div class="code-example">
-            <pre><code>var isVisible = new Signal&lt;bool&gt;(false);
-
-// Toggle visibility
-void ToggleVisibility() =&gt; isVisible.Value = !isVisible.Value;</code></pre>
-        </div>
-
-        <h3>Update with Previous Value</h3>
-        <div class="code-example">
-            <pre><code>var score = new Signal&lt;int&gt;(0);
-
-// Update based on previous value
-void AddBonus(int bonus) =&gt; score.Value = score.Value + bonus;</code></pre>
-        </div>
-
-        <h3>Conditional Updates</h3>
-        <div class="code-example">
-            <pre><code>var temperature = new Signal&lt;double&gt;(20.0);
-
-// Only update if value is different
-void SetTemperature(double newTemp)
-{
-    if (Math.Abs(temperature.Value - newTemp) > 0.01)
-    {
-        temperature.Value = newTemp;
-    }
-}</code></pre>
-        </div>
+        <p>Use the basic <code>Signal</code> class when you need:</p>
+        <ul class="best-practices">
+            <li>A simple notification mechanism without data</li>
+            <li>To create custom reactive types with specialized behavior</li>
+            <li>Fine-grained control over when notifications occur</li>
+            <li>To build the foundation for more complex reactive patterns</li>
+        </ul>
+        
+        <p>For simple value storage with automatic change detection, consider using <code>TypedSignal&lt;T&gt;</code> instead.</p>
     </section>
 
     <section class="concept-section">
@@ -248,52 +313,6 @@ void SetTemperature(double newTemp)
         margin-bottom: 1rem;
         color: #ccc;
     }
-
-    .code-example {
-        background-color: #0a0a0a;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        overflow-x: auto;
-    }
-
-    .code-example pre {
-        margin: 0;
-        font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-    }
-
-    .code-example code {
-        color: #fff;
-        font-size: 0.875rem;
-        line-height: 1.6;
-    }
-
-    /* Syntax highlighting */
-    .code-example .keyword {
-        color: #ff79c6;
-    }
-    
-    .code-example .type {
-        color: #8be9fd;
-    }
-    
-    .code-example .string {
-        color: #f1fa8c;
-    }
-    
-    .code-example .comment {
-        color: #6272a4;
-    }
-    
-    .code-example .method {
-        color: #50fa7b;
-    }
-    
-    .code-example .number {
-        color: #bd93f9;
-    }
-
 
     .best-practices {
         list-style: none;

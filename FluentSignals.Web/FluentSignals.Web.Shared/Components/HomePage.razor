@@ -25,57 +25,34 @@
                 Build blazing-fast, type-safe reactive applications with FluentSignals.
             </p>
             <div class="hero-actions">
-                <a href="/quickstart" class="btn-modern primary">
+                <a href="/installation" class="btn-modern primary">
                     Get Started
                     <svg class="btn-icon" viewBox="0 0 20 20" width="16" height="16">
                         <path fill="currentColor" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"/>
                     </svg>
                 </a>
-                <a href="/installation" class="btn-modern secondary">Get Started</a>
+                <a href="/core-concepts/basic-signals" class="btn-modern secondary">Learn More</a>
             </div>
         </div>
     </section>
 
     <section class="features">
         <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <div class="icon-glow"></div>
-                    <span>⚡</span>
-                </div>
-                <h3>Lightning Fast</h3>
-                <p>Optimized for performance with minimal overhead and efficient change propagation.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <div class="icon-glow"></div>
-                    <span>🔄</span>
-                </div>
-                <h3>Truly Reactive</h3>
-                <p>Automatic UI updates when data changes. No manual state management required.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <div class="icon-glow"></div>
-                    <span>🛡️</span>
-                </div>
-                <h3>Type Safe</h3>
-                <p>Full IntelliSense support with compile-time safety. No runtime surprises.</p>
-            </div>
+            <FeatureCard Icon="⚡" 
+                         Title="Lightning Fast" 
+                         Description="Optimized for performance with minimal overhead and efficient change propagation." />
+            <FeatureCard Icon="🔄" 
+                         Title="Truly Reactive" 
+                         Description="Automatic UI updates when data changes. No manual state management required." />
+            <FeatureCard Icon="🛡️" 
+                         Title="Type Safe" 
+                         Description="Full IntelliSense support with compile-time safety. No runtime surprises." />
         </div>
     </section>
 
     <section class="code-demo">
-        <div class="code-wrapper">
-            <div class="code-header">
-                <span class="code-title">Simple & Powerful</span>
-                <div class="code-dots">
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                    <span class="dot"></span>
-                </div>
-            </div>
-            <pre class="code-content"><code><span class="comment">// Create a reactive signal</span>
+        <CodeBlock Title="Simple & Powerful" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Create a reactive signal</span>
 <span class="keyword">var</span> counter = <span class="keyword">new</span> <span class="type">Signal</span>&lt;<span class="type">int</span>&gt;(<span class="number">0</span>);
 
 <span class="comment">// Subscribe to changes</span>
@@ -85,8 +62,8 @@ counter.<span class="method">Subscribe</span>(value =&gt;
 });
 
 <span class="comment">// Update the value</span>
-counter.Value = <span class="number">42</span>; <span class="comment">// Triggers update</span></code></pre>
-        </div>
+counter.Value = <span class="number">42</span>; <span class="comment">// Triggers update</span>
+        </CodeBlock>
     </section>
 
     <section class="get-started">

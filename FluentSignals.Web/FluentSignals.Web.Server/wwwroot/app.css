@@ -77,3 +77,14 @@ html {
     font-size: 0.875rem;
     margin-top: 0.25rem;
 }
+
+/* Global syntax highlighting styles for code blocks */
+.code-content .comment { color: #6272a4; }
+.code-content .keyword { color: #ff79c6; font-weight: 500; }
+.code-content .type { color: #8be9fd; }
+.code-content .method { color: #50fa7b; }
+.code-content .string { color: #f1fa8c; }
+.code-content .number { color: #bd93f9; }
+.code-content .operator { color: #ff79c6; }
+.code-content .class-name { color: #8be9fd; }
+.code-content .namespace { color: #8be9fd; }
