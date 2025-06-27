@@ -1,0 +1,333 @@
+@namespace FluentSignals.Web.Shared.Components
+@rendermode InteractiveWebAssembly
+@inject NavigationManager Navigation
+
+<div class="search-container">
+    <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input type="text" 
+               class="search-input" 
+               placeholder="Search features..." 
+               @bind="searchQuery" 
+               @bind:event="oninput"
+               @onkeyup="HandleKeyUp" />
+        @if (!string.IsNullOrEmpty(searchQuery))
+        {
+            <button class="clear-button" @onclick="ClearSearch" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16">
+                    <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+            </button>
+        }
+    </div>
+    
+    @if (showResults && filteredResults.Any())
+    {
+        <div class="search-results">
+            @foreach (var result in filteredResults)
+            {
+                <a href="@result.Url" class="search-result" @onclick="CloseSearch">
+                    <div class="result-icon">@result.Icon</div>
+                    <div class="result-content">
+                        <div class="result-title">@result.Title</div>
+                        <div class="result-description">@result.Description</div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private string searchQuery = "";
+    private bool showResults = false;
+    private List<SearchItem> filteredResults = new();
+
+    private class SearchItem
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string Url { get; set; } = "";
+        public string Icon { get; set; } = "";
+        public List<string> Tags { get; set; } = new();
+    }
+
+    private readonly List<SearchItem> allItems = new()
+    {
+        // Core Concepts
+        new SearchItem 
+        { 
+            Title = "Basic Signals", 
+            Description = "Learn the fundamentals of reactive state management",
+            Url = "/concepts/basic-signals",
+            Icon = "📡",
+            Tags = new() { "signal", "basic", "state", "reactive", "fundamentals" }
+        },
+        new SearchItem 
+        { 
+            Title = "Typed Signals", 
+            Description = "Type-safe signals with full IntelliSense support",
+            Url = "/concepts/typed-signals",
+            Icon = "🔒",
+            Tags = new() { "typed", "signal", "type-safe", "generic", "intellisense" }
+        },
+        new SearchItem 
+        { 
+            Title = "Computed Signals", 
+            Description = "Derive new signals from existing ones",
+            Url = "/concepts/computed-signals",
+            Icon = "🔄",
+            Tags = new() { "computed", "derived", "reactive", "automatic" }
+        },
+        new SearchItem 
+        { 
+            Title = "Async Signals", 
+            Description = "Handle asynchronous operations with signals",
+            Url = "/concepts/async-signals",
+            Icon = "⚡",
+            Tags = new() { "async", "asynchronous", "loading", "error", "promise" }
+        },
+        
+        // Libraries
+        new SearchItem 
+        { 
+            Title = "HTTP Client", 
+            Description = "Factory-based reactive HTTP client with middleware",
+            Url = "/libraries/http",
+            Icon = "🌐",
+            Tags = new() { "http", "api", "rest", "client", "factory", "middleware" }
+        },
+        new SearchItem 
+        { 
+            Title = "SignalBus", 
+            Description = "Event-driven messaging between signals",
+            Url = "/libraries/signalbus",
+            Icon = "🚌",
+            Tags = new() { "bus", "event", "messaging", "pubsub", "communication" }
+        },
+        new SearchItem 
+        { 
+            Title = "SignalR", 
+            Description = "Real-time signal synchronization across clients",
+            Url = "/libraries/signalr",
+            Icon = "📡",
+            Tags = new() { "signalr", "realtime", "websocket", "sync", "multiplayer" }
+        },
+        new SearchItem 
+        { 
+            Title = "Blazor Components", 
+            Description = "Reactive Blazor components powered by signals",
+            Url = "/libraries/blazor",
+            Icon = "⚡",
+            Tags = new() { "blazor", "components", "ui", "reactive", "forms" }
+        },
+        
+        // Getting Started
+        new SearchItem 
+        { 
+            Title = "Installation", 
+            Description = "Quick start guide to get up and running",
+            Url = "/installation",
+            Icon = "🚀",
+            Tags = new() { "install", "setup", "nuget", "dotnet", "package" }
+        },
+        new SearchItem 
+        { 
+            Title = "Overview", 
+            Description = "Introduction to FluentSignals",
+            Url = "/",
+            Icon = "📚",
+            Tags = new() { "overview", "introduction", "about", "home", "start" }
+        }
+    };
+
+    private void HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            showResults = false;
+            filteredResults.Clear();
+            return;
+        }
+
+        FilterResults();
+        showResults = true;
+
+        if (e.Key == "Enter" && filteredResults.Any())
+        {
+            Navigation.NavigateTo(filteredResults.First().Url);
+            CloseSearch();
+        }
+    }
+
+    private void FilterResults()
+    {
+        var query = searchQuery.ToLower();
+        filteredResults = allItems
+            .Where(item => 
+                item.Title.ToLower().Contains(query) ||
+                item.Description.ToLower().Contains(query) ||
+                item.Tags.Any(tag => tag.ToLower().Contains(query))
+            )
+            .OrderByDescending(item => 
+            {
+                // Prioritize title matches
+                if (item.Title.ToLower().StartsWith(query)) return 3;
+                if (item.Title.ToLower().Contains(query)) return 2;
+                if (item.Tags.Any(tag => tag.ToLower().StartsWith(query))) return 1;
+                return 0;
+            })
+            .Take(8)
+            .ToList();
+    }
+
+    private void ClearSearch()
+    {
+        searchQuery = "";
+        showResults = false;
+        filteredResults.Clear();
+    }
+
+    private void CloseSearch()
+    {
+        showResults = false;
+    }
+}
+
+<style>
+    .search-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        color: rgba(255, 255, 255, 0.4);
+        pointer-events: none;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        color: #fff;
+        font-size: 0.9375rem;
+        transition: all 0.2s;
+    }
+
+    .search-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    }
+
+    .search-input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+    }
+
+    .clear-button {
+        position: absolute;
+        right: 0.75rem;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+    }
+
+    .clear-button:hover {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .search-results {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        left: 0;
+        right: 0;
+        background: rgba(20, 20, 20, 0.98);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .search-result {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+        color: #fff;
+        transition: background 0.2s;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .search-result:last-child {
+        border-bottom: none;
+    }
+
+    .search-result:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .result-icon {
+        font-size: 1.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+    }
+
+    .result-content {
+        flex: 1;
+    }
+
+    .result-title {
+        font-weight: 500;
+        margin-bottom: 0.125rem;
+    }
+
+    .result-description {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Mobile styles */
+    @@media (max-width: 768px) {
+        .search-container {
+            max-width: 100%;
+            padding: 0 1rem;
+        }
+        
+        .search-results {
+            position: fixed;
+            top: 4rem;
+            left: 1rem;
+            right: 1rem;
+            max-height: calc(100vh - 5rem);
+        }
+    }
+</style>

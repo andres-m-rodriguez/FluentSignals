@@ -1,0 +1,295 @@
+@page "/libraries/signalr"
+@namespace FluentSignals.Web.Shared.Features.Libraries
+
+<PageTitle>FluentSignals.SignalR - Coming Soon</PageTitle>
+
+<div class="library-page content-page">
+    <div class="coming-soon-hero">
+        <div class="coming-soon-icon">📡</div>
+        <h1 class="coming-soon-title">FluentSignals.SignalR</h1>
+        <p class="coming-soon-subtitle">Real-time signal synchronization across clients</p>
+        <div class="coming-soon-badge-large">Coming Soon</div>
+    </div>
+
+    <section class="coming-soon-section">
+        <h2>What to Expect</h2>
+        <p>FluentSignals.SignalR will enable real-time synchronization of signals across multiple clients using SignalR.</p>
+        
+        <div class="feature-preview">
+            <h3>Planned Features</h3>
+            <ul class="feature-list">
+                <li>🔄 Real-time signal synchronization</li>
+                <li>👥 Multi-client state management</li>
+                <li>🔐 Secure signal broadcasting</li>
+                <li>📊 Automatic conflict resolution</li>
+                <li>⚡ Low-latency updates</li>
+                <li>🎯 Selective signal sharing</li>
+            </ul>
+        </div>
+
+        <div class="preview-code">
+            <h3>Preview</h3>
+            <pre class="code-preview">
+<span class="comment">// Coming soon...</span>
+<span class="keyword">var</span> sharedSignal = <span class="keyword">new</span> <span class="type">SignalR</span>&lt;<span class="type">GameState</span>&gt;(hubConnection)
+{
+    Room = <span class="string">"game-room-123"</span>,
+    BroadcastChanges = <span class="keyword">true</span>
+};
+
+<span class="comment">// Changes automatically sync to all connected clients</span>
+sharedSignal.Value = <span class="keyword">new</span> <span class="type">GameState</span> { Score = <span class="number">100</span> };
+
+<span class="comment">// Subscribe to remote changes</span>
+sharedSignal.<span class="method">Subscribe</span>(() =&gt; 
+{
+    <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">$"Game state updated: {sharedSignal.Value.Score}"</span>);
+});
+            </pre>
+        </div>
+    </section>
+
+    <section class="coming-soon-section">
+        <h2>Stay Tuned</h2>
+        <p>We're building a seamless integration between FluentSignals and SignalR for real-time applications. Check back soon!</p>
+        
+        <div class="cta-buttons">
+            <a href="https://github.com/andres-m-rodriguez/FluentSignals" class="cta-button">
+                <span>Watch on GitHub</span>
+            </a>
+            <a href="/libraries/http" class="cta-button secondary">
+                <span>Explore HTTP Library</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<style>
+    .coming-soon-hero {
+        text-align: center;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        background: linear-gradient(135deg, rgba(255, 165, 0, 0.05) 0%, transparent 100%);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 165, 0, 0.1);
+    }
+
+    .coming-soon-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .coming-soon-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #999 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .coming-soon-subtitle {
+        font-size: 1.25rem;
+        color: #999;
+        margin-bottom: 1.5rem;
+    }
+
+    .coming-soon-badge-large {
+        display: inline-block;
+        padding: 0.5rem 2rem;
+        background: rgba(255, 165, 0, 0.2);
+        color: #ffa500;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        border-radius: 2rem;
+        border: 2px solid rgba(255, 165, 0, 0.3);
+    }
+
+    .coming-soon-section {
+        margin-bottom: 3rem;
+    }
+
+    .coming-soon-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .coming-soon-section p {
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+        color: #ccc;
+    }
+
+    .feature-preview {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 2rem;
+        margin: 2rem 0;
+    }
+
+    .feature-preview h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+
+    .feature-list li {
+        color: #ccc;
+        padding: 0.5rem 0;
+    }
+
+    .preview-code {
+        margin: 2rem 0;
+    }
+
+    .preview-code h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .code-preview {
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        overflow-x: auto;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .cta-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 0.5rem;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .cta-button:hover {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .cta-button.secondary {
+        background: transparent;
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .cta-button.secondary:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .comment { color: #6A9955; }
+    .keyword { color: #569CD6; }
+    .type { color: #4EC9B0; }
+    .method { color: #DCDCAA; }
+    .string { color: #CE9178; }
+    .number { color: #B5CEA8; }
+
+    /* Responsive styles */
+    @@media (max-width: 768px) {
+        .library-page {
+            padding: 0 0.75rem;
+        }
+
+        .coming-soon-hero {
+            padding: 2.5rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .coming-soon-icon {
+            font-size: 3rem;
+        }
+
+        .coming-soon-title {
+            font-size: 2rem;
+        }
+
+        .coming-soon-subtitle {
+            font-size: 1rem;
+        }
+
+        .coming-soon-badge-large {
+            font-size: 0.875rem;
+            padding: 0.4rem 1.5rem;
+        }
+
+        .coming-soon-section {
+            margin-bottom: 2rem;
+        }
+
+        .coming-soon-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .feature-preview {
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-preview h3 {
+            font-size: 1.125rem;
+        }
+
+        .feature-list {
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .feature-list li {
+            font-size: 0.875rem;
+            padding: 0.4rem 0;
+        }
+
+        .preview-code h3 {
+            font-size: 1.125rem;
+        }
+
+        .code-preview {
+            padding: 1rem;
+            font-size: 0.75rem;
+            margin: 0 -0.75rem;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .cta-button {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+        }
+    }
+</style>

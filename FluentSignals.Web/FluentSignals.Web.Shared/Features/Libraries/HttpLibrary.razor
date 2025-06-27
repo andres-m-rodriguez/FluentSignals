@@ -286,6 +286,7 @@ mockHandler.<span class="method">SetupResponse</span>(
     .library-page {
         max-width: 900px;
         margin: 0 auto;
+        padding: 0 1rem;
         color: #e0e0e0;
     }
 
@@ -435,5 +436,82 @@ mockHandler.<span class="method">SetupResponse</span>(
 
     .next-text {
         font-weight: 500;
+    }
+
+    /* Responsive styles */
+    @@media (max-width: 768px) {
+        .library-page {
+            padding: 0 0.75rem;
+        }
+
+        .library-hero {
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .library-title {
+            font-size: 2rem;
+        }
+
+        .library-subtitle {
+            font-size: 1rem;
+        }
+
+        .library-badges {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+        }
+
+        .library-section {
+            margin-bottom: 2rem;
+        }
+
+        .library-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .library-section h3 {
+            font-size: 1.125rem;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .feature-item {
+            padding: 1.25rem;
+        }
+
+        .feature-item h3 {
+            font-size: 1rem;
+        }
+
+        .best-practices li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .next-steps {
+            grid-template-columns: 1fr;
+        }
+
+        .next-link {
+            padding: 1.25rem;
+        }
+
+        /* Adjust code blocks on mobile */
+        ::deep .code-wrapper {
+            margin: 0 -0.75rem;
+        }
+
+        ::deep .code-content {
+            font-size: 0.75rem;
+        }
     }
 </style>

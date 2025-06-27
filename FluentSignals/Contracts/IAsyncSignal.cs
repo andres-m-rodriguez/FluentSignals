@@ -4,14 +4,11 @@ public interface IAsyncSignal : ISignal
 {
     ISignal<bool> IsLoading { get; }
     ISignal<Exception?> Error { get; }
-
-    Task RunAsync(Func<Task> action);
 }
 
-public interface IAsyncSignal<T> : ISignal<T>
+public interface IAsyncSignal<T> : ISignal
 {
     ISignal<bool> IsLoading { get; }
     ISignal<Exception?> Error { get; }
-
-    Task LoadAsync(Func<Task<T>> loader);
+    ISignal<T> SignalValue { get; } 
 }

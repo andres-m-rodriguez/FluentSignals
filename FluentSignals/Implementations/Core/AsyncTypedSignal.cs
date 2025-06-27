@@ -21,6 +21,8 @@ public class AsyncTypedSignal<T> : TypedSignal<T>, IAsyncSignal<T>, ICompositeSi
     public ISignal<bool> IsLoading { get; } = new TypedSignal<bool>(false);
     public ISignal<Exception?> Error { get; } = new TypedSignal<Exception?>(default);
 
+    public ISignal<T> SignalValue { get;  }
+
     public async Task LoadAsync(Func<Task<T>> loader)
     {
         IsLoading.Value = true;

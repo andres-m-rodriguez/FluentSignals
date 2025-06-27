@@ -13,6 +13,13 @@ public class Signal : ISignal
         return subscription;
     }
 
+    public ISignalSubscriptionContract Subscribe(Action action)
+    {
+        var subscription = new SignalSubscription(Guid.NewGuid(), action);
+        Subscribers.Add(subscription);
+        return subscription;
+    }
+
     public void Unsubscribe(Guid subscriptionId)
     {
         var subscriber = Subscribers.FirstOrDefault(s => s.SubscriptionId == subscriptionId);
