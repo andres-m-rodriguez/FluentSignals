@@ -1,0 +1,439 @@
+@page "/libraries/http"
+@namespace FluentSignals.Web.Shared.Features.Libraries
+@using FluentSignals.Web.Shared.Common.Components
+
+<PageTitle>FluentSignals.Http - Reactive HTTP Client</PageTitle>
+
+<div class="library-page content-page">
+    <div class="library-hero">
+        <h1 class="library-title">FluentSignals.Http</h1>
+        <p class="library-subtitle">Factory-based reactive HTTP client with middleware pipeline and signal integration</p>
+        <div class="library-badges">
+            <span class="badge">Factory Pattern</span>
+            <span class="badge">Middleware</span>
+            <span class="badge">Reactive Signals</span>
+            <span class="badge">DI Ready</span>
+        </div>
+    </div>
+
+    <section class="library-section">
+        <h2>Installation</h2>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CLI">
+<span class="command">dotnet</span> <span class="arg">add</span> <span class="arg">package</span> <span class="flag">FluentSignals.Http</span>
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Quick Start</h2>
+        <p>FluentSignals.Http provides a reactive wrapper around HttpClient with powerful features:</p>
+        
+        <CodeBlock Title="Basic Usage" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Define your model</span>
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">User</span>
+{
+    <span class="keyword">public</span> <span class="type">int</span> Id { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">string</span> Name { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">string</span> Email { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+}
+
+<span class="comment">// Create an HTTP resource using the factory</span>
+<span class="keyword">var</span> factory = serviceProvider.<span class="method">GetRequiredService</span>&lt;<span class="type">HttpResourceFactory</span>&gt;();
+<span class="keyword">var</span> userResource = factory.<span class="method">Create</span>&lt;<span class="type">User</span>&gt;(<span class="string">"https://api.example.com/users"</span>);
+
+<span class="comment">// Load data reactively</span>
+<span class="keyword">await</span> userResource.<span class="method">LoadData</span>();
+
+<span class="comment">// Access reactive signals</span>
+<span class="keyword">var</span> userData = userResource.SignalValue.Value;
+<span class="keyword">var</span> isLoading = userResource.IsLoading.Value;
+<span class="keyword">var</span> error = userResource.Error.Value;
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Key Features</h2>
+        
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h3>🏭 Factory Pattern</h3>
+                <p>Create HTTP resources using HttpResourceFactory for consistent configuration.</p>
+            </div>
+            <div class="feature-item">
+                <h3>📡 Reactive Signals</h3>
+                <p>Built-in reactive signals for loading state, errors, and data availability.</p>
+            </div>
+            <div class="feature-item">
+                <h3>🔧 Middleware Pipeline</h3>
+                <p>Extensible middleware system for request/response processing.</p>
+            </div>
+            <div class="feature-item">
+                <h3>💉 DI Integration</h3>
+                <p>Full dependency injection support with automatic HttpClient resolution.</p>
+            </div>
+            <div class="feature-item">
+                <h3>⚙️ Flexible Configuration</h3>
+                <p>Configure HttpClient preferences and fallback strategies.</p>
+            </div>
+            <div class="feature-item">
+                <h3>🔄 Async Support</h3>
+                <p>Fully async operations with cancellation token support.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="library-section">
+        <h2>Advanced Usage</h2>
+        
+        <h3>Using Middleware</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Create resource with middleware pipeline</span>
+<span class="keyword">var</span> userResource = factory.<span class="method">Create</span>&lt;<span class="type">User</span>&gt;(<span class="string">"https://api.example.com/users"</span>)
+    .<span class="method">Use</span>(<span class="keyword">next</span> =&gt; <span class="keyword">async</span> (request, cancellationToken) =&gt;
+    {
+        <span class="comment">// Add authentication header</span>
+        request.Headers.Authorization = 
+            <span class="keyword">new</span> <span class="type">AuthenticationHeaderValue</span>(<span class="string">"Bearer"</span>, token);
+        
+        <span class="keyword">return</span> <span class="keyword">await</span> <span class="method">next</span>(request, cancellationToken);
+    })
+    .<span class="method">Use</span>&lt;<span class="type">LoggingMiddleware</span>&gt;()
+    .<span class="method">Use</span>&lt;<span class="type">RetryMiddleware</span>&gt;();
+        </CodeBlock>
+
+        <h3>Reactive State Management</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Subscribe to reactive signals</span>
+userResource.SignalValue.<span class="method">Subscribe</span>(() =&gt; 
+{
+    <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">"Data updated!"</span>);
+});
+
+userResource.IsLoading.<span class="method">Subscribe</span>(() =&gt; 
+{
+    <span class="keyword">if</span> (userResource.IsLoading.Value)
+        ShowLoadingSpinner();
+    <span class="keyword">else</span>
+        HideLoadingSpinner();
+});
+
+userResource.Error.<span class="method">Subscribe</span>(() =&gt; 
+{
+    <span class="keyword">if</span> (userResource.Error.Value != <span class="keyword">null</span>)
+        ShowErrorMessage(userResource.Error.Value.Message);
+});
+        </CodeBlock>
+
+        <h3>Custom Request Builders</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Create resource with custom request builder</span>
+<span class="keyword">var</span> customResource = factory.<span class="method">Create</span>&lt;<span class="type">User</span>&gt;(() =&gt;
+{
+    <span class="keyword">var</span> request = <span class="keyword">new</span> <span class="type">HttpRequestMessage</span>(<span class="type">HttpMethod</span>.Post, <span class="string">"api/users"</span>);
+    request.Headers.Add(<span class="string">"X-Custom-Header"</span>, <span class="string">"value"</span>);
+    request.Content = <span class="keyword">new</span> <span class="type">StringContent</span>(
+        <span class="type">JsonSerializer</span>.<span class="method">Serialize</span>(userData),
+        <span class="type">Encoding</span>.UTF8,
+        <span class="string">"application/json"</span>
+    );
+    <span class="keyword">return</span> request;
+});
+
+<span class="keyword">await</span> customResource.<span class="method">LoadData</span>();
+        </CodeBlock>
+
+        <h3>Creating Custom Middleware</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Implement custom middleware</span>
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">TimingMiddleware</span> : <span class="type">IHttpResourceMiddleware</span>
+{
+    <span class="keyword">public</span> <span class="keyword">async</span> <span class="type">Task</span>&lt;<span class="type">HttpResponseMessage</span>&gt; <span class="method">InvokeAsync</span>(
+        <span class="type">HttpRequestMessage</span> request, 
+        <span class="type">HttpResourceHandler</span> next,
+        <span class="type">CancellationToken</span> cancellationToken)
+    {
+        <span class="keyword">var</span> stopwatch = <span class="type">Stopwatch</span>.<span class="method">StartNew</span>();
+        
+        <span class="keyword">try</span>
+        {
+            <span class="keyword">var</span> response = <span class="keyword">await</span> <span class="method">next</span>(request, cancellationToken);
+            <span class="type">Console</span>.<span class="method">WriteLine</span>(<span class="string">$"Request took {stopwatch.ElapsedMilliseconds}ms"</span>);
+            <span class="keyword">return</span> response;
+        }
+        <span class="keyword">finally</span>
+        {
+            stopwatch.Stop();
+        }
+    }
+}
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Dependency Injection</h2>
+        <CodeBlock Title="Program.cs" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Register HttpResourceFactory with configuration</span>
+builder.Services.<span class="method">AddHttpResourceFactory</span>(options =&gt;
+{
+    options.HttpClientPreference = <span class="type">HttpClientPreference</span>.HttpFactory;
+});
+
+<span class="comment">// Register HttpClient or IHttpClientFactory</span>
+builder.Services.<span class="method">AddHttpClient</span>();
+
+<span class="comment">// Register custom middleware</span>
+builder.Services.<span class="method">AddScoped</span>&lt;<span class="type">LoggingMiddleware</span>&gt;();
+builder.Services.<span class="method">AddScoped</span>&lt;<span class="type">RetryMiddleware</span>&gt;();
+builder.Services.<span class="method">AddScoped</span>&lt;<span class="type">TimingMiddleware</span>&gt;();
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Error Handling</h2>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Error handling with reactive signals</span>
+<span class="keyword">var</span> userResource = factory.<span class="method">Create</span>&lt;<span class="type">User</span>&gt;(<span class="string">"api/users/1"</span>);
+
+<span class="comment">// Subscribe to error signal</span>
+userResource.Error.<span class="method">Subscribe</span>(() =&gt;
+{
+    <span class="keyword">var</span> error = userResource.Error.Value;
+    <span class="keyword">if</span> (error != <span class="keyword">null</span>)
+    {
+        <span class="keyword">if</span> (error <span class="keyword">is</span> <span class="type">HttpRequestException</span> httpError)
+        {
+            <span class="comment">// Handle HTTP errors</span>
+            logger.<span class="method">LogError</span>(httpError, <span class="string">"HTTP request failed"</span>);
+        }
+        <span class="keyword">else</span>
+        {
+            <span class="comment">// Handle other errors</span>
+            logger.<span class="method">LogError</span>(error, <span class="string">"Unexpected error"</span>);
+        }
+    }
+});
+
+<span class="keyword">await</span> userResource.<span class="method">LoadData</span>();
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Testing</h2>
+        <p>FluentSignals.Http includes testing utilities for easy mocking:</p>
+        
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Testing with mock HttpClient</span>
+<span class="keyword">var</span> mockHandler = <span class="keyword">new</span> <span class="type">MockHttpMessageHandler</span>();
+mockHandler.<span class="method">SetupResponse</span>(
+    <span class="string">"https://api.example.com/users"</span>,
+    <span class="keyword">new</span> <span class="type">HttpResponseMessage</span>
+    {
+        StatusCode = <span class="type">HttpStatusCode</span>.OK,
+        Content = <span class="keyword">new</span> <span class="type">StringContent</span>(<span class="type">JsonSerializer</span>.<span class="method">Serialize</span>(testUser))
+    }
+);
+
+<span class="keyword">var</span> httpClient = <span class="keyword">new</span> <span class="type">HttpClient</span>(mockHandler);
+<span class="keyword">var</span> factory = <span class="keyword">new</span> <span class="type">HttpResourceFactory</span>(serviceProvider, options);
+<span class="keyword">var</span> resource = factory.<span class="method">Create</span>&lt;<span class="type">User</span>&gt;(<span class="string">"https://api.example.com/users"</span>);
+
+<span class="keyword">await</span> resource.<span class="method">LoadData</span>();
+<span class="type">Assert</span>.<span class="method">NotNull</span>(resource.SignalValue.Value);
+<span class="type">Assert</span>.<span class="method">False</span>(resource.IsLoading.Value);
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Best Practices</h2>
+        <ul class="best-practices">
+            <li>
+                <strong>Use the factory pattern</strong> - Always create resources via <code>HttpResourceFactory</code>
+            </li>
+            <li>
+                <strong>Subscribe to signals</strong> - Leverage reactive signals for state management
+            </li>
+            <li>
+                <strong>Configure middleware</strong> - Use middleware for cross-cutting concerns
+            </li>
+            <li>
+                <strong>Handle cancellation</strong> - Pass cancellation tokens to <code>LoadData</code>
+            </li>
+            <li>
+                <strong>Dispose subscriptions</strong> - Clean up signal subscriptions when done
+            </li>
+        </ul>
+    </section>
+
+    <section class="library-section">
+        <h2>Learn More</h2>
+        <div class="next-steps">
+            <a href="https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.Http" class="next-link">
+                <span class="next-icon">📚</span>
+                <span class="next-text">GitHub Repository</span>
+            </a>
+            <a href="/concepts/basic-signals" class="next-link">
+                <span class="next-icon">🔗</span>
+                <span class="next-text">Learn Signals</span>
+            </a>
+            <a href="/libraries/signalbus" class="next-link">
+                <span class="next-icon">🚌</span>
+                <span class="next-text">SignalBus Library</span>
+            </a>
+        </div>
+    </section>
+</div>
+
+<style>
+    .library-page {
+        max-width: 900px;
+        margin: 0 auto;
+        color: #e0e0e0;
+    }
+
+    .library-hero {
+        text-align: center;
+        padding: 3rem 0;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .library-title {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, #fff 0%, #999 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .library-subtitle {
+        font-size: 1.25rem;
+        color: #999;
+        margin-bottom: 1.5rem;
+    }
+
+    .library-badges {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        color: #ccc;
+    }
+
+    .library-section {
+        margin-bottom: 3rem;
+    }
+
+    .library-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .library-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: #fff;
+    }
+
+    .library-section p {
+        line-height: 1.7;
+        margin-bottom: 1rem;
+        color: #ccc;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .feature-item {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+    }
+
+    .feature-item h3 {
+        font-size: 1.125rem;
+        margin: 0 0 0.5rem;
+        color: #fff;
+    }
+
+    .feature-item p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #999;
+    }
+
+    .best-practices {
+        list-style: none;
+        padding: 0;
+    }
+
+    .best-practices li {
+        padding: 0.75rem 0;
+        padding-left: 2rem;
+        position: relative;
+        color: #ccc;
+    }
+
+    .best-practices li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+    }
+
+    .best-practices strong {
+        color: #fff;
+    }
+
+    .next-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .next-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.5rem;
+        text-decoration: none;
+        color: #fff;
+        transition: all 0.2s;
+    }
+
+    .next-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .next-icon {
+        font-size: 2rem;
+    }
+
+    .next-text {
+        font-weight: 500;
+    }
+</style>
