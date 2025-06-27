@@ -28,16 +28,15 @@ public class ResourceSignalR<T> : ResourceSignal<T>, IAsyncDisposable
         string methodName,
         Func<CancellationToken, Task<T>>? fetcher = null,
         Action<IHubConnectionBuilder>? configureConnection = null,
-        ILogger<ResourceSignalR<T>>? logger = null)
+        ILogger<ResourceSignalR<T>>? logger = null
+    )
         : base(fetcher)
     {
         _methodName = methodName;
         _logger = logger;
 
         // Build the hub connection
-        var builder = new HubConnectionBuilder()
-            .WithUrl(hubUrl)
-            .WithAutomaticReconnect();
+        var builder = new HubConnectionBuilder().WithUrl(hubUrl).WithAutomaticReconnect();
 
         // Apply custom configuration
         configureConnection?.Invoke(builder);
@@ -61,7 +60,8 @@ public class ResourceSignalR<T> : ResourceSignal<T>, IAsyncDisposable
         HubConnection hubConnection,
         string methodName,
         Func<CancellationToken, Task<T>>? fetcher = null,
-        ILogger<ResourceSignalR<T>>? logger = null)
+        ILogger<ResourceSignalR<T>>? logger = null
+    )
         : base(fetcher)
     {
         _hubConnection = hubConnection ?? throw new ArgumentNullException(nameof(hubConnection));
@@ -91,12 +91,18 @@ public class ResourceSignalR<T> : ResourceSignal<T>, IAsyncDisposable
             // Subscribe to the SignalR method
             if (!string.IsNullOrEmpty(_methodName))
             {
-                _signalRSubscription = _hubConnection.On<T>(_methodName, data =>
-                {
-                    _logger?.LogDebug("Received SignalR update for method {MethodName}", _methodName);
-                    SetData(data);
-                    SetMetadata("lastSignalRUpdate", DateTime.UtcNow);
-                });
+                _signalRSubscription = _hubConnection.On<T>(
+                    _methodName,
+                    data =>
+                    {
+                        _logger?.LogDebug(
+                            "Received SignalR update for method {MethodName}",
+                            _methodName
+                        );
+                        SetData(data);
+                        SetMetadata("lastSignalRUpdate", DateTime.UtcNow);
+                    }
+                );
             }
 
             SetMetadata("connectionState", "connected");
@@ -172,7 +178,8 @@ public class ResourceSignalR<T> : ResourceSignal<T>, IAsyncDisposable
     /// <summary>
     /// Gets the current SignalR connection state
     /// </summary>
-    public HubConnectionState ConnectionState => _hubConnection?.State ?? HubConnectionState.Disconnected;
+    public HubConnectionState ConnectionState =>
+        _hubConnection?.State ?? HubConnectionState.Disconnected;
 
     /// <summary>
     /// Gets whether the SignalR connection is active
@@ -189,7 +196,10 @@ public class ResourceSignalR<T> : ResourceSignal<T>, IAsyncDisposable
 
     private Task OnReconnected(string? connectionId)
     {
-        _logger?.LogInformation("SignalR connection restored with ID: {ConnectionId}", connectionId);
+        _logger?.LogInformation(
+            "SignalR connection restored with ID: {ConnectionId}",
+            connectionId
+        );
         SetMetadata("connectionState", "connected");
         SetMetadata("reconnectedAt", DateTime.UtcNow);
         SetMetadata("connectionId", connectionId ?? "");
@@ -207,7 +217,7 @@ public class ResourceSignalR<T> : ResourceSignal<T>, IAsyncDisposable
         {
             _logger?.LogInformation("SignalR connection closed");
         }
-        
+
         SetMetadata("connectionState", "disconnected");
         SetMetadata("disconnectedAt", DateTime.UtcNow);
         return Task.CompletedTask;
