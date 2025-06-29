@@ -11,7 +11,6 @@
     <Description>HTTP client extensions for FluentSignals including reactive HTTP resources, typed API clients, interceptors, caching, and advanced features for building robust HTTP integrations.</Description>
     <PackageTags>fluentsignals;http;api-client;typed-resources;interceptors;caching;reactive</PackageTags>
     <PackageReleaseNotes>Initial release of FluentSignals.Http - HTTP client extensions extracted from FluentSignals core library.</PackageReleaseNotes>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
