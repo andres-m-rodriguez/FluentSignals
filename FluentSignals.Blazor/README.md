@@ -39,7 +39,209 @@ builder.Services.AddFluentSignalsBlazorWithSignalBus();
 
 ### HttpResourceView
 
-A component for displaying HTTP resources with built-in loading, error, and success states. The component exposes a `Resource` property that provides access to the underlying `HttpResource` for advanced scenarios like custom event handling and manual refresh.
+A component for displaying HTTP resources with built-in loading, error, and success states. Supports dynamic request building with signal subscriptions for automatic data reloading when signals change.
+
+#### Basic Usage
+
+```razor
+<!-- Simple URL-based resource -->
+<HttpResourceView T="WeatherData" Url="/api/weather">
+    <Success>
+        <WeatherDisplay Data="@context" />
+    </Success>
+</HttpResourceView>
+
+<!-- With custom loading and error states -->
+<HttpResourceView T="User[]" Url="/api/users" @ref="userView">
+    <Loading>
+        <div class="skeleton-loader">Loading users...</div>
+    </Loading>
+    <ErrorContent>
+        <div class="error-panel">
+            <p>Failed to load users: @context.Message</p>
+        </div>
+    </ErrorContent>
+    <Success>
+        @foreach (var user in context)
+        {
+            <UserCard User="@user" />
+        }
+    </Success>
+</HttpResourceView>
+```
+
+#### Dynamic Requests with Signal Subscriptions
+
+```razor
+@code {
+    private TypedSignal<string> searchTerm = new("");
+    private TypedSignal<int> currentPage = new(1);
+    private TypedSignal<string> sortBy = new("name");
+}
+
+<!-- Automatically reload when signals change -->
+<HttpResourceView T="PagedResult<Product>" 
+    DynamicRequestBuilder="@BuildProductRequest"
+    SubscribeToSignals="@(new ISignal[] { searchTerm, currentPage, sortBy })">
+    <Success>
+        <ProductGrid Products="@context.Items" />
+        <Pagination TotalPages="@context.TotalPages" 
+                    CurrentPage="@currentPage.Value"
+                    OnPageChange="@(page => currentPage.Value = page)" />
+    </Success>
+</HttpResourceView>
+
+@code {
+    private HttpRequestMessage BuildProductRequest()
+    {
+        var url = $"/api/products?search={searchTerm.Value}&page={currentPage.Value}&sort={sortBy.Value}";
+        return new HttpRequestMessage(HttpMethod.Get, url);
+    }
+}
+```
+
+#### Parameters
+
+- `Url` - The URL to fetch data from (simple GET requests)
+- `RequestBuilder` - Function that builds the HTTP request
+- `DynamicRequestBuilder` - Function that builds requests using current signal values
+- `SubscribeToSignals` - Array of signals to subscribe to for automatic reloading
+- `LoadOnInit` - Whether to load data on component initialization (default: true)
+- `ShowRetryButton` - Show retry button on errors (default: true)
+- `Loading` - Custom loading content
+- `Success` - Content to display when data is loaded
+- `Empty` - Content to display when no data is available
+- `ErrorContent` - Custom error content
+- `OnDataLoaded` - Callback when data is successfully loaded
+- `OnError` - Callback when an error occurs
+- `OnResourceCreated` - Callback when the resource is created
+
+#### Methods
+
+- `RefreshAsync()` - Manually refresh the data
+- `GetResource()` - Get access to the underlying HttpResource
+
+#### Real-World Examples
+
+##### Search with Pagination
+
+```razor
+@code {
+    private TypedSignal<string> searchTerm = new("");
+    private TypedSignal<int> currentPage = new(1);
+    private TypedSignal<int> pageSize = new(20);
+}
+
+<!-- Search bar is completely outside the component -->
+<input type="text" @bind="searchTerm.Value" @bind:event="oninput" 
+       placeholder="Search..." class="form-control mb-3" />
+
+<HttpResourceView T="PagedResult<Product>" 
+    DynamicRequestBuilder="@(() => new HttpRequestMessage(HttpMethod.Get, 
+        $"/api/products?q={searchTerm.Value}&page={currentPage.Value}&size={pageSize.Value}"))"
+    SubscribeToSignals="@(new[] { searchTerm, currentPage, pageSize })">
+    <Success>
+        <!-- Custom rendering of results -->
+        @foreach (var product in context.Items)
+        {
+            <ProductCard Item="@product" />
+        }
+        
+        <!-- Custom pagination controls -->
+        <Pagination CurrentPage="@currentPage.Value"
+                    TotalPages="@context.TotalPages"
+                    OnPageChange="@(page => currentPage.Value = page)" />
+    </Success>
+</HttpResourceView>
+```
+
+##### Cursor-Based Pagination (Infinite Scroll)
+
+```razor
+@code {
+    private TypedSignal<string?> nextCursor = new(null);
+    private List<Post> allPosts = new();
+}
+
+<HttpResourceView T="CursorResult<Post>" 
+    DynamicRequestBuilder="@(() => new HttpRequestMessage(HttpMethod.Get, 
+        $"/api/posts?cursor={nextCursor.Value ?? ""}"))"
+    SubscribeToSignals="@(new[] { nextCursor })"
+    OnDataLoaded="@(result => { allPosts.AddRange(result.Items); })">
+    <Success>
+        <div class="posts-container">
+            @foreach (var post in allPosts)
+            {
+                <PostItem Data="@post" />
+            }
+            
+            @if (context.HasMore)
+            {
+                <button @onclick="() => nextCursor.Value = context.NextCursor">
+                    Load More
+                </button>
+            }
+        </div>
+    </Success>
+</HttpResourceView>
+```
+
+##### Advanced Filtering with POST Requests
+
+```razor
+@code {
+    private TypedSignal<string> category = new("");
+    private TypedSignal<decimal?> minPrice = new(null);
+    private TypedSignal<decimal?> maxPrice = new(null);
+    private TypedSignal<bool> inStock = new(false);
+    
+    private HttpRequestMessage BuildFilterRequest()
+    {
+        var filters = new {
+            Category = category.Value,
+            PriceRange = new { Min = minPrice.Value, Max = maxPrice.Value },
+            InStockOnly = inStock.Value
+        };
+        
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/products/search");
+        request.Content = JsonContent.Create(filters);
+        return request;
+    }
+}
+
+<!-- Filter controls are separate from the component -->
+<div class="filters">
+    <select @bind="category.Value">
+        <option value="">All Categories</option>
+        <option value="electronics">Electronics</option>
+        <option value="clothing">Clothing</option>
+    </select>
+    
+    <input type="number" @bind="minPrice.Value" placeholder="Min Price" />
+    <input type="number" @bind="maxPrice.Value" placeholder="Max Price" />
+    
+    <label>
+        <input type="checkbox" @bind="inStock.Value" />
+        In Stock Only
+    </label>
+</div>
+
+<HttpResourceView T="SearchResult<Product>" 
+    DynamicRequestBuilder="@BuildFilterRequest"
+    SubscribeToSignals="@(new[] { category, minPrice, maxPrice, inStock })">
+    <Success>
+        <ProductResults Results="@context" />
+    </Success>
+</HttpResourceView>
+```
+
+The key advantage is that the HttpResourceView component doesn't care about how you build your UI or structure your requests. It simply:
+1. Watches the signals you tell it to watch
+2. Rebuilds the request using your custom function when any signal changes
+3. Automatically fetches the data
+4. Provides the results to your custom content
+
+This separation allows complete flexibility in UI design while maintaining reactive data fetching.
 
 ### ResourceSignalView
 

@@ -1,0 +1,362 @@
+@page "/examples/search-pagination"
+@using FluentSignals.Blazor.Components
+@using FluentSignals.Contracts
+@using FluentSignals.Implementations.Core
+@using System.Net.Http.Json
+
+<h3>Search and Pagination Example</h3>
+
+@* Example 1: Standard Pagination with Search *@
+<div class="example-section">
+    <h4>Standard Pagination</h4>
+    
+    @* Search controls are outside the component - fully customizable *@
+    <div class="search-controls mb-3">
+        <input type="text" @bind="searchTerm.Value" @bind:event="oninput" 
+               placeholder="Search products..." class="form-control mb-2" />
+        
+        <select @bind="pageSize.Value" class="form-select mb-2">
+            <option value="10">10 per page</option>
+            <option value="20">20 per page</option>
+            <option value="50">50 per page</option>
+        </select>
+        
+        <select @bind="sortBy.Value" class="form-select">
+            <option value="name">Sort by Name</option>
+            <option value="price">Sort by Price</option>
+            <option value="date">Sort by Date</option>
+        </select>
+    </div>
+
+    <HttpResourceView T="PagedResult<Product>" 
+        DynamicRequestBuilder="@BuildPagedRequest"
+        SubscribeToSignals="@(new ISignal[] { searchTerm, currentPage, pageSize, sortBy })">
+        <Success>
+            @* The component content is fully customizable *@
+            <div class="results">
+                @foreach (var product in context.Items)
+                {
+                    <div class="product-card">
+                        <h5>@product.Name</h5>
+                        <p>@product.Price.ToString("C")</p>
+                    </div>
+                }
+            </div>
+            
+            @* Custom pagination controls *@
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <li class="page-item @(currentPage.Value <= 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => currentPage.Value--">Previous</button>
+                    </li>
+                    
+                    @for (int i = 1; i <= context.TotalPages; i++)
+                    {
+                        var pageNum = i;
+                        <li class="page-item @(currentPage.Value == pageNum ? "active" : "")">
+                            <button class="page-link" @onclick="() => currentPage.Value = pageNum">@pageNum</button>
+                        </li>
+                    }
+                    
+                    <li class="page-item @(currentPage.Value >= context.TotalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => currentPage.Value++">Next</button>
+                    </li>
+                </ul>
+            </nav>
+            
+            <p class="text-muted">
+                Showing @((currentPage.Value - 1) * pageSize.Value + 1) to 
+                @Math.Min(currentPage.Value * pageSize.Value, context.TotalCount) of 
+                @context.TotalCount results
+            </p>
+        </Success>
+        <Loading>
+            <div class="text-center p-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Searching...</span>
+                </div>
+            </div>
+        </Loading>
+    </HttpResourceView>
+</div>
+
+@* Example 2: Cursor-based Pagination *@
+<div class="example-section mt-5">
+    <h4>Cursor-based Pagination (Infinite Scroll)</h4>
+    
+    <div class="search-controls mb-3">
+        <input type="text" @bind="cursorSearchTerm.Value" @bind:event="oninput" 
+               placeholder="Search users..." class="form-control" />
+    </div>
+
+    <HttpResourceView T="CursorResult<User>" 
+        DynamicRequestBuilder="@BuildCursorRequest"
+        SubscribeToSignals="@(new ISignal[] { cursorSearchTerm, nextCursor })"
+        @ref="cursorResourceView">
+        <Success>
+            <div class="user-list" @onscroll="@HandleScroll">
+                @foreach (var user in allUsers)
+                {
+                    <div class="user-item">
+                        <img src="@user.Avatar" alt="@user.Name" />
+                        <div>
+                            <h6>@user.Name</h6>
+                            <p>@user.Email</p>
+                        </div>
+                    </div>
+                }
+                
+                @if (context.HasMore)
+                {
+                    <button class="btn btn-primary w-100" @onclick="LoadMore">
+                        Load More
+                    </button>
+                }
+            </div>
+        </Success>
+    </HttpResourceView>
+</div>
+
+@* Example 3: Custom Filter Builder *@
+<div class="example-section mt-5">
+    <h4>Advanced Filtering</h4>
+    
+    <div class="filter-builder mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" @bind="advancedSearch.Value" 
+                       placeholder="Search..." class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <select @bind="category.Value" class="form-select">
+                    <option value="">All Categories</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="books">Books</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" @bind="minPrice.Value" 
+                       placeholder="Min Price" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <input type="number" @bind="maxPrice.Value" 
+                       placeholder="Max Price" class="form-control" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-check">
+                    <input type="checkbox" @bind="inStockOnly.Value" class="form-check-input" />
+                    In Stock
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <HttpResourceView T="FilteredResult<Product>" 
+        DynamicRequestBuilder="@BuildAdvancedFilterRequest"
+        SubscribeToSignals="@(new ISignal[] { advancedSearch, category, minPrice, maxPrice, inStockOnly })">
+        <Success>
+            <div class="filtered-results">
+                <p class="mb-3">Found @context.TotalCount products matching your criteria</p>
+                
+                @foreach (var product in context.Items)
+                {
+                    <div class="product-item">
+                        <h5>@product.Name</h5>
+                        <p>Category: @product.Category</p>
+                        <p>Price: @product.Price.ToString("C")</p>
+                        <p>Stock: @product.StockCount</p>
+                    </div>
+                }
+            </div>
+        </Success>
+    </HttpResourceView>
+</div>
+
+@code {
+    // Standard pagination signals
+    private TypedSignal<string> searchTerm = new("");
+    private TypedSignal<int> currentPage = new(1);
+    private TypedSignal<int> pageSize = new(10);
+    private TypedSignal<string> sortBy = new("name");
+
+    // Cursor pagination signals
+    private TypedSignal<string> cursorSearchTerm = new("");
+    private TypedSignal<string?> nextCursor = new(null);
+    private List<User> allUsers = new();
+    private HttpResourceView<CursorResult<User>>? cursorResourceView;
+
+    // Advanced filtering signals
+    private TypedSignal<string> advancedSearch = new("");
+    private TypedSignal<string> category = new("");
+    private TypedSignal<decimal?> minPrice = new(null);
+    private TypedSignal<decimal?> maxPrice = new(null);
+    private TypedSignal<bool> inStockOnly = new(false);
+
+    // Request builders
+    private HttpRequestMessage BuildPagedRequest()
+    {
+        // Reset to page 1 when search term changes
+        if (searchTerm.Value != lastSearchTerm)
+        {
+            currentPage.Value = 1;
+            lastSearchTerm = searchTerm.Value;
+        }
+
+        var query = new Dictionary<string, string>
+        {
+            ["search"] = searchTerm.Value,
+            ["page"] = currentPage.Value.ToString(),
+            ["pageSize"] = pageSize.Value.ToString(),
+            ["sortBy"] = sortBy.Value
+        };
+
+        var queryString = string.Join("&", query.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+        return new HttpRequestMessage(HttpMethod.Get, $"/api/products?{queryString}");
+    }
+
+    private HttpRequestMessage BuildCursorRequest()
+    {
+        var query = new Dictionary<string, string>
+        {
+            ["search"] = cursorSearchTerm.Value
+        };
+
+        if (!string.IsNullOrEmpty(nextCursor.Value))
+        {
+            query["cursor"] = nextCursor.Value;
+        }
+
+        var queryString = string.Join("&", query.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+        return new HttpRequestMessage(HttpMethod.Get, $"/api/users?{queryString}");
+    }
+
+    private HttpRequestMessage BuildAdvancedFilterRequest()
+    {
+        var filters = new ProductFilter
+        {
+            SearchTerm = advancedSearch.Value,
+            Category = category.Value,
+            MinPrice = minPrice.Value,
+            MaxPrice = maxPrice.Value,
+            InStockOnly = inStockOnly.Value
+        };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/products/filter");
+        request.Content = JsonContent.Create(filters);
+        return request;
+    }
+
+    // Cursor pagination helpers
+    private void LoadMore()
+    {
+        if (cursorResourceView?.GetResource()?.SignalValue.Value is CursorResult<User> result && result.NextCursor != null)
+        {
+            allUsers.AddRange(result.Items);
+            nextCursor.Value = result.NextCursor;
+        }
+    }
+
+    private async Task HandleScroll(EventArgs e)
+    {
+        // Implement infinite scroll logic here
+        // Check if scrolled to bottom and load more
+    }
+
+    private string lastSearchTerm = "";
+
+    // Model classes
+    public class PagedResult<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int TotalPages { get; set; }
+        public int CurrentPage { get; set; }
+    }
+
+    public class CursorResult<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public string? NextCursor { get; set; }
+        public bool HasMore { get; set; }
+    }
+
+    public class FilteredResult<T>
+    {
+        public List<T> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public Dictionary<string, int> Facets { get; set; } = new();
+    }
+
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
+        public string Category { get; set; } = "";
+        public int StockCount { get; set; }
+    }
+
+    public class User
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Avatar { get; set; } = "";
+    }
+
+    public class ProductFilter
+    {
+        public string SearchTerm { get; set; } = "";
+        public string Category { get; set; } = "";
+        public decimal? MinPrice { get; set; }
+        public decimal? MaxPrice { get; set; }
+        public bool InStockOnly { get; set; }
+    }
+}
+
+<style>
+    .example-section {
+        border: 1px solid #ddd;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+    }
+
+    .search-controls {
+        background: white;
+        padding: 1rem;
+        border-radius: 4px;
+    }
+
+    .product-card, .user-item, .product-item {
+        background: white;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .user-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-item img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+    }
+
+    .filter-builder {
+        background: white;
+        padding: 1rem;
+        border-radius: 4px;
+    }
+
+    .user-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+</style>

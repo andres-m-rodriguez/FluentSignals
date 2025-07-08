@@ -1,82 +1,500 @@
 @page "/libraries/blazor"
 @namespace FluentSignals.Web.Shared.Features.Libraries
+@using FluentSignals.Web.Shared.Common.Components
 
-<PageTitle>FluentSignals.Blazor - Coming Soon</PageTitle>
+<PageTitle>FluentSignals.Blazor - Blazor Integration</PageTitle>
 
 <div class="library-page content-page">
-    <div class="coming-soon-hero">
-        <div class="coming-soon-icon">⚡</div>
-        <h1 class="coming-soon-title">FluentSignals.Blazor</h1>
-        <p class="coming-soon-subtitle">Reactive Blazor components powered by signals</p>
-        <div class="coming-soon-badge-large">Coming Soon</div>
+    <div class="library-hero">
+        <h1 class="library-title">FluentSignals.Blazor</h1>
+        <p class="library-subtitle">Complete Blazor integration with reactive components, SignalBus, and HTTP resource management</p>
+        <div class="library-badges">
+            <span class="badge">Reactive Components</span>
+            <span class="badge">SignalBus</span>
+            <span class="badge">HTTP Resources</span>
+            <span class="badge">Real-time Updates</span>
+        </div>
     </div>
 
-    <section class="coming-soon-section">
-        <h2>What to Expect</h2>
-        <p>FluentSignals.Blazor will provide a comprehensive set of reactive Blazor components that seamlessly integrate with FluentSignals.</p>
-        
-        <div class="feature-preview">
-            <h3>Planned Features</h3>
-            <ul class="feature-list">
-                <li>🎨 Pre-built reactive components</li>
-                <li>🔄 Automatic UI synchronization</li>
-                <li>📱 Responsive design patterns</li>
-                <li>🎯 Signal-driven forms</li>
-                <li>📊 Data visualization components</li>
-                <li>🚀 Performance optimizations</li>
-            </ul>
-        </div>
-
-        <div class="preview-code">
-            <h3>Preview</h3>
-            <pre class="code-preview">
-<span class="comment">// Coming soon...</span>
-&lt;<span class="type">SignalInput</span> <span class="keyword">@@bind-Signal</span>="nameSignal" <span class="type">Placeholder</span>="<span class="string">Enter name</span>" /&gt;
-
-&lt;<span class="type">SignalSelect</span> <span class="keyword">@@bind-Signal</span>="selectedOption" <span class="type">Options</span>="optionsSignal" /&gt;
-
-&lt;<span class="type">SignalList</span> <span class="type">Items</span>="itemsSignal"&gt;
-    &lt;<span class="type">ItemTemplate</span>&gt;
-        &lt;<span class="type">div</span>&gt;@@context.Name&lt;/<span class="type">div</span>&gt;
-    &lt;/<span class="type">ItemTemplate</span>&gt;
-&lt;/<span class="type">SignalList</span>&gt;
-
-&lt;<span class="type">SignalChart</span> <span class="type">Data</span>="chartDataSignal" <span class="type">Type</span>="<span class="type">ChartType</span>.Line" /&gt;
-            </pre>
-        </div>
+    <section class="library-section">
+        <h2>Installation</h2>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CLI">
+<span class="command">dotnet</span> <span class="arg">add</span> <span class="arg">package</span> <span class="flag">FluentSignals.Blazor</span>
+        </CodeBlock>
     </section>
 
-    <section class="coming-soon-section">
-        <h2>Stay Tuned</h2>
-        <p>We're crafting a beautiful collection of reactive Blazor components. Follow our progress on GitHub!</p>
+    <section class="library-section">
+        <h2>Quick Start</h2>
+        <CodeBlock Title="Program.cs" Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Basic setup</span>
+builder.Services.<span class="method">AddFluentSignalsBlazor</span>();
+
+<span class="comment">// With SignalBus for component communication</span>
+builder.Services.<span class="method">AddFluentSignalsBlazorWithSignalBus</span>();
+
+<span class="comment">// With HTTP configuration</span>
+builder.Services.<span class="method">AddFluentSignalsBlazor</span>(options =&gt;
+{
+    options.<span class="method">WithBaseUrl</span>(<span class="string">"https://api.example.com"</span>)
+           .<span class="method">WithTimeout</span>(<span class="type">TimeSpan</span>.<span class="method">FromSeconds</span>(<span class="number">30</span>));
+});
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>HttpResourceView Component</h2>
+        <p>A powerful component for displaying HTTP resources with automatic state management and signal subscriptions.</p>
         
-        <div class="cta-buttons">
-            <a href="https://github.com/andres-m-rodriguez/FluentSignals" class="cta-button">
-                <span>Watch on GitHub</span>
+        <h3>Basic Usage</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.XML">
+&lt;<span class="tag">HttpResourceView</span> <span class="attr">T</span>=<span class="string">"WeatherData[]"</span> <span class="attr">Url</span>=<span class="string">"/api/weather"</span>&gt;
+    &lt;<span class="tag">Success</span>&gt;
+        @@<span class="keyword">foreach</span> (<span class="keyword">var</span> item <span class="keyword">in</span> context)
+        {
+            &lt;<span class="tag">WeatherCard</span> <span class="attr">Data</span>=<span class="string">"@@item"</span> /&gt;
+        }
+    &lt;/<span class="tag">Success</span>&gt;
+    &lt;<span class="tag">Loading</span>&gt;
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"spinner"</span>&gt;Loading weather data...&lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">Loading</span>&gt;
+    &lt;<span class="tag">ErrorContent</span>&gt;
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"alert alert-danger"</span>&gt;
+            Failed to load weather: @@context.Message
+        &lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">ErrorContent</span>&gt;
+&lt;/<span class="tag">HttpResourceView</span>&gt;
+        </CodeBlock>
+
+        <h3>Dynamic Search with Pagination</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.XML" Title="ProductSearch.razor">
+@@code {
+    <span class="keyword">private</span> <span class="type">TypedSignal</span>&lt;<span class="type">string</span>&gt; searchTerm = <span class="keyword">new</span>(<span class="string">""</span>);
+    <span class="keyword">private</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt; currentPage = <span class="keyword">new</span>(<span class="number">1</span>);
+    <span class="keyword">private</span> <span class="type">TypedSignal</span>&lt;<span class="type">string</span>&gt; sortBy = <span class="keyword">new</span>(<span class="string">"name"</span>);
+    <span class="keyword">private</span> <span class="type">TypedSignal</span>&lt;<span class="type">string</span>&gt; category = <span class="keyword">new</span>(<span class="string">""</span>);
+}
+
+<span class="comment">&lt;!-- Search and filter controls are completely customizable --&gt;</span>
+&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"search-filters"</span>&gt;
+    &lt;<span class="tag">input</span> <span class="attr">type</span>=<span class="string">"text"</span> 
+           @@<span class="attr">bind</span>=<span class="string">"searchTerm.Value"</span> 
+           @@<span class="attr">bind:event</span>=<span class="string">"oninput"</span>
+           <span class="attr">placeholder</span>=<span class="string">"Search products..."</span> /&gt;
+    
+    &lt;<span class="tag">select</span> @@<span class="attr">bind</span>=<span class="string">"category.Value"</span>&gt;
+        &lt;<span class="tag">option</span> <span class="attr">value</span>=<span class="string">""</span>&gt;All Categories&lt;/<span class="tag">option</span>&gt;
+        &lt;<span class="tag">option</span> <span class="attr">value</span>=<span class="string">"electronics"</span>&gt;Electronics&lt;/<span class="tag">option</span>&gt;
+        &lt;<span class="tag">option</span> <span class="attr">value</span>=<span class="string">"books"</span>&gt;Books&lt;/<span class="tag">option</span>&gt;
+    &lt;/<span class="tag">select</span>&gt;
+    
+    &lt;<span class="tag">select</span> @@<span class="attr">bind</span>=<span class="string">"sortBy.Value"</span>&gt;
+        &lt;<span class="tag">option</span> <span class="attr">value</span>=<span class="string">"name"</span>&gt;Name&lt;/<span class="tag">option</span>&gt;
+        &lt;<span class="tag">option</span> <span class="attr">value</span>=<span class="string">"price"</span>&gt;Price&lt;/<span class="tag">option</span>&gt;
+        &lt;<span class="tag">option</span> <span class="attr">value</span>=<span class="string">"rating"</span>&gt;Rating&lt;/<span class="tag">option</span>&gt;
+    &lt;/<span class="tag">select</span>&gt;
+&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">HttpResourceView</span> <span class="attr">T</span>=<span class="string">"PagedResult&lt;Product&gt;"</span>
+    <span class="attr">DynamicRequestBuilder</span>=<span class="string">"@@BuildRequest"</span>
+    <span class="attr">SubscribeToSignals</span>=<span class="string">"@@(new[] { searchTerm, currentPage, category, sortBy })"</span>&gt;
+    &lt;<span class="tag">Success</span>&gt;
+        <span class="comment">&lt;!-- Custom result rendering --&gt;</span>
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"product-grid"</span>&gt;
+            @@<span class="keyword">foreach</span> (<span class="keyword">var</span> product <span class="keyword">in</span> context.Items)
+            {
+                &lt;<span class="tag">ProductCard</span> <span class="attr">Product</span>=<span class="string">"@@product"</span> /&gt;
+            }
+        &lt;/<span class="tag">div</span>&gt;
+        
+        <span class="comment">&lt;!-- Custom pagination UI --&gt;</span>
+        &lt;<span class="tag">nav</span>&gt;
+            &lt;<span class="tag">button</span> @@<span class="attr">onclick</span>=<span class="string">"() =&gt; currentPage.Value--"</span> 
+                    <span class="attr">disabled</span>=<span class="string">"@@(currentPage.Value &lt;= 1)"</span>&gt;
+                Previous
+            &lt;/<span class="tag">button</span>&gt;
+            
+            &lt;<span class="tag">span</span>&gt;Page @@currentPage.Value of @@context.TotalPages&lt;/<span class="tag">span</span>&gt;
+            
+            &lt;<span class="tag">button</span> @@<span class="attr">onclick</span>=<span class="string">"() =&gt; currentPage.Value++"</span>
+                    <span class="attr">disabled</span>=<span class="string">"@@(currentPage.Value &gt;= context.TotalPages)"</span>&gt;
+                Next
+            &lt;/<span class="tag">button</span>&gt;
+        &lt;/<span class="tag">nav</span>&gt;
+    &lt;/<span class="tag">Success</span>&gt;
+&lt;/<span class="tag">HttpResourceView</span>&gt;
+
+@@code {
+    <span class="keyword">private</span> <span class="type">HttpRequestMessage</span> <span class="method">BuildRequest</span>()
+    {
+        <span class="comment">// Build request with current signal values</span>
+        <span class="keyword">var</span> query = <span class="keyword">new</span> <span class="type">Dictionary</span>&lt;<span class="type">string</span>, <span class="type">string</span>&gt;
+        {
+            [<span class="string">"q"</span>] = searchTerm.Value,
+            [<span class="string">"page"</span>] = currentPage.Value.<span class="method">ToString</span>(),
+            [<span class="string">"sort"</span>] = sortBy.Value,
+            [<span class="string">"category"</span>] = category.Value
+        };
+        
+        <span class="keyword">var</span> queryString = <span class="type">string</span>.<span class="method">Join</span>(<span class="string">"&amp;"</span>, 
+            query.<span class="method">Where</span>(kv =&gt; !<span class="type">string</span>.<span class="method">IsNullOrEmpty</span>(kv.Value))
+                 .<span class="method">Select</span>(kv =&gt; <span class="string">$"{kv.Key}={Uri.EscapeDataString(kv.Value)}"</span>));
+        
+        <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">HttpRequestMessage</span>(<span class="type">HttpMethod</span>.Get, <span class="string">$"/api/products?{queryString}"</span>);
+    }
+}
+        </CodeBlock>
+
+        <h3>Cursor-Based Pagination (Infinite Scroll)</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.XML">
+@@code {
+    <span class="keyword">private</span> <span class="type">TypedSignal</span>&lt;<span class="type">string</span>?&gt; cursor = <span class="keyword">new</span>(<span class="keyword">null</span>);
+    <span class="keyword">private</span> <span class="type">List</span>&lt;<span class="type">Post</span>&gt; allPosts = <span class="keyword">new</span>();
+}
+
+&lt;<span class="tag">HttpResourceView</span> <span class="attr">T</span>=<span class="string">"CursorResult&lt;Post&gt;"</span>
+    <span class="attr">DynamicRequestBuilder</span>=<span class="string">"@@(() => new HttpRequestMessage(HttpMethod.Get, 
+        $"/api/posts{(cursor.Value != null ? $"?cursor={cursor.Value}" : "")}"))"</span>
+    <span class="attr">SubscribeToSignals</span>=<span class="string">"@@(new[] { cursor })"</span>
+    <span class="attr">OnDataLoaded</span>=<span class="string">"@@(result => allPosts.AddRange(result.Items))"</span>&gt;
+    &lt;<span class="tag">Success</span>&gt;
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"posts-feed"</span>&gt;
+            @@<span class="keyword">foreach</span> (<span class="keyword">var</span> post <span class="keyword">in</span> allPosts)
+            {
+                &lt;<span class="tag">PostCard</span> <span class="attr">Post</span>=<span class="string">"@@post"</span> /&gt;
+            }
+            
+            @@<span class="keyword">if</span> (context.HasMore)
+            {
+                &lt;<span class="tag">button</span> @@<span class="attr">onclick</span>=<span class="string">"() => cursor.Value = context.NextCursor"</span>
+                        <span class="attr">class</span>=<span class="string">"btn btn-primary"</span>&gt;
+                    Load More
+                &lt;/<span class="tag">button</span>&gt;
+            }
+        &lt;/<span class="tag">div</span>&gt;
+    &lt;/<span class="tag">Success</span>&gt;
+&lt;/<span class="tag">HttpResourceView</span>&gt;
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>SignalBus for Component Communication</h2>
+        <p>Publish/subscribe pattern for decoupled component communication with queue support.</p>
+        
+        <h3>Basic Pub/Sub</h3>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Publisher Component</span>
+@@inject <span class="type">ISignalBus</span> SignalBus
+
+&lt;<span class="tag">button</span> @@<span class="attr">onclick</span>=<span class="string">"PublishUpdate"</span>&gt;Update Cart&lt;/<span class="tag">button</span>&gt;
+
+@@code {
+    <span class="keyword">private</span> <span class="keyword">void</span> <span class="method">PublishUpdate</span>()
+    {
+        SignalBus.<span class="method">Publish</span>(<span class="keyword">new</span> <span class="type">CartUpdatedMessage</span> 
+        { 
+            ItemCount = <span class="number">5</span>,
+            Total = <span class="number">99.99m</span> 
+        });
+    }
+}
+
+<span class="comment">// Subscriber Component</span>
+@@inject <span class="type">ISignalBus</span> SignalBus
+@@implements <span class="type">IDisposable</span>
+
+&lt;<span class="tag">div</span>&gt;Cart: @@itemCount items ($@@total)&lt;/<span class="tag">div</span>&gt;
+
+@@code {
+    <span class="keyword">private</span> <span class="type">IDisposable</span>? subscription;
+    <span class="keyword">private</span> <span class="type">int</span> itemCount;
+    <span class="keyword">private</span> <span class="type">decimal</span> total;
+    
+    <span class="keyword">protected</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="method">OnInitialized</span>()
+    {
+        subscription = SignalBus.<span class="method">Subscribe</span>&lt;<span class="type">CartUpdatedMessage</span>&gt;(message =&gt;
+        {
+            itemCount = message.ItemCount;
+            total = message.Total;
+            <span class="method">InvokeAsync</span>(StateHasChanged);
+        });
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Dispose</span>() =&gt; subscription?.<span class="method">Dispose</span>();
+}
+        </CodeBlock>
+
+        <h3>Queue-Based Subscriptions</h3>
+        <p>Receive messages even if published before subscription:</p>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Component that might initialize late</span>
+@@inject <span class="type">ISignalBus</span> SignalBus
+
+@@code {
+    <span class="keyword">protected</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="method">OnInitialized</span>()
+    {
+        <span class="comment">// Will receive last 10 messages published before subscription</span>
+        <span class="keyword">var</span> subscription = SignalBus.<span class="method">SubscribeWithQueue</span>&lt;<span class="type">NotificationMessage</span>&gt;(
+            message =&gt; <span class="method">ShowNotification</span>(message),
+            queueSize: <span class="number">10</span>
+        );
+    }
+}
+        </CodeBlock>
+
+        <h3>Real-time Notifications</h3>
+        <p>Build a notification system using SignalBus:</p>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp" Title="NotificationService.cs">
+<span class="keyword">public</span> <span class="keyword">interface</span> <span class="type">INotificationService</span>
+{
+    <span class="keyword">void</span> <span class="method">ShowSuccess</span>(<span class="type">string</span> message);
+    <span class="keyword">void</span> <span class="method">ShowError</span>(<span class="type">string</span> message);
+    <span class="keyword">void</span> <span class="method">ShowWarning</span>(<span class="type">string</span> message);
+}
+
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">NotificationService</span> : <span class="type">INotificationService</span>
+{
+    <span class="keyword">private</span> <span class="keyword">readonly</span> <span class="type">ISignalBus</span> _signalBus;
+    
+    <span class="keyword">public</span> <span class="method">NotificationService</span>(<span class="type">ISignalBus</span> signalBus)
+    {
+        _signalBus = signalBus;
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">ShowSuccess</span>(<span class="type">string</span> message)
+    {
+        _signalBus.<span class="method">Publish</span>(<span class="keyword">new</span> <span class="type">NotificationMessage</span> 
+        { 
+            Type = <span class="type">NotificationType</span>.Success, 
+            Message = message 
+        });
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">ShowError</span>(<span class="type">string</span> message)
+    {
+        _signalBus.<span class="method">Publish</span>(<span class="keyword">new</span> <span class="type">NotificationMessage</span> 
+        { 
+            Type = <span class="type">NotificationType</span>.Error, 
+            Message = message 
+        });
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">ShowWarning</span>(<span class="type">string</span> message)
+    {
+        _signalBus.<span class="method">Publish</span>(<span class="keyword">new</span> <span class="type">NotificationMessage</span> 
+        { 
+            Type = <span class="type">NotificationType</span>.Warning, 
+            Message = message 
+        });
+    }
+}
+        </CodeBlock>
+        
+        <CodeBlock Language="CodeBlock.CodeLanguage.XML" Title="NotificationDisplay.razor">
+@@inject <span class="type">ISignalBus</span> SignalBus
+@@implements <span class="type">IDisposable</span>
+
+&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"notification-container"</span>&gt;
+    @@<span class="keyword">foreach</span> (<span class="keyword">var</span> notification <span class="keyword">in</span> notifications)
+    {
+        &lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"alert alert-@@GetAlertClass(notification.Type) alert-dismissible"</span>&gt;
+            @@notification.Message
+            &lt;<span class="tag">button</span> <span class="attr">type</span>=<span class="string">"button"</span> <span class="attr">class</span>=<span class="string">"btn-close"</span> 
+                    @@<span class="attr">onclick</span>=<span class="string">"() => RemoveNotification(notification)"</span>&gt;&lt;/<span class="tag">button</span>&gt;
+        &lt;/<span class="tag">div</span>&gt;
+    }
+&lt;/<span class="tag">div</span>&gt;
+
+@@code {
+    <span class="keyword">private</span> <span class="type">List</span>&lt;<span class="type">NotificationMessage</span>&gt; notifications = <span class="keyword">new</span>();
+    <span class="keyword">private</span> <span class="type">IDisposable</span>? subscription;
+    
+    <span class="keyword">protected</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="method">OnInitialized</span>()
+    {
+        <span class="comment">// Use queue to catch notifications sent before component loads</span>
+        subscription = SignalBus.<span class="method">SubscribeWithQueue</span>&lt;<span class="type">NotificationMessage</span>&gt;(
+            notification =&gt;
+            {
+                notifications.<span class="method">Add</span>(notification);
+                <span class="method">InvokeAsync</span>(StateHasChanged);
+                
+                <span class="comment">// Auto-remove after 5 seconds</span>
+                _ = <span class="type">Task</span>.<span class="method">Delay</span>(<span class="number">5000</span>).<span class="method">ContinueWith</span>(_ =&gt;
+                {
+                    <span class="method">RemoveNotification</span>(notification);
+                });
+            },
+            queueSize: <span class="number">5</span>
+        );
+    }
+    
+    <span class="keyword">private</span> <span class="keyword">void</span> <span class="method">RemoveNotification</span>(<span class="type">NotificationMessage</span> notification)
+    {
+        notifications.<span class="method">Remove</span>(notification);
+        <span class="method">InvokeAsync</span>(StateHasChanged);
+    }
+    
+    <span class="keyword">private</span> <span class="type">string</span> <span class="method">GetAlertClass</span>(<span class="type">NotificationType</span> type) =&gt; type <span class="keyword">switch</span>
+    {
+        <span class="type">NotificationType</span>.Success =&gt; <span class="string">"success"</span>,
+        <span class="type">NotificationType</span>.Error =&gt; <span class="string">"danger"</span>,
+        <span class="type">NotificationType</span>.Warning =&gt; <span class="string">"warning"</span>,
+        _ =&gt; <span class="string">"info"</span>
+    };
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Dispose</span>() =&gt; subscription?.<span class="method">Dispose</span>();
+}
+        </CodeBlock>
+
+        <h3>Multi-Component State Management</h3>
+        <p>Coordinate state across multiple components without prop drilling:</p>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp" Title="UserState.cs">
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">UserStateChanged</span>
+{
+    <span class="keyword">public</span> <span class="type">string</span>? UserId { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">string</span>? UserName { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">bool</span> IsAuthenticated { <span class="keyword">get</span>; <span class="keyword">set</span>; }
+    <span class="keyword">public</span> <span class="type">List</span>&lt;<span class="type">string</span>&gt; Roles { <span class="keyword">get</span>; <span class="keyword">set</span>; } = <span class="keyword">new</span>();
+}
+
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="type">ThemeChanged</span>
+{
+    <span class="keyword">public</span> <span class="type">string</span> Theme { <span class="keyword">get</span>; <span class="keyword">set</span>; } = <span class="string">"light"</span>;
+}
+        </CodeBlock>
+        
+        <CodeBlock Language="CodeBlock.CodeLanguage.XML" Title="UserMenu.razor">
+@@inject <span class="type">ISignalBus</span> SignalBus
+@@inject <span class="type">IAuthenticationService</span> AuthService
+
+&lt;<span class="tag">button</span> @@<span class="attr">onclick</span>=<span class="string">"ToggleTheme"</span>&gt;Toggle Theme&lt;/<span class="tag">button</span>&gt;
+&lt;<span class="tag">button</span> @@<span class="attr">onclick</span>=<span class="string">"Logout"</span>&gt;Logout&lt;/<span class="tag">button</span>&gt;
+
+@@code {
+    <span class="keyword">private</span> <span class="type">string</span> currentTheme = <span class="string">"light"</span>;
+    
+    <span class="keyword">private</span> <span class="keyword">void</span> <span class="method">ToggleTheme</span>()
+    {
+        currentTheme = currentTheme == <span class="string">"light"</span> ? <span class="string">"dark"</span> : <span class="string">"light"</span>;
+        SignalBus.<span class="method">Publish</span>(<span class="keyword">new</span> <span class="type">ThemeChanged</span> { Theme = currentTheme });
+    }
+    
+    <span class="keyword">private</span> <span class="keyword">async</span> <span class="type">Task</span> <span class="method">Logout</span>()
+    {
+        <span class="keyword">await</span> AuthService.<span class="method">Logout</span>();
+        SignalBus.<span class="method">Publish</span>(<span class="keyword">new</span> <span class="type">UserStateChanged</span> 
+        { 
+            IsAuthenticated = <span class="keyword">false</span> 
+        });
+    }
+}
+        </CodeBlock>
+        
+        <CodeBlock Language="CodeBlock.CodeLanguage.XML" Title="MainLayout.razor">
+@@inherits <span class="type">LayoutComponentBase</span>
+@@inject <span class="type">ISignalBus</span> SignalBus
+@@implements <span class="type">IDisposable</span>
+
+&lt;<span class="tag">div</span> <span class="attr">class</span>=<span class="string">"@@($"app-container theme-{currentTheme}")"</span>&gt;
+    &lt;<span class="tag">nav</span> <span class="attr">class</span>=<span class="string">"navbar"</span>&gt;
+        @@<span class="keyword">if</span> (isAuthenticated)
+        {
+            &lt;<span class="tag">span</span>&gt;Welcome, @@userName!&lt;/<span class="tag">span</span>&gt;
+        }
+    &lt;/<span class="tag">nav</span>&gt;
+    
+    &lt;<span class="tag">main</span>&gt;
+        @@Body
+    &lt;/<span class="tag">main</span>&gt;
+&lt;/<span class="tag">div</span>&gt;
+
+@@code {
+    <span class="keyword">private</span> <span class="type">string</span> currentTheme = <span class="string">"light"</span>;
+    <span class="keyword">private</span> <span class="type">bool</span> isAuthenticated;
+    <span class="keyword">private</span> <span class="type">string</span>? userName;
+    <span class="keyword">private</span> <span class="type">List</span>&lt;<span class="type">IDisposable</span>&gt; subscriptions = <span class="keyword">new</span>();
+    
+    <span class="keyword">protected</span> <span class="keyword">override</span> <span class="keyword">void</span> <span class="method">OnInitialized</span>()
+    {
+        subscriptions.<span class="method">Add</span>(SignalBus.<span class="method">Subscribe</span>&lt;<span class="type">ThemeChanged</span>&gt;(msg =&gt;
+        {
+            currentTheme = msg.Theme;
+            <span class="method">InvokeAsync</span>(StateHasChanged);
+        }));
+        
+        subscriptions.<span class="method">Add</span>(SignalBus.<span class="method">Subscribe</span>&lt;<span class="type">UserStateChanged</span>&gt;(msg =&gt;
+        {
+            isAuthenticated = msg.IsAuthenticated;
+            userName = msg.UserName;
+            <span class="method">InvokeAsync</span>(StateHasChanged);
+        }));
+    }
+    
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="method">Dispose</span>()
+    {
+        <span class="keyword">foreach</span> (<span class="keyword">var</span> sub <span class="keyword">in</span> subscriptions)
+        {
+            sub.<span class="method">Dispose</span>();
+        }
+    }
+}
+        </CodeBlock>
+    </section>
+
+    <section class="library-section">
+        <h2>Component Reference</h2>
+        
+        <h3>HttpResourceView Parameters</h3>
+        <ul>
+            <li><code>T</code> - The response data type</li>
+            <li><code>Url</code> - Simple GET request URL</li>
+            <li><code>RequestBuilder</code> - Function to build custom requests</li>
+            <li><code>DynamicRequestBuilder</code> - Function using signal values</li>
+            <li><code>SubscribeToSignals</code> - Signals that trigger reload</li>
+            <li><code>LoadOnInit</code> - Load data on initialization (default: true)</li>
+            <li><code>Success</code> - Content for successful data</li>
+            <li><code>Loading</code> - Loading state content</li>
+            <li><code>ErrorContent</code> - Error state content</li>
+            <li><code>Empty</code> - Empty data content</li>
+            <li><code>OnDataLoaded</code> - Callback when data loads</li>
+            <li><code>OnError</code> - Error callback</li>
+        </ul>
+    </section>
+
+    <section class="library-section">
+        <h2>Learn More</h2>
+        <div class="next-steps">
+            <a href="https://github.com/andres-m-rodriguez/FluentSignals/tree/main/FluentSignals.Blazor" class="next-link">
+                <span class="next-icon">📚</span>
+                <span class="next-text">GitHub Repository</span>
             </a>
-            <a href="/libraries/http" class="cta-button secondary">
-                <span>Explore HTTP Library</span>
+            <a href="/libraries/http" class="next-link">
+                <span class="next-icon">🌐</span>
+                <span class="next-text">HTTP Library</span>
+            </a>
+            <a href="/libraries/signalr" class="next-link">
+                <span class="next-icon">📡</span>
+                <span class="next-text">SignalR Library</span>
             </a>
         </div>
     </section>
 </div>
 
 <style>
-    .coming-soon-hero {
+    .library-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 1rem;
+        color: #e0e0e0;
+    }
+
+    .library-hero {
         text-align: center;
-        padding: 4rem 0;
+        padding: 3rem 0;
         margin-bottom: 3rem;
-        background: linear-gradient(135deg, rgba(255, 165, 0, 0.05) 0%, transparent 100%);
-        border-radius: 1rem;
-        border: 1px solid rgba(255, 165, 0, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    .coming-soon-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-    }
-
-    .coming-soon-title {
+    .library-title {
         font-size: 3rem;
         font-weight: 800;
         margin-bottom: 1rem;
@@ -86,131 +504,113 @@
         background-clip: text;
     }
 
-    .coming-soon-subtitle {
+    .library-subtitle {
         font-size: 1.25rem;
         color: #999;
         margin-bottom: 1.5rem;
     }
 
-    .coming-soon-badge-large {
-        display: inline-block;
-        padding: 0.5rem 2rem;
-        background: rgba(255, 165, 0, 0.2);
-        color: #ffa500;
-        font-size: 1rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        border-radius: 2rem;
-        border: 2px solid rgba(255, 165, 0, 0.3);
+    .library-badges {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        flex-wrap: wrap;
     }
 
-    .coming-soon-section {
+    .badge {
+        padding: 0.25rem 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        color: #ccc;
+    }
+
+    .library-section {
         margin-bottom: 3rem;
     }
 
-    .coming-soon-section h2 {
+    .library-section h2 {
         font-size: 1.75rem;
         font-weight: 600;
         margin-bottom: 1rem;
         color: #fff;
     }
 
-    .coming-soon-section p {
+    .library-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 1.5rem 0 0.75rem;
+        color: #fff;
+    }
+
+    .library-section p {
         line-height: 1.7;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         color: #ccc;
     }
 
-    .feature-preview {
+    .library-section ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .library-section li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+        color: #ccc;
+    }
+
+    .library-section li:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: #666;
+    }
+
+    .library-section li code {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.25rem;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.875rem;
+    }
+
+    .next-steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .next-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1.5rem;
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 0.5rem;
-        padding: 2rem;
-        margin: 2rem 0;
-    }
-
-    .feature-preview h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #fff;
-    }
-
-    .feature-list {
-        list-style: none;
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-    }
-
-    .feature-list li {
-        color: #ccc;
-        padding: 0.5rem 0;
-    }
-
-    .preview-code {
-        margin: 2rem 0;
-    }
-
-    .preview-code h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #fff;
-    }
-
-    .code-preview {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        overflow-x: auto;
-        font-family: 'Consolas', 'Monaco', monospace;
-        font-size: 0.875rem;
-        line-height: 1.5;
-    }
-
-    .cta-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
-    }
-
-    .cta-button {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.75rem 2rem;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 0.5rem;
-        color: #fff;
         text-decoration: none;
-        font-weight: 500;
+        color: #fff;
         transition: all 0.2s;
     }
 
-    .cta-button:hover {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
-        border-color: rgba(255, 255, 255, 0.3);
+    .next-link:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.2);
         transform: translateY(-2px);
     }
 
-    .cta-button.secondary {
-        background: transparent;
-        border-color: rgba(255, 255, 255, 0.1);
+    .next-icon {
+        font-size: 2rem;
     }
 
-    .cta-button.secondary:hover {
-        background: rgba(255, 255, 255, 0.05);
+    .next-text {
+        font-weight: 500;
     }
-
-    .comment { color: #6A9955; }
-    .keyword { color: #569CD6; }
-    .type { color: #4EC9B0; }
-    .string { color: #CE9178; }
 
     /* Responsive styles */
     @@media (max-width: 768px) {
@@ -218,73 +618,61 @@
             padding: 0 0.75rem;
         }
 
-        .coming-soon-hero {
-            padding: 2.5rem 1rem;
+        .library-hero {
+            padding: 2rem 0;
             margin-bottom: 2rem;
         }
 
-        .coming-soon-icon {
-            font-size: 3rem;
-        }
-
-        .coming-soon-title {
+        .library-title {
             font-size: 2rem;
         }
 
-        .coming-soon-subtitle {
+        .library-subtitle {
             font-size: 1rem;
         }
 
-        .coming-soon-badge-large {
-            font-size: 0.875rem;
-            padding: 0.4rem 1.5rem;
+        .library-badges {
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .coming-soon-section {
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+        }
+
+        .library-section {
             margin-bottom: 2rem;
         }
 
-        .coming-soon-section h2 {
+        .library-section h2 {
             font-size: 1.5rem;
         }
 
-        .feature-preview {
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .feature-preview h3 {
+        .library-section h3 {
             font-size: 1.125rem;
         }
 
-        .feature-list {
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
-
-        .feature-list li {
+        .library-section li {
+            padding-left: 1.25rem;
             font-size: 0.875rem;
-            padding: 0.4rem 0;
         }
 
-        .preview-code h3 {
-            font-size: 1.125rem;
+        .next-steps {
+            grid-template-columns: 1fr;
         }
 
-        .code-preview {
-            padding: 1rem;
-            font-size: 0.75rem;
+        .next-link {
+            padding: 1.25rem;
+        }
+
+        /* Adjust code blocks on mobile */
+        ::deep .code-wrapper {
             margin: 0 -0.75rem;
         }
 
-        .cta-buttons {
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .cta-button {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.875rem;
+        ::deep .code-content {
+            font-size: 0.75rem;
         }
     }
 </style>

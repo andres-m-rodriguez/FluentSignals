@@ -1,4 +1,5 @@
-﻿using FluentSignals.Http.Core;
+﻿using FluentSignals.Contracts;
+using FluentSignals.Http.Core;
 using FluentSignals.Http.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,19 @@ public class HttpResourceFactory(IServiceProvider service, IOptions<HttpResource
     {
         var client = ResolveHttpClient();
         return new HttpResource<T>(client, requestBuilder, service);
+    }
+
+    public HttpResource<T> CreateWithDynamicRequest<T>(Func<HttpRequestMessage> requestBuilder, params ISignal[] signals)
+    {
+        var client = ResolveHttpClient();
+        var resource = new HttpResource<T>(client, requestBuilder, service);
+        
+        if (signals.Length > 0)
+        {
+            resource.SubscribeWithDynamicRequest(requestBuilder, signals);
+        }
+        
+        return resource;
     }
 
     private HttpClient ResolveHttpClient()

@@ -18,6 +18,8 @@ public class HttpResource<T>(
 ) : IAsyncSignal<T>
 {
     private readonly Queue<Func<HttpResourceHandler, HttpResourceHandler>> _middleware = [];
+    private readonly List<ISignalSubscriptionContract> _externalSubscriptions = [];
+    private Func<HttpRequestMessage> _requestBuilder = requestBuilder;
 
     public ISignal<T> SignalValue { get; } = new TypedSignal<T>(default!);
     public ISignal<bool> IsLoading { get; } = new TypedSignal<bool>(false);
@@ -45,7 +47,7 @@ public class HttpResource<T>(
         try
         {
             IsLoading.Value = true;
-            var request = requestBuilder();
+            var request = _requestBuilder();
             var handler = BuildPipeline();
             var response = await handler(request, cancellationToken);
 
@@ -98,6 +100,12 @@ public class HttpResource<T>(
 
     public void Dispose()
     {
+        foreach (var subscription in _externalSubscriptions)
+        {
+            subscription?.Dispose();
+        }
+        _externalSubscriptions.Clear();
+        
         Subscribers.Clear();
         SignalValue.Dispose();
         IsLoading.Dispose();
@@ -110,6 +118,41 @@ public class HttpResource<T>(
         var subscription = new SignalSubscription(Guid.NewGuid(), action);
         Subscribers.Add(subscription);
         return subscription;
+    }
+
+    public HttpResource<T> SubscribeTo(ISignal signal)
+    {
+        var subscription = signal.Subscribe(() => _ = LoadData());
+        _externalSubscriptions.Add(subscription);
+        return this;
+    }
+
+    public HttpResource<T> SubscribeTo(params ISignal[] signals)
+    {
+        foreach (var signal in signals)
+        {
+            SubscribeTo(signal);
+        }
+        return this;
+    }
+
+    public HttpResource<T> WithRequestBuilder(Func<HttpRequestMessage> requestBuilder)
+    {
+        _requestBuilder = requestBuilder;
+        return this;
+    }
+
+    public HttpResource<T> SubscribeWithDynamicRequest(Func<HttpRequestMessage> dynamicRequestBuilder, params ISignal[] signals)
+    {
+        _requestBuilder = dynamicRequestBuilder;
+        
+        foreach (var signal in signals)
+        {
+            var subscription = signal.Subscribe(() => _ = LoadData());
+            _externalSubscriptions.Add(subscription);
+        }
+        
+        return this;
     }
 
     private HttpResourceHandler BuildPipeline()

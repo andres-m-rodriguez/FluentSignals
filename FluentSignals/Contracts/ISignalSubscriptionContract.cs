@@ -1,6 +1,6 @@
 ﻿namespace FluentSignals.Contracts;
 
-public interface ISignalSubscriptionContract
+public interface ISignalSubscriptionContract : IDisposable
 {
     public Guid SubscriptionId { get; }
 };

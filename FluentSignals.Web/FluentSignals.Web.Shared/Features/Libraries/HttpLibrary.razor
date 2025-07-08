@@ -166,6 +166,55 @@ userResource.Error.<span class="method">Subscribe</span>(() =&gt;
     }
 }
         </CodeBlock>
+
+        <h3>Dynamic Request Building with Signal Subscriptions</h3>
+        <p>Subscribe HttpResource to signals and automatically reload data when signals change:</p>
+        <CodeBlock Language="CodeBlock.CodeLanguage.CSharp">
+<span class="comment">// Create reactive signals for search parameters</span>
+<span class="keyword">var</span> searchTerm = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">string</span>&gt;(<span class="string">""</span>);
+<span class="keyword">var</span> currentPage = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">int</span>&gt;(<span class="number">1</span>);
+<span class="keyword">var</span> sortOrder = <span class="keyword">new</span> <span class="type">TypedSignal</span>&lt;<span class="type">string</span>&gt;(<span class="string">"date"</span>);
+
+<span class="comment">// Method 1: Subscribe to signals and reload on changes</span>
+<span class="keyword">var</span> weatherResource = factory.<span class="method">Create</span>&lt;<span class="type">WeatherResponse</span>&gt;(() =&gt; {
+    <span class="keyword">var</span> url = <span class="string">$"/api/weather?search={searchTerm.Value}&amp;page={currentPage.Value}&amp;sort={sortOrder.Value}"</span>;
+    <span class="keyword">return</span> <span class="keyword">new</span> <span class="type">HttpRequestMessage</span>(<span class="type">HttpMethod</span>.Get, url);
+});
+
+<span class="comment">// Subscribe to multiple signals at once</span>
+weatherResource.<span class="method">SubscribeTo</span>(searchTerm, currentPage, sortOrder);
+
+<span class="comment">// Method 2: Use SubscribeWithDynamicRequest for automatic request rebuilding</span>
+<span class="keyword">var</span> userResource = factory.<span class="method">Create</span>&lt;<span class="type">User[]</span>&gt;(<span class="string">"/api/users"</span>)
+    .<span class="method">SubscribeWithDynamicRequest</span>(
+        () =&gt; {
+            <span class="keyword">var</span> parameters = <span class="keyword">new</span> <span class="type">SearchParameters</span> {
+                SearchTerm = searchTerm.Value,
+                PageNumber = currentPage.Value,
+                PageSize = <span class="number">10</span>,
+                OrderBy = sortOrder.Value
+            };
+            
+            <span class="keyword">var</span> request = <span class="keyword">new</span> <span class="type">HttpRequestMessage</span>(<span class="type">HttpMethod</span>.Post, <span class="string">"/api/users/search"</span>);
+            request.Content = <span class="type">JsonContent</span>.<span class="method">Create</span>(parameters);
+            <span class="keyword">return</span> request;
+        },
+        searchTerm, currentPage, sortOrder
+    );
+
+<span class="comment">// Method 3: Use factory method for convenient creation</span>
+<span class="keyword">var</span> productResource = factory.<span class="method">CreateWithDynamicRequest</span>&lt;<span class="type">Product[]</span>&gt;(
+    () =&gt; <span class="keyword">new</span> <span class="type">HttpRequestMessage</span>(
+        <span class="type">HttpMethod</span>.Get, 
+        <span class="string">$"/api/products?category={category.Value}&amp;inStock={showInStock.Value}"</span>
+    ),
+    category, showInStock
+);
+
+<span class="comment">// The resource automatically reloads when any subscribed signal changes</span>
+searchTerm.Value = <span class="string">"weather"</span>; <span class="comment">// Triggers automatic reload</span>
+currentPage.Value = <span class="number">2</span>; <span class="comment">// Triggers automatic reload</span>
+        </CodeBlock>
     </section>
 
     <section class="library-section">
