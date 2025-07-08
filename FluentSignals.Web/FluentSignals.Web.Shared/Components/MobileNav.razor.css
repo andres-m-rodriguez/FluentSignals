@@ -209,14 +209,14 @@
 }
 
 /* Mobile specific adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1240px) {
     .sidebar.open .sidebar-header {
         padding-left: 4.5rem; /* Extra space when sidebar is open to avoid X button */
     }
 }
 
 /* Desktop styles */
-@media (min-width: 769px) {
+@media (min-width: 1241px) {
     .hamburger {
         display: none;
     }

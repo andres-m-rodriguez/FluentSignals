@@ -40,7 +40,7 @@
 
             <div class="package-card">
                 <h3>FluentSignals.SignalBus</h3>
-                <p class="package-description">Event bus implementation for publish/subscribe patterns and message queuing.</p>
+                <p class="package-description">Lightweight publish/subscribe messaging with middleware pipeline support.</p>
                 <div class="package-install">
                     <code>dotnet add package FluentSignals.SignalBus</code>
                 </div>
@@ -103,11 +103,11 @@
             <h3>Using PackageReference</h3>
             <CodeBlock Language="CodeBlock.CodeLanguage.XML">
 <span class="tag">&lt;ItemGroup&gt;</span>
-  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
-  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.Blazor"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
-  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.Http"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
-  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.SignalR"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
-  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.SignalBus"</span> <span class="attr">Version</span>=<span class="string">"2.0.0"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals"</span> <span class="attr">Version</span>=<span class="string">"2.1.1"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.Blazor"</span> <span class="attr">Version</span>=<span class="string">"2.1.1"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.Http"</span> <span class="attr">Version</span>=<span class="string">"2.1.1"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.SignalR"</span> <span class="attr">Version</span>=<span class="string">"2.1.1"</span> <span class="tag">/&gt;</span>
+  <span class="tag">&lt;PackageReference</span> <span class="attr">Include</span>=<span class="string">"FluentSignals.SignalBus"</span> <span class="attr">Version</span>=<span class="string">"2.1.1"</span> <span class="tag">/&gt;</span>
 <span class="tag">&lt;/ItemGroup&gt;</span>
             </CodeBlock>
         </div>
@@ -172,8 +172,17 @@ builder.Services.<span class="method">AddFluentSignalsHttp</span>(options =>
 <span class="comment">// Add SignalR if using real-time features</span>
 builder.Services.<span class="method">AddFluentSignalsSignalR</span>();
 
-<span class="comment">// Add SignalBus if using event patterns</span>
-builder.Services.<span class="method">AddSignalBus</span>();
+<span class="comment">// Add SignalBus with middleware pipeline</span>
+builder.Services.<span class="method">AddSignalBus</span>(options =>
+{
+    options.<span class="property">EnableStatistics</span> = <span class="keyword">true</span>;
+    options.<span class="method">UseMiddleware</span>(pipeline => pipeline
+        .<span class="method">UseCorrelationId</span>()
+        .<span class="method">UseLogging</span>(LogLevel.Information)
+        .<span class="method">UsePerformanceTracking</span>()
+        .<span class="method">UseExceptionHandling</span>()
+    );
+});
             </CodeBlock>
         </div>
 

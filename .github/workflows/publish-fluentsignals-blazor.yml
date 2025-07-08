@@ -1,0 +1,82 @@
+name: Publish FluentSignals.Blazor
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'FluentSignals.Blazor/**'
+      - 'Directory.Build.props'
+      - '.github/workflows/publish-fluentsignals-blazor.yml'
+  workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Version override (leave empty to use Directory.Build.props version)'
+        required: false
+        type: string
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore FluentSignals.Blazor/FluentSignals.Blazor.csproj
+
+    - name: Build
+      run: dotnet build FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-restore
+
+    - name: Extract version
+      id: extract_version
+      run: |
+        if [ -n "${{ github.event.inputs.version_override }}" ]; then
+          VERSION="${{ github.event.inputs.version_override }}"
+        else
+          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+        fi
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION"
+
+    - name: Pack FluentSignals.Blazor
+      run: dotnet pack FluentSignals.Blazor/FluentSignals.Blazor.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
+
+    - name: Push to NuGet
+      run: dotnet nuget push ./artifacts/FluentSignals.Blazor.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: blazor/v${{ steps.extract_version.outputs.VERSION }}
+        name: FluentSignals.Blazor v${{ steps.extract_version.outputs.VERSION }}
+        body: |
+          ## FluentSignals.Blazor v${{ steps.extract_version.outputs.VERSION }}
+          
+          Blazor integration for FluentSignals with components and SignalBus.
+          
+          ### Installation:
+          ```bash
+          dotnet add package FluentSignals.Blazor --version ${{ steps.extract_version.outputs.VERSION }}
+          ```
+          
+          ### Dependencies:
+          - FluentSignals
+          - FluentSignals.Http
+          - FluentSignals.SignalR
+          - FluentSignals.SignalBus
+          
+          ### What's Changed
+          See [full changelog](https://github.com/andres-m-rodriguez/FluentSignals/commits/main/FluentSignals.Blazor)
+        files: ./artifacts/FluentSignals.Blazor.${{ steps.extract_version.outputs.VERSION }}.nupkg
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

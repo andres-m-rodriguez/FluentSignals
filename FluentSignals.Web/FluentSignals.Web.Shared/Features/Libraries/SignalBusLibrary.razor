@@ -1,81 +1,1133 @@
 @page "/libraries/signalbus"
-@namespace FluentSignals.Web.Shared.Features.Libraries
+@rendermode InteractiveWebAssembly
+@using FluentSignals.Web.Shared.Common.Components
 
-<PageTitle>FluentSignals.SignalBus - Coming Soon</PageTitle>
+<PageTitle>FluentSignals.SignalBus - Event-Driven Messaging</PageTitle>
 
-<div class="library-page content-page">
-    <div class="coming-soon-hero">
-        <div class="coming-soon-icon">🚌</div>
-        <h1 class="coming-soon-title">FluentSignals.SignalBus</h1>
-        <p class="coming-soon-subtitle">Event-driven messaging between signals</p>
-        <div class="coming-soon-badge-large">Coming Soon</div>
+<div class="library-page">
+    <div class="library-hero">
+        <div class="hero-content">
+            <h1>FluentSignals.SignalBus</h1>
+            <p class="hero-description">
+                A lightweight, high-performance publish-subscribe messaging system with middleware support for .NET applications
+            </p>
+            <div class="hero-badges">
+                <span class="badge">Event-Driven</span>
+                <span class="badge">Middleware Pipeline</span>
+                <span class="badge">Blazor Compatible</span>
+            </div>
+        </div>
+        <div class="hero-icon">🚌</div>
     </div>
 
-    <section class="coming-soon-section">
-        <h2>What to Expect</h2>
-        <p>FluentSignals.SignalBus will provide a powerful event bus implementation that seamlessly integrates with the FluentSignals ecosystem.</p>
-        
-        <div class="feature-preview">
-            <h3>Planned Features</h3>
-            <ul class="feature-list">
-                <li>🚀 Publish/Subscribe pattern for signals</li>
-                <li>📡 Cross-component communication</li>
-                <li>🔄 Automatic signal synchronization</li>
-                <li>🎯 Type-safe message routing</li>
-                <li>⚡ High-performance event dispatching</li>
-                <li>🔌 Pluggable middleware support</li>
-            </ul>
+    <div class="quick-start-section">
+        <h2>Quick Start</h2>
+        <div class="quick-start-grid">
+            <div class="quick-start-card">
+                <h3>1. Install Package</h3>
+                <CodeBlock Language="CodeBlock.CodeLanguage.CLI">dotnet add package FluentSignals.SignalBus</CodeBlock>
+            </div>
+            <div class="quick-start-card">
+                <h3>2. Register Services</h3>
+                <CodeBlock>@_registerCode</CodeBlock>
+            </div>
+            <div class="quick-start-card">
+                <h3>3. Publish Messages</h3>
+                <CodeBlock>@_publishCode</CodeBlock>
+            </div>
+            <div class="quick-start-card">
+                <h3>4. Subscribe to Messages</h3>
+                <CodeBlock>@_subscribeCode</CodeBlock>
+            </div>
         </div>
+    </div>
 
-        <div class="preview-code">
-            <h3>Preview</h3>
-            <pre class="code-preview">
-<span class="comment">// Coming soon...</span>
-<span class="keyword">var</span> bus = serviceProvider.<span class="method">GetRequiredService</span>&lt;<span class="type">ISignalBus</span>&gt;();
-
-<span class="comment">// Subscribe to events</span>
-bus.<span class="method">Subscribe</span>&lt;<span class="type">UserUpdatedEvent</span>&gt;(<span class="keyword">async</span> (evt) =&gt;
-{
-    <span class="keyword">await</span> userSignal.<span class="method">UpdateValue</span>(evt.User);
-});
-
-<span class="comment">// Publish events</span>
-<span class="keyword">await</span> bus.<span class="method">PublishAsync</span>(<span class="keyword">new</span> <span class="type">UserUpdatedEvent</span>(updatedUser));
-            </pre>
+    <section class="features-section">
+        <SectionTitle Title="Core Features" />
+        <div class="features-grid">
+            <FeatureCard Icon="📡" Title="Type-Safe Messaging" Description="Strongly typed publish/subscribe with compile-time safety" />
+            <FeatureCard Icon="⚡" Title="High Performance" Description="Async/await support with concurrent message processing" />
+            <FeatureCard Icon="🛡️" Title="Error Resilience" Description="Built-in error handling with event notifications" />
+            <FeatureCard Icon="📊" Title="Statistics" Description="Real-time metrics and performance monitoring" />
+            <FeatureCard Icon="🔌" Title="Middleware Pipeline" Description="Extensible middleware for logging, validation, and more" />
+            <FeatureCard Icon="💾" Title="Memory Efficient" Description="Weak reference support to prevent memory leaks" />
         </div>
     </section>
 
-    <section class="coming-soon-section">
-        <h2>Stay Tuned</h2>
-        <p>We're actively working on bringing you a robust signal bus implementation. Check back soon or follow our GitHub repository for updates!</p>
+    <section class="middleware-section">
+        <SectionTitle Title="Middleware Pipeline" />
+        <p>Configure a processing pipeline that runs on every message publish:</p>
         
+        <div class="code-example">
+            <h3>Built-in Middleware</h3>
+            <CodeBlock>@_middlewareCode</CodeBlock>
+        </div>
+
+        <div class="middleware-features">
+            <div class="middleware-card">
+                <h4>🔍 Logging</h4>
+                <p>Log all messages with configurable levels</p>
+            </div>
+            <div class="middleware-card">
+                <h4>🏷️ Correlation ID</h4>
+                <p>Automatic correlation ID generation for tracking</p>
+            </div>
+            <div class="middleware-card">
+                <h4>⏱️ Performance Tracking</h4>
+                <p>Monitor slow messages and bottlenecks</p>
+            </div>
+            <div class="middleware-card">
+                <h4>✅ Validation</h4>
+                <p>Validate messages before processing</p>
+            </div>
+            <div class="middleware-card">
+                <h4>🛡️ Exception Handling</h4>
+                <p>Centralized error handling with recovery options</p>
+            </div>
+            <div class="middleware-card">
+                <h4>🎯 Custom Logic</h4>
+                <p>Add your own middleware components</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="usage-section">
+        <SectionTitle Title="Advanced Usage" />
+        
+        <div class="usage-examples">
+            <div class="example">
+                <h3>Async Handlers</h3>
+                <CodeBlock>@_asyncCode</CodeBlock>
+            </div>
+            
+            <div class="example">
+                <h3>Single Subscription</h3>
+                <CodeBlock>@_singleCode</CodeBlock>
+            </div>
+            
+            <div class="example">
+                <h3>Weak References</h3>
+                <CodeBlock>@_weakCode</CodeBlock>
+            </div>
+            
+            <div class="example">
+                <h3>Error Handling</h3>
+                <CodeBlock>@_errorCode</CodeBlock>
+            </div>
+        </div>
+        
+        <h3 style="margin-top: 2rem;">Complex Event Patterns</h3>
+        <CodeBlock>@_complexPatternsCode</CodeBlock>
+        
+        <h3>Scoped Subscriptions</h3>
+        <CodeBlock>@_scopedSubscriptionsCode</CodeBlock>
+        
+        <h3>Message Filtering and Routing</h3>
+        <CodeBlock>@_filteringCode</CodeBlock>
+    </section>
+
+    <section class="patterns-section">
+        <SectionTitle Title="Common Patterns" />
+        
+        <h3>Domain Events</h3>
+        <CodeBlock>@_domainEventsCode</CodeBlock>
+        
+        <h3>Request/Response Pattern</h3>
+        <CodeBlock>@_requestResponseCode</CodeBlock>
+        
+        <h3>Event Sourcing</h3>
+        <CodeBlock>@_eventSourcingCode</CodeBlock>
+    </section>
+
+    <section class="testing-section">
+        <SectionTitle Title="Testing" />
+        <p>SignalBus includes testing helpers for unit and integration tests:</p>
+        
+        <CodeBlock>@_testingCode</CodeBlock>
+    </section>
+
+    <section class="blazor-section">
+        <SectionTitle Title="Blazor Integration" />
+        <p>Works seamlessly with both Blazor WebAssembly and Blazor Server:</p>
+        
+        <CodeBlock>@_blazorCode</CodeBlock>
+        
+        <div class="blazor-features">
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>Scoped lifetime for circuit isolation</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>Automatic disposal with components</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>Thread-safe for concurrent operations</span>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">✓</span>
+                <span>No background threads or timers</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="statistics-section">
+        <SectionTitle Title="Statistics & Monitoring" />
+        <CodeBlock>@_statsCode</CodeBlock>
+    </section>
+
+    <section class="best-practices-section">
+        <SectionTitle Title="Best Practices" />
+        
+        <div class="practices-grid">
+            <div class="practice-card">
+                <h3>🎯 Message Design</h3>
+                <ul>
+                    <li>Use records for immutable messages</li>
+                    <li>Keep messages small and focused</li>
+                    <li>Include all necessary data (avoid DB lookups in handlers)</li>
+                    <li>Use meaningful type names that describe the event</li>
+                </ul>
+                <CodeBlock>@_messageDesignCode</CodeBlock>
+            </div>
+            
+            <div class="practice-card">
+                <h3>🔄 Subscription Lifecycle</h3>
+                <ul>
+                    <li>Always dispose subscriptions when done</li>
+                    <li>Use scoped subscriptions in Blazor components</li>
+                    <li>Consider weak references for UI updates</li>
+                    <li>Group related subscriptions for easier management</li>
+                </ul>
+                <CodeBlock>@_subscriptionLifecycleCode</CodeBlock>
+            </div>
+            
+            <div class="practice-card">
+                <h3>⚡ Performance Tips</h3>
+                <ul>
+                    <li>Keep handlers fast and non-blocking</li>
+                    <li>Use async handlers for I/O operations</li>
+                    <li>Avoid heavy computations in handlers</li>
+                    <li>Consider batching for high-frequency events</li>
+                </ul>
+                <CodeBlock>@_performanceCode</CodeBlock>
+            </div>
+            
+            <div class="practice-card">
+                <h3>🛡️ Error Handling</h3>
+                <ul>
+                    <li>Always handle exceptions in handlers</li>
+                    <li>Use the ErrorOccurred event for logging</li>
+                    <li>Don't let one handler failure affect others</li>
+                    <li>Consider retry logic for critical operations</li>
+                </ul>
+                <CodeBlock>@_errorHandlingBestPracticesCode</CodeBlock>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2>Ready to Get Started?</h2>
+        <p>Add powerful event-driven messaging to your application today</p>
         <div class="cta-buttons">
-            <a href="https://github.com/andres-m-rodriguez/FluentSignals" class="cta-button">
-                <span>Watch on GitHub</span>
+            <a href="https://www.nuget.org/packages/FluentSignals.SignalBus" class="primary-button" target="_blank">
+                View on NuGet
             </a>
-            <a href="/libraries/http" class="cta-button secondary">
-                <span>Explore HTTP Library</span>
+            <a href="https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.SignalBus" class="secondary-button" target="_blank">
+                View Source
             </a>
         </div>
     </section>
 </div>
 
+@code {
+    private string _registerCode = @"// In Program.cs
+builder.Services.AddSignalBus(options =>
+{
+    options.EnableStatistics = true;
+    options.EnableCorrelationId = true;
+    
+    options.UseMiddleware(pipeline => pipeline
+        .UseCorrelationId()
+        .UseLogging(LogLevel.Information)
+        .UsePerformanceTracking()
+        .UseExceptionHandling()
+    );
+});";
+
+    private string _publishCode = @"public class UserService
+{
+    private readonly ISignalBus _signalBus;
+    
+    public async Task<bool> LoginAsync(string userId)
+    {
+        // Perform login logic...
+        
+        // Publish event
+        await _signalBus.PublishAsync(
+            new UserLoggedIn(userId, DateTime.UtcNow)
+        );
+        
+        return true;
+    }
+}";
+
+    private string _subscribeCode = @"public class NotificationService : IDisposable
+{
+    private readonly ISignalBus _signalBus;
+    private SignalBusSubscription? _subscription;
+    
+    public NotificationService(ISignalBus signalBus)
+    {
+        _signalBus = signalBus;
+        Initialize();
+    }
+    
+    private async void Initialize()
+    {
+        _subscription = await _signalBus.Subscribe<UserLoggedIn>(
+            user => Console.WriteLine($""User {user.UserId} logged in"")
+        );
+    }
+    
+    public void Dispose() => _subscription?.Dispose();
+}";
+
+    private string _middlewareCode = @"builder.Services.AddSignalBus(options =>
+{
+    options.UseMiddleware(pipeline => pipeline
+        // Add correlation ID to messages
+        .UseCorrelationId()
+        
+        // Log all messages
+        .UseLogging(LogLevel.Debug)
+        
+        // Track slow messages (>100ms)
+        .UsePerformanceTracking(
+            slowMessageThreshold: TimeSpan.FromMilliseconds(100),
+            onSlowMessage: (context, elapsed) => 
+                logger.LogWarning(""Slow message: {Type}"", context.MessageType.Name)
+        )
+        
+        // Validate messages
+        .UseValidation(v => v
+            .RegisterValidator<OrderPlaced>(order => order.Amount > 0)
+            .RegisterValidator<UserUpdate>(user => !string.IsNullOrEmpty(user.Id))
+        )
+        
+        // Custom middleware
+        .UseCustom(""audit"", async (context, next) =>
+        {
+            await AuditLog.RecordAsync(context.MessageType.Name);
+            await next(context);
+        })
+    );
+});";
+
+    private string _asyncCode = @"// Async message handler
+var subscription = await _signalBus.SubscribeAsync<DataUpdated>(
+    async data =>
+    {
+        await ProcessDataAsync(data);
+        await SaveToDatabase(data);
+    }
+);";
+
+    private string _singleCode = @"// Only one subscription per target type
+await _signalBus.SubscribeSingle<ConfigChanged>(HandleConfigChange);
+
+// Subsequent calls with same target type are ignored
+await _signalBus.SubscribeSingle<ConfigChanged>(HandleConfigChange); // No-op";
+
+    private string _weakCode = @"// Weak reference prevents memory leaks
+await _signalBus.SubscribeWeak<UiUpdate>(update =>
+{
+    // Handler can be garbage collected
+    // if the subscriber is no longer referenced
+    UpdateUI(update);
+});";
+
+    private string _errorCode = @"// Subscribe to error events
+_signalBus.ErrorOccurred += (sender, context) =>
+{
+    _logger.LogError(context.Exception, 
+        ""Error processing {MessageType}"", 
+        context.MessageType.Name);
+};";
+
+    private string _blazorCode = @"@implements IDisposable
+@inject ISignalBus SignalBus
+
+<div class=""notifications"">
+    @foreach (var notification in _notifications)
+    {
+        <div class=""notification"">@notification</div>
+    }
+</div>
+
+@code {
+    private List<string> _notifications = new();
+    private SignalBusSubscription? _subscription;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _subscription = await SignalBus.SubscribeAsync<UserMessage>(async msg =>
+        {
+            _notifications.Add(msg.Text);
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+    
+    public void Dispose() => _subscription?.Dispose();
+}";
+
+    private string _statsCode = @"var stats = _signalBus.GetStatistics();
+
+Console.WriteLine($""Total messages: {stats.TotalMessagesPublished}"");
+Console.WriteLine($""Active subscriptions: {stats.ActiveSubscriptions}"");
+Console.WriteLine($""Total errors: {stats.TotalErrors}"");
+Console.WriteLine($""Running since: {stats.StatisticsStartTime}"");
+
+foreach (var (type, count) in stats.MessagesByType)
+{
+    Console.WriteLine($""{type}: {count} messages"");
+}";
+
+    private string _complexPatternsCode = @"// Message aggregation and batching
+public class MessageAggregator
+{
+    private readonly ISignalBus _signalBus;
+    private readonly List<DataChanged> _pendingChanges = new();
+    private readonly Timer _batchTimer;
+    
+    public MessageAggregator(ISignalBus signalBus)
+    {
+        _signalBus = signalBus;
+        _batchTimer = new Timer(FlushBatch, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+        
+        // Subscribe to individual changes
+        _ = _signalBus.Subscribe<DataChanged>(change =>
+        {
+            lock (_pendingChanges)
+            {
+                _pendingChanges.Add(change);
+            }
+        });
+    }
+    
+    private async void FlushBatch(object? state)
+    {
+        List<DataChanged> batch;
+        lock (_pendingChanges)
+        {
+            if (_pendingChanges.Count == 0) return;
+            batch = new List<DataChanged>(_pendingChanges);
+            _pendingChanges.Clear();
+        }
+        
+        // Publish batched event
+        await _signalBus.PublishAsync(new BatchDataChanged(batch));
+    }
+}
+
+// Chained events
+public class OrderWorkflow
+{
+    private readonly ISignalBus _signalBus;
+    
+    public OrderWorkflow(ISignalBus signalBus)
+    {
+        _signalBus = signalBus;
+        
+        // Chain events to create workflows
+        _ = _signalBus.SubscribeAsync<OrderPlaced>(async order =>
+        {
+            // Process payment
+            var paymentResult = await ProcessPayment(order);
+            await _signalBus.PublishAsync(new PaymentProcessed(order.Id, paymentResult));
+        });
+        
+        _ = _signalBus.SubscribeAsync<PaymentProcessed>(async payment =>
+        {
+            if (payment.Success)
+            {
+                // Trigger fulfillment
+                await _signalBus.PublishAsync(new OrderReadyForFulfillment(payment.OrderId));
+            }
+            else
+            {
+                // Trigger cancellation
+                await _signalBus.PublishAsync(new OrderCancelled(payment.OrderId, ""Payment failed""));
+            }
+        });
+    }
+}";
+
+    private string _scopedSubscriptionsCode = @"// Scoped subscriptions with automatic cleanup
+public class ScopedEventHandler : IDisposable
+{
+    private readonly List<SignalBusSubscription> _subscriptions = new();
+    private readonly ISignalBus _signalBus;
+    private readonly ILogger<ScopedEventHandler> _logger;
+    
+    public ScopedEventHandler(ISignalBus signalBus, ILogger<ScopedEventHandler> logger)
+    {
+        _signalBus = signalBus;
+        _logger = logger;
+    }
+    
+    public async Task<IDisposable> CreateScope(string scopeName)
+    {
+        var subscriptions = new List<SignalBusSubscription>();
+        
+        // Subscribe to multiple events for this scope
+        subscriptions.Add(await _signalBus.Subscribe<UserActivity>(activity =>
+        {
+            _logger.LogInformation(""[{Scope}] User activity: {Activity}"", scopeName, activity);
+        }));
+        
+        subscriptions.Add(await _signalBus.SubscribeAsync<SystemEvent>(async evt =>
+        {
+            _logger.LogInformation(""[{Scope}] System event: {Event}"", scopeName, evt);
+            await ProcessSystemEvent(evt);
+        }));
+        
+        // Return disposable scope
+        return new SubscriptionScope(subscriptions);
+    }
+    
+    private class SubscriptionScope : IDisposable
+    {
+        private readonly List<SignalBusSubscription> _subscriptions;
+        
+        public SubscriptionScope(List<SignalBusSubscription> subscriptions)
+        {
+            _subscriptions = subscriptions;
+        }
+        
+        public void Dispose()
+        {
+            foreach (var subscription in _subscriptions)
+            {
+                subscription.Dispose();
+            }
+        }
+    }
+    
+    public void Dispose()
+    {
+        foreach (var subscription in _subscriptions)
+        {
+            subscription.Dispose();
+        }
+    }
+}";
+
+    private string _filteringCode = @"// Custom middleware for filtering messages
+public class MessageFilterMiddleware : ISignalBusMiddleware
+{
+    private readonly IMessageFilter _filter;
+    
+    public MessageFilterMiddleware(IMessageFilter filter)
+    {
+        _filter = filter;
+    }
+    
+    public async Task InvokeAsync(SignalBusContext context, SignalBusDelegate next)
+    {
+        // Check if message should be processed
+        if (!_filter.ShouldProcess(context.Message, context.MessageType))
+        {
+            context.IsCancelled = true;
+            return;
+        }
+        
+        await next(context);
+    }
+}
+
+// Conditional subscriptions
+public class ConditionalSubscriber
+{
+    public async Task<SignalBusSubscription> SubscribeWithCondition<T>(
+        ISignalBus signalBus,
+        Func<T, bool> condition,
+        Action<T> handler) where T : class
+    {
+        return await signalBus.Subscribe<T>(message =>
+        {
+            if (condition(message))
+            {
+                handler(message);
+            }
+        });
+    }
+}
+
+// Usage
+var subscriber = new ConditionalSubscriber();
+var subscription = await subscriber.SubscribeWithCondition<OrderPlaced>(
+    signalBus,
+    order => order.Amount > 1000, // Only handle large orders
+    order => ProcessLargeOrder(order)
+);";
+
+    private string _domainEventsCode = @"// Base domain event
+public abstract record DomainEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    public DateTime OccurredAt { get; } = DateTime.UtcNow;
+    public string? UserId { get; init; }
+    public string? CorrelationId { get; init; }
+}
+
+// Specific domain events
+public record CustomerRegistered(string CustomerId, string Email) : DomainEvent;
+public record OrderPlaced(string OrderId, string CustomerId, decimal Amount) : DomainEvent;
+public record InventoryUpdated(string ProductId, int OldQuantity, int NewQuantity) : DomainEvent;
+
+// Domain event dispatcher
+public class DomainEventDispatcher
+{
+    private readonly ISignalBus _signalBus;
+    private readonly ILogger<DomainEventDispatcher> _logger;
+    
+    public DomainEventDispatcher(ISignalBus signalBus, ILogger<DomainEventDispatcher> logger)
+    {
+        _signalBus = signalBus;
+        _logger = logger;
+    }
+    
+    public async Task DispatchAsync<TEvent>(TEvent domainEvent) where TEvent : DomainEvent
+    {
+        _logger.LogInformation(
+            ""Dispatching {EventType} with ID {EventId}"",
+            typeof(TEvent).Name,
+            domainEvent.EventId);
+            
+        await _signalBus.PublishAsync(domainEvent);
+    }
+}
+
+// Usage in aggregate
+public class Customer
+{
+    private readonly List<DomainEvent> _events = new();
+    
+    public string Id { get; private set; }
+    public string Email { get; private set; }
+    
+    public static Customer Register(string email)
+    {
+        var customer = new Customer
+        {
+            Id = Guid.NewGuid().ToString(),
+            Email = email
+        };
+        
+        customer._events.Add(new CustomerRegistered(customer.Id, email));
+        return customer;
+    }
+    
+    public IReadOnlyList<DomainEvent> GetUncommittedEvents() => _events.AsReadOnly();
+    public void MarkEventsAsCommitted() => _events.Clear();
+}";
+
+    private string _requestResponseCode = @"// Request/Response pattern implementation
+public interface IRequest<TResponse>
+{
+    Guid RequestId { get; }
+}
+
+public record QueryUserRequest(string UserId) : IRequest<UserResponse>
+{
+    public Guid RequestId { get; } = Guid.NewGuid();
+}
+
+public record UserResponse(string UserId, string Name, string Email);
+
+// Request handler
+public class RequestResponseHandler
+{
+    private readonly ISignalBus _signalBus;
+    private readonly ConcurrentDictionary<Guid, TaskCompletionSource<object>> _pendingRequests = new();
+    
+    public RequestResponseHandler(ISignalBus signalBus)
+    {
+        _signalBus = signalBus;
+        
+        // Subscribe to all responses
+        _ = signalBus.Subscribe<UserResponse>(response =>
+        {
+            if (response is IHasRequestId hasRequestId &&
+                _pendingRequests.TryRemove(hasRequestId.RequestId, out var tcs))
+            {
+                tcs.SetResult(response);
+            }
+        });
+    }
+    
+    public async Task<TResponse> SendRequestAsync<TRequest, TResponse>(
+        TRequest request,
+        TimeSpan timeout = default)
+        where TRequest : class, IRequest<TResponse>
+        where TResponse : class
+    {
+        var tcs = new TaskCompletionSource<object>();
+        _pendingRequests[request.RequestId] = tcs;
+        
+        try
+        {
+            // Publish request
+            await _signalBus.PublishAsync(request);
+            
+            // Wait for response with timeout
+            using var cts = new CancellationTokenSource(timeout == default ? TimeSpan.FromSeconds(30) : timeout);
+            using (cts.Token.Register(() => tcs.TrySetCanceled()))
+            {
+                var result = await tcs.Task;
+                return (TResponse)result;
+            }
+        }
+        finally
+        {
+            _pendingRequests.TryRemove(request.RequestId, out _);
+        }
+    }
+}
+
+// Usage
+var handler = new RequestResponseHandler(signalBus);
+var response = await handler.SendRequestAsync<QueryUserRequest, UserResponse>(
+    new QueryUserRequest(""user123""),
+    TimeSpan.FromSeconds(5)
+);";
+
+    private string _eventSourcingCode = @"// Event store integration
+public class EventStore
+{
+    private readonly ISignalBus _signalBus;
+    private readonly List<StoredEvent> _events = new();
+    
+    public EventStore(ISignalBus signalBus)
+    {
+        _signalBus = signalBus;
+    }
+    
+    public async Task AppendAsync<TEvent>(string streamId, TEvent @event) where TEvent : class
+    {
+        var storedEvent = new StoredEvent
+        {
+            StreamId = streamId,
+            EventType = typeof(TEvent).Name,
+            EventData = JsonSerializer.Serialize(@event),
+            Timestamp = DateTime.UtcNow,
+            Version = GetNextVersion(streamId)
+        };
+        
+        _events.Add(storedEvent);
+        
+        // Publish to signal bus for projections
+        await _signalBus.PublishAsync(@event);
+        
+        // Also publish metadata event
+        await _signalBus.PublishAsync(new EventStored(streamId, storedEvent.Version, @event));
+    }
+    
+    public async Task<T?> LoadAggregateAsync<T>(string streamId) where T : IEventSourced, new()
+    {
+        var events = _events.Where(e => e.StreamId == streamId).OrderBy(e => e.Version);
+        
+        if (!events.Any()) return default;
+        
+        var aggregate = new T();
+        foreach (var @event in events)
+        {
+            var eventType = Type.GetType(@event.EventType);
+            var eventData = JsonSerializer.Deserialize(@event.EventData, eventType!);
+            aggregate.Apply(eventData);
+        }
+        
+        return aggregate;
+    }
+    
+    private int GetNextVersion(string streamId)
+    {
+        var lastEvent = _events.Where(e => e.StreamId == streamId)
+                               .OrderByDescending(e => e.Version)
+                               .FirstOrDefault();
+        return (lastEvent?.Version ?? 0) + 1;
+    }
+}
+
+// Projection handler
+public class UserProjection
+{
+    private readonly Dictionary<string, UserReadModel> _users = new();
+    
+    public UserProjection(ISignalBus signalBus)
+    {
+        _ = signalBus.Subscribe<UserCreated>(Apply);
+        _ = signalBus.Subscribe<UserUpdated>(Apply);
+        _ = signalBus.Subscribe<UserDeleted>(Apply);
+    }
+    
+    private void Apply(UserCreated @event)
+    {
+        _users[@event.UserId] = new UserReadModel
+        {
+            Id = @event.UserId,
+            Name = @event.Name,
+            Email = @event.Email,
+            CreatedAt = @event.OccurredAt
+        };
+    }
+    
+    private void Apply(UserUpdated @event)
+    {
+        if (_users.TryGetValue(@event.UserId, out var user))
+        {
+            user.Name = @event.Name ?? user.Name;
+            user.Email = @event.Email ?? user.Email;
+            user.UpdatedAt = @event.OccurredAt;
+        }
+    }
+    
+    private void Apply(UserDeleted @event)
+    {
+        _users.Remove(@event.UserId);
+    }
+    
+    public UserReadModel? GetUser(string userId) => 
+        _users.TryGetValue(userId, out var user) ? user : null;
+}";
+
+    private string _testingCode = @"// Unit testing with SignalBus
+[TestFixture]
+public class SignalBusTests
+{
+    private ISignalBus _signalBus;
+    
+    [SetUp]
+    public void Setup()
+    {
+        _signalBus = new SignalBusService();
+    }
+    
+    [Test]
+    public async Task Should_Receive_Published_Message()
+    {
+        // Arrange
+        var received = false;
+        var expectedMessage = new TestMessage(""Hello"");
+        
+        await _signalBus.Subscribe<TestMessage>(msg =>
+        {
+            received = true;
+            Assert.AreEqual(expectedMessage.Text, msg.Text);
+        });
+        
+        // Act
+        await _signalBus.PublishAsync(expectedMessage);
+        
+        // Assert
+        Assert.IsTrue(received);
+    }
+    
+    [Test]
+    public async Task Should_Handle_Multiple_Subscribers()
+    {
+        // Arrange
+        var count = 0;
+        var subscriptions = new List<SignalBusSubscription>();
+        
+        for (int i = 0; i < 5; i++)
+        {
+            subscriptions.Add(await _signalBus.Subscribe<TestMessage>(_ => count++));
+        }
+        
+        // Act
+        await _signalBus.PublishAsync(new TestMessage(""Test""));
+        
+        // Assert
+        Assert.AreEqual(5, count);
+        
+        // Cleanup
+        subscriptions.ForEach(s => s.Dispose());
+    }
+}
+
+// Integration testing with dependency injection
+[TestFixture]
+public class SignalBusIntegrationTests
+{
+    private ServiceProvider _serviceProvider;
+    private ISignalBus _signalBus;
+    
+    [SetUp]
+    public void Setup()
+    {
+        var services = new ServiceCollection();
+        
+        services.AddLogging();
+        services.AddSignalBus(options =>
+        {
+            options.EnableStatistics = true;
+            options.UseMiddleware(pipeline => pipeline
+                .UseLogging(LogLevel.Debug)
+                .UseExceptionHandling()
+            );
+        });
+        
+        _serviceProvider = services.BuildServiceProvider();
+        _signalBus = _serviceProvider.GetRequiredService<ISignalBus>();
+    }
+    
+    [Test]
+    public async Task Should_Track_Statistics()
+    {
+        // Arrange & Act
+        await _signalBus.PublishAsync(new TestMessage(""Test1""));
+        await _signalBus.PublishAsync(new TestMessage(""Test2""));
+        
+        var stats = _signalBus.GetStatistics();
+        
+        // Assert
+        Assert.AreEqual(2, stats.TotalMessagesPublished);
+        Assert.IsTrue(stats.MessagesByType.ContainsKey(nameof(TestMessage)));
+        Assert.AreEqual(2, stats.MessagesByType[nameof(TestMessage)]);
+    }
+    
+    [TearDown]
+    public void TearDown()
+    {
+        _serviceProvider?.Dispose();
+    }
+}
+
+// Test helpers
+public record TestMessage(string Text);
+
+public class TestSignalBusMiddleware : ISignalBusMiddleware
+{
+    public List<object> ProcessedMessages { get; } = new();
+    
+    public async Task InvokeAsync(SignalBusContext context, SignalBusDelegate next)
+    {
+        ProcessedMessages.Add(context.Message);
+        await next(context);
+    }
+}";
+
+    private string _messageDesignCode = @"// Good: Immutable, focused, self-contained
+public record OrderPlaced(
+    string OrderId,
+    string CustomerId,
+    decimal TotalAmount,
+    DateTime PlacedAt,
+    IReadOnlyList<OrderItem> Items
+);
+
+// Bad: Mutable, requires external lookups
+public class OrderEvent
+{
+    public int OrderId { get; set; } // Only ID, requires DB lookup
+    public string Type { get; set; } // Ambiguous
+}";
+
+    private string _subscriptionLifecycleCode = @"// Component with proper lifecycle management
+public class DashboardComponent : ComponentBase, IDisposable
+{
+    private readonly CompositeDisposable _subscriptions = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Group all subscriptions
+        _subscriptions.Add(
+            await SignalBus.Subscribe<MetricUpdated>(OnMetricUpdated)
+        );
+        
+        _subscriptions.Add(
+            await SignalBus.SubscribeWeak<UiRefresh>(_ => StateHasChanged())
+        );
+    }
+    
+    public void Dispose() => _subscriptions.Dispose();
+}
+
+// Helper for managing multiple subscriptions
+public class CompositeDisposable : IDisposable
+{
+    private readonly List<IDisposable> _disposables = new();
+    
+    public void Add(IDisposable disposable) => _disposables.Add(disposable);
+    
+    public void Dispose()
+    {
+        foreach (var d in _disposables) d?.Dispose();
+        _disposables.Clear();
+    }
+}";
+
+    private string _performanceCode = @"// Fast, non-blocking handler
+await _signalBus.Subscribe<OrderPlaced>(order =>
+{
+    // Quick in-memory operation
+    _orderCache.Add(order.OrderId, order);
+    _metrics.IncrementOrderCount();
+});
+
+// Async for I/O operations
+await _signalBus.SubscribeAsync<OrderPlaced>(async order =>
+{
+    // Offload heavy work
+    await Task.Run(() => GenerateOrderReport(order));
+    
+    // Or queue for background processing
+    await _backgroundQueue.EnqueueAsync(order);
+});
+
+// Batching for high-frequency events
+public class EventBatcher<T> : IDisposable
+{
+    private readonly List<T> _batch = new();
+    private readonly Timer _timer;
+    private readonly ISignalBus _signalBus;
+    
+    public EventBatcher(ISignalBus signalBus, TimeSpan batchInterval)
+    {
+        _signalBus = signalBus;
+        _timer = new Timer(FlushBatch, null, batchInterval, batchInterval);
+    }
+    
+    public void Add(T item)
+    {
+        lock (_batch) _batch.Add(item);
+    }
+    
+    private async void FlushBatch(object? state)
+    {
+        List<T> items;
+        lock (_batch)
+        {
+            if (_batch.Count == 0) return;
+            items = new List<T>(_batch);
+            _batch.Clear();
+        }
+        
+        await _signalBus.PublishAsync(new BatchEvent<T>(items));
+    }
+    
+    public void Dispose() => _timer?.Dispose();
+}";
+
+    private string _errorHandlingBestPracticesCode = @"// Resilient handler with error handling
+await _signalBus.SubscribeAsync<OrderPlaced>(async order =>
+{
+    try
+    {
+        await _orderService.ProcessOrderAsync(order);
+    }
+    catch (TransientException ex)
+    {
+        _logger.LogWarning(ex, ""Transient error processing order {OrderId}"", order.OrderId);
+        
+        // Retry with exponential backoff
+        await RetryAsync(async () => await _orderService.ProcessOrderAsync(order),
+            maxAttempts: 3,
+            delay: TimeSpan.FromSeconds(1));
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, ""Failed to process order {OrderId}"", order.OrderId);
+        
+        // Send to dead letter queue
+        await _deadLetterQueue.EnqueueAsync(new FailedMessage<OrderPlaced>
+        {
+            Message = order,
+            Error = ex.Message,
+            FailedAt = DateTime.UtcNow
+        });
+    }
+});
+
+// Global error monitoring
+_signalBus.ErrorOccurred += async (sender, context) =>
+{
+    // Log error with context
+    _logger.LogError(context.Exception,
+        ""SignalBus error for {MessageType} with {SubscriberCount} subscribers"",
+        context.MessageType.Name,
+        context.SubscriberCount);
+    
+    // Send alert for critical errors
+    if (IsCriticalError(context.Exception))
+    {
+        await _alertService.SendAlertAsync($""Critical SignalBus error: {context.Exception.Message}"");
+    }
+    
+    // Track metrics
+    _metrics.IncrementErrorCount(context.MessageType.Name);
+};";
+}
+
 <style>
-    .coming-soon-hero {
-        text-align: center;
+    .library-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .library-page {
+            max-width: 100%;
+            padding: 1.5rem;
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .library-page {
+            padding: 1rem;
+        }
+    }
+    
+    .library-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         padding: 4rem 0;
         margin-bottom: 3rem;
         background: linear-gradient(135deg, rgba(255, 165, 0, 0.05) 0%, transparent 100%);
         border-radius: 1rem;
         border: 1px solid rgba(255, 165, 0, 0.1);
+        padding: 3rem;
+    }
+    
+    @@media (max-width: 1024px) {
+        .library-hero {
+            flex-direction: column;
+            text-align: center;
+            gap: 2rem;
+        }
+        
+        .hero-content {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .hero-badges {
+            justify-content: center;
+        }
     }
 
-    .coming-soon-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
+    .hero-icon {
+        font-size: 6rem;
+        opacity: 0.8;
     }
 
-    .coming-soon-title {
+    .hero-content h1 {
         font-size: 3rem;
         font-weight: 800;
         margin-bottom: 1rem;
@@ -85,205 +1137,357 @@ bus.<span class="method">Subscribe</span>&lt;<span class="type">UserUpdatedEvent
         background-clip: text;
     }
 
-    .coming-soon-subtitle {
+    .hero-description {
         font-size: 1.25rem;
-        color: #999;
+        color: #ccc;
         margin-bottom: 1.5rem;
+        max-width: 600px;
     }
 
-    .coming-soon-badge-large {
-        display: inline-block;
-        padding: 0.5rem 2rem;
-        background: rgba(255, 165, 0, 0.2);
-        color: #ffa500;
-        font-size: 1rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
+    .hero-badges {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .badge {
+        padding: 0.5rem 1rem;
+        background: rgba(255, 165, 0, 0.1);
+        border: 1px solid rgba(255, 165, 0, 0.2);
         border-radius: 2rem;
-        border: 2px solid rgba(255, 165, 0, 0.3);
+        color: #ffa500;
+        font-size: 0.875rem;
+        font-weight: 600;
     }
 
-    .coming-soon-section {
-        margin-bottom: 3rem;
+    .quick-start-section {
+        margin-bottom: 4rem;
     }
 
-    .coming-soon-section h2 {
-        font-size: 1.75rem;
+    .quick-start-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .quick-start-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @@media (min-width: 1465px) and (max-width: 1800px) {
+        .quick-start-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .quick-start-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+
+    .quick-start-card h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #ffa500;
+    }
+
+    .middleware-section {
+        margin-bottom: 4rem;
+    }
+
+    .code-example {
+        margin: 2rem 0;
+    }
+
+    .code-example h3 {
+        font-size: 1.25rem;
         font-weight: 600;
         margin-bottom: 1rem;
         color: #fff;
     }
 
-    .coming-soon-section p {
-        line-height: 1.7;
-        margin-bottom: 1.5rem;
-        color: #ccc;
+    .middleware-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .middleware-features {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .middleware-features {
+            grid-template-columns: 1fr;
+        }
     }
 
-    .feature-preview {
+    .middleware-card {
         background: rgba(255, 255, 255, 0.02);
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 0.5rem;
-        padding: 2rem;
-        margin: 2rem 0;
-    }
-
-    .feature-preview h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #fff;
-    }
-
-    .feature-list {
-        list-style: none;
-        padding: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-    }
-
-    .feature-list li {
-        color: #ccc;
-        padding: 0.5rem 0;
-    }
-
-    .preview-code {
-        margin: 2rem 0;
-    }
-
-    .preview-code h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #fff;
-    }
-
-    .code-preview {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 0.5rem;
         padding: 1.5rem;
-        overflow-x: auto;
-        font-family: 'Consolas', 'Monaco', monospace;
+        transition: all 0.3s ease;
+    }
+
+    .middleware-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 165, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .middleware-card h4 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #fff;
+    }
+
+    .middleware-card p {
+        color: #999;
         font-size: 0.875rem;
         line-height: 1.5;
+    }
+
+    .features-section {
+        margin-bottom: 5rem;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .features-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    
+    @@media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .usage-section {
+        margin-bottom: 4rem;
+    }
+
+    .usage-examples {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .usage-examples {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .example h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #ffa500;
+    }
+
+    .blazor-section {
+        margin-bottom: 4rem;
+    }
+
+    .blazor-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .blazor-features {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 0.5rem;
+        color: #ccc;
+    }
+
+    .feature-icon {
+        color: #4ade80;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    .statistics-section {
+        margin-bottom: 4rem;
+    }
+
+    .patterns-section,
+    .testing-section,
+    .best-practices-section {
+        margin-bottom: 4rem;
+    }
+
+    .patterns-section h3,
+    .testing-section h3,
+    .best-practices-section h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 2rem 0 1rem;
+        color: #ffa500;
+    }
+
+    .practices-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    
+    @@media (max-width: 1464px) {
+        .practices-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .practice-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 0.75rem;
+        padding: 2rem;
+    }
+
+    .practice-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 165, 0, 0.3);
+    }
+
+    .practice-card h3 {
+        margin-top: 0;
+    }
+
+    .practice-card ul {
+        color: #ccc;
+        margin: 1rem 0 1.5rem;
+        padding-left: 1.5rem;
+    }
+
+    .practice-card li {
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .cta-section {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cta-section h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #fff;
+    }
+
+    .cta-section p {
+        font-size: 1.125rem;
+        color: #ccc;
+        margin-bottom: 2rem;
     }
 
     .cta-buttons {
         display: flex;
         gap: 1rem;
         justify-content: center;
-        margin-top: 2rem;
     }
 
-    .cta-button {
+    .primary-button,
+    .secondary-button {
+        padding: 0.875rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        padding: 0.75rem 2rem;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 0.5rem;
-        color: #fff;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.2s;
+        gap: 0.5rem;
     }
 
-    .cta-button:hover {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.1));
-        border-color: rgba(255, 255, 255, 0.3);
+    .primary-button {
+        background: linear-gradient(135deg, #ffa500 0%, #ff8c00 100%);
+        color: #000;
+        border: 1px solid transparent;
+    }
+
+    .primary-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255, 165, 0, 0.3);
+    }
+
+    .secondary-button {
+        background: transparent;
+        color: #ffa500;
+        border: 1px solid #ffa500;
+    }
+
+    .secondary-button:hover {
+        background: rgba(255, 165, 0, 0.1);
         transform: translateY(-2px);
     }
 
-    .cta-button.secondary {
-        background: transparent;
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .cta-button.secondary:hover {
-        background: rgba(255, 255, 255, 0.05);
-    }
-
-    .comment { color: #6A9955; }
-    .keyword { color: #569CD6; }
-    .type { color: #4EC9B0; }
-    .method { color: #DCDCAA; }
-
-    /* Responsive styles */
+    /* Responsive */
     @@media (max-width: 768px) {
-        .library-page {
-            padding: 0 0.75rem;
+        .library-hero {
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem;
         }
 
-        .coming-soon-hero {
-            padding: 2.5rem 1rem;
-            margin-bottom: 2rem;
+        .hero-icon {
+            font-size: 4rem;
+            margin-top: 2rem;
         }
 
-        .coming-soon-icon {
-            font-size: 3rem;
-        }
-
-        .coming-soon-title {
+        .hero-content h1 {
             font-size: 2rem;
         }
 
-        .coming-soon-subtitle {
+        .hero-description {
             font-size: 1rem;
         }
 
-        .coming-soon-badge-large {
-            font-size: 0.875rem;
-            padding: 0.4rem 1.5rem;
-        }
-
-        .coming-soon-section {
-            margin-bottom: 2rem;
-        }
-
-        .coming-soon-section h2 {
-            font-size: 1.5rem;
-        }
-
-        .feature-preview {
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-        }
-
-        .feature-preview h3 {
-            font-size: 1.125rem;
-        }
-
-        .feature-list {
+        .quick-start-grid,
+        .middleware-features,
+        .usage-examples,
+        .blazor-features {
             grid-template-columns: 1fr;
-            gap: 0.75rem;
-        }
-
-        .feature-list li {
-            font-size: 0.875rem;
-            padding: 0.4rem 0;
-        }
-
-        .preview-code h3 {
-            font-size: 1.125rem;
-        }
-
-        .code-preview {
-            padding: 1rem;
-            font-size: 0.75rem;
-            margin: 0 -0.75rem;
         }
 
         .cta-buttons {
             flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .cta-button {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.875rem;
         }
     }
 </style>
