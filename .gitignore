@@ -116,6 +116,3 @@ ServiceFabricBackup/
 .ntvs_analysis.dat
 node_modules/
 
-# Playground folder - for local testing and experiments
-.Playground/
-*.Playground/
