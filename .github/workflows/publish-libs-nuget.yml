@@ -5,17 +5,13 @@ on:
     branches:
       - master
       - main
-    paths:
-      - 'Libs/**'
-      - 'Directory.Build.props'
+
   workflow_dispatch:
     inputs:
       version_override:
         description: 'Version override (leave empty to use Directory.Build.props version)'
         required: false
         type: string
-
-
 
 jobs:
   build-and-publish:
@@ -72,34 +68,3 @@ jobs:
 
     - name: Push FluentSignals.SignalR to NuGet
       run: dotnet nuget push ./artifacts/FluentSignals.SignalR.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        tag_name: libs-v${{ steps.extract_version.outputs.VERSION }}
-        name: Libs Release v${{ steps.extract_version.outputs.VERSION }}
-        body: |
-          ## FluentSignals Libraries v${{ steps.extract_version.outputs.VERSION }}
-          
-          ### Packages Published:
-          - FluentSignals.Http
-          - FluentSignals.SignalBus
-          - FluentSignals.SignalR
-          
-          ### Installation:
-          ```bash
-          dotnet add package FluentSignals.Http --version ${{ steps.extract_version.outputs.VERSION }}
-          dotnet add package FluentSignals.SignalBus --version ${{ steps.extract_version.outputs.VERSION }}
-          dotnet add package FluentSignals.SignalR --version ${{ steps.extract_version.outputs.VERSION }}
-          ```
-          
-          See individual library READMEs for more details:
-          - [FluentSignals.Http](https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.Http)
-          - [FluentSignals.SignalBus](https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.SignalBus)
-          - [FluentSignals.SignalR](https://github.com/andres-m-rodriguez/FluentSignals/tree/main/Libs/FluentSignals.SignalR)
-        files: ./artifacts/*.nupkg
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

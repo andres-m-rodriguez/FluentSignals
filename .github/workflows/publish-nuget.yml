@@ -5,10 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'FluentSignals/**'
-      - 'FluentSignals.Blazor/**'
-      - 'Directory.Build.props'
-      - '!Libs/**'  # Exclude Libs to avoid conflict with publish-libs-nuget.yml
+
   workflow_dispatch:
     inputs:
       version_override:
