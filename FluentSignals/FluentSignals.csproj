@@ -4,13 +4,14 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>2.1.2</Version>
     
     <!-- NuGet Package Properties -->
     <PackageId>FluentSignals</PackageId>
     <Product>FluentSignals</Product>
     <Description>A powerful reactive state management library for .NET applications inspired by SolidJS signals. Provides fine-grained reactivity with automatic dependency tracking, HTTP resources, and typed API clients.</Description>
     <PackageTags>signals;reactive;state-management;solidjs;blazor;dotnet;http;api-client;typed-resources</PackageTags>
-    <PackageReleaseNotes>v1.1.3: Added TypedHttpResource for strongly-typed API clients, factory pattern with DI support, fluent request builders, and custom HTTP method support. See https://github.com/andres-m-rodriguez/FluentSignals/blob/main/CHANGELOG.md for details.</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.1.2: Added weak reference subscriptions to prevent memory leaks and conditional subscriptions for filtered notifications. Automatic cleanup of dead weak references on notify.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>

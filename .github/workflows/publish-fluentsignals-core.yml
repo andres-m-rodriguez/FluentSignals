@@ -45,7 +45,13 @@ jobs:
         if [ -n "${{ github.event.inputs.version_override }}" ]; then
           VERSION="${{ github.event.inputs.version_override }}"
         else
-          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          # Check if FluentSignals has its own version first
+          CORE_VERSION=$(grep '<Version>' FluentSignals/FluentSignals.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | head -n 1)
+          if [ -n "$CORE_VERSION" ]; then
+            VERSION="$CORE_VERSION"
+          else
+            VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          fi
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"

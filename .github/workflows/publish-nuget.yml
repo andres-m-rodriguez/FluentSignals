@@ -56,10 +56,19 @@ jobs:
           echo "SIGNALBUS_VERSION=$VERSION" >> $GITHUB_OUTPUT
         fi
         echo "SignalBus Version: $SIGNALBUS_VERSION"
+        
+        # Check if Core has its own version
+        CORE_VERSION=$(grep '<Version>' FluentSignals/FluentSignals.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | head -n 1)
+        if [ -n "$CORE_VERSION" ]; then
+          echo "CORE_VERSION=$CORE_VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "CORE_VERSION=$VERSION" >> $GITHUB_OUTPUT
+        fi
+        echo "Core Version: $CORE_VERSION"
 
     # Pack all packages
     - name: Pack FluentSignals
-      run: dotnet pack FluentSignals/FluentSignals.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
+      run: dotnet pack FluentSignals/FluentSignals.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.CORE_VERSION }} --output ./artifacts
 
     - name: Pack FluentSignals.Http
       run: dotnet pack Libs/FluentSignals.Http/FluentSignals.Http.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
@@ -75,7 +84,7 @@ jobs:
 
     # Push all packages to NuGet
     - name: Push FluentSignals to NuGet
-      run: dotnet nuget push ./artifacts/FluentSignals.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push ./artifacts/FluentSignals.${{ steps.extract_version.outputs.CORE_VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     - name: Push FluentSignals.Http to NuGet
       run: dotnet nuget push ./artifacts/FluentSignals.Http.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
