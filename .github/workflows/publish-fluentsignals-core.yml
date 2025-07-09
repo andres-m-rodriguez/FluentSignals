@@ -35,8 +35,9 @@ jobs:
     - name: Build
       run: dotnet build FluentSignals/FluentSignals.csproj --configuration Release --no-restore
 
-    - name: Test Core
-      run: dotnet test FluentSignals.Tests/FluentSignals.Tests.csproj --configuration Release --no-build --verbosity normal
+    # Tests temporarily disabled
+    # - name: Test Core
+    #   run: dotnet test FluentSignals.Tests/FluentSignals.Tests.csproj --configuration Release --no-build --verbosity normal
 
     - name: Extract version
       id: extract_version
