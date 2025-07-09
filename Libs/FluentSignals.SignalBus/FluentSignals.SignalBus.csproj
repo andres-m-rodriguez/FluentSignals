@@ -10,7 +10,7 @@
     <Product>FluentSignals.SignalBus</Product>
     <Description>Event bus and messaging patterns for FluentSignals including publish/subscribe, message queuing, and advanced patterns like batching and multi-tenancy.</Description>
     <PackageTags>fluentsignals;signalbus;eventbus;pubsub;messaging;cqrs</PackageTags>
-    <PackageReleaseNotes>Initial release of FluentSignals.SignalBus - Event bus functionality extracted from FluentSignals.Blazor.</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.2.0 - Added middleware pipeline support for message processing, statistics tracking, error handling improvements, and comprehensive async/sync handler support.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>

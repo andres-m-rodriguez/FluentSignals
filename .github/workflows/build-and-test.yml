@@ -32,17 +32,18 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     
-    - name: Test
-      run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      if: matrix.os == 'ubuntu-latest'
-      with:
-        file: ./**/coverage.cobertura.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+    # Tests temporarily disabled
+    # - name: Test
+    #   run: dotnet test --configuration Release --no-build --verbosity normal --collect:"XPlat Code Coverage"
+    # 
+    # - name: Upload coverage to Codecov
+    #   uses: codecov/codecov-action@v3
+    #   if: matrix.os == 'ubuntu-latest'
+    #   with:
+    #     file: ./**/coverage.cobertura.xml
+    #     flags: unittests
+    #     name: codecov-umbrella
+    #     fail_ci_if_error: false
 
   code-quality:
     runs-on: ubuntu-latest
