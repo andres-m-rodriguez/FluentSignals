@@ -55,29 +55,3 @@ jobs:
 
     - name: Push to NuGet
       run: dotnet nuget push ./artifacts/FluentSignals.Http.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: http/v${{ steps.extract_version.outputs.VERSION }}
-        name: FluentSignals.Http v${{ steps.extract_version.outputs.VERSION }}
-        body: |
-          ## FluentSignals.Http v${{ steps.extract_version.outputs.VERSION }}
-          
-          HTTP resource management for FluentSignals with middleware pipeline support.
-          
-          ### Installation:
-          ```bash
-          dotnet add package FluentSignals.Http --version ${{ steps.extract_version.outputs.VERSION }}
-          ```
-          
-          ### Dependencies:
-          - FluentSignals
-          
-          ### What's Changed
-          See [full changelog](https://github.com/andres-m-rodriguez/FluentSignals/commits/main/Libs/FluentSignals.Http)
-        files: ./artifacts/FluentSignals.Http.${{ steps.extract_version.outputs.VERSION }}.nupkg
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

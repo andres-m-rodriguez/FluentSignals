@@ -55,26 +55,3 @@ jobs:
 
     - name: Push to NuGet
       run: dotnet nuget push ./artifacts/FluentSignals.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: core/v${{ steps.extract_version.outputs.VERSION }}
-        name: FluentSignals Core v${{ steps.extract_version.outputs.VERSION }}
-        body: |
-          ## FluentSignals Core v${{ steps.extract_version.outputs.VERSION }}
-          
-          Core reactive state management library.
-          
-          ### Installation:
-          ```bash
-          dotnet add package FluentSignals --version ${{ steps.extract_version.outputs.VERSION }}
-          ```
-          
-          ### What's Changed
-          See [full changelog](https://github.com/andres-m-rodriguez/FluentSignals/commits/main/FluentSignals)
-        files: ./artifacts/FluentSignals.${{ steps.extract_version.outputs.VERSION }}.nupkg
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

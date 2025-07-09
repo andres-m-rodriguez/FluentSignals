@@ -51,29 +51,3 @@ jobs:
 
     - name: Push to NuGet
       run: dotnet nuget push ./artifacts/FluentSignals.SignalBus.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: signalbus/v${{ steps.extract_version.outputs.VERSION }}
-        name: FluentSignals.SignalBus v${{ steps.extract_version.outputs.VERSION }}
-        body: |
-          ## FluentSignals.SignalBus v${{ steps.extract_version.outputs.VERSION }}
-          
-          Publish-Subscribe messaging system built on FluentSignals for component communication.
-          
-          ### Installation:
-          ```bash
-          dotnet add package FluentSignals.SignalBus --version ${{ steps.extract_version.outputs.VERSION }}
-          ```
-          
-          ### Dependencies:
-          - FluentSignals
-          
-          ### What's Changed
-          See [full changelog](https://github.com/andres-m-rodriguez/FluentSignals/commits/main/Libs/FluentSignals.SignalBus)
-        files: ./artifacts/FluentSignals.SignalBus.${{ steps.extract_version.outputs.VERSION }}.nupkg
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
