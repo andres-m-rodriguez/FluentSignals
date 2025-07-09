@@ -47,6 +47,15 @@ jobs:
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
+        
+        # Check if SignalBus has its own version
+        SIGNALBUS_VERSION=$(grep '<Version>' Libs/FluentSignals.SignalBus/FluentSignals.SignalBus.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | head -n 1)
+        if [ -n "$SIGNALBUS_VERSION" ]; then
+          echo "SIGNALBUS_VERSION=$SIGNALBUS_VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "SIGNALBUS_VERSION=$VERSION" >> $GITHUB_OUTPUT
+        fi
+        echo "SignalBus Version: $SIGNALBUS_VERSION"
 
     # Pack all packages
     - name: Pack FluentSignals
@@ -56,7 +65,7 @@ jobs:
       run: dotnet pack Libs/FluentSignals.Http/FluentSignals.Http.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
 
     - name: Pack FluentSignals.SignalBus
-      run: dotnet pack Libs/FluentSignals.SignalBus/FluentSignals.SignalBus.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
+      run: dotnet pack Libs/FluentSignals.SignalBus/FluentSignals.SignalBus.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.SIGNALBUS_VERSION }} --output ./artifacts
 
     - name: Pack FluentSignals.SignalR
       run: dotnet pack Libs/FluentSignals.SignalR/FluentSignals.SignalR.csproj --configuration Release --no-build -p:PackageVersion=${{ steps.extract_version.outputs.VERSION }} --output ./artifacts
@@ -72,7 +81,7 @@ jobs:
       run: dotnet nuget push ./artifacts/FluentSignals.Http.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     - name: Push FluentSignals.SignalBus to NuGet
-      run: dotnet nuget push ./artifacts/FluentSignals.SignalBus.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      run: dotnet nuget push ./artifacts/FluentSignals.SignalBus.${{ steps.extract_version.outputs.SIGNALBUS_VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     - name: Push FluentSignals.SignalR to NuGet
       run: dotnet nuget push ./artifacts/FluentSignals.SignalR.${{ steps.extract_version.outputs.VERSION }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

@@ -41,7 +41,13 @@ jobs:
         if [ -n "${{ github.event.inputs.version_override }}" ]; then
           VERSION="${{ github.event.inputs.version_override }}"
         else
-          VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          # Check if SignalBus has its own version first
+          SIGNALBUS_VERSION=$(grep '<Version>' Libs/FluentSignals.SignalBus/FluentSignals.SignalBus.csproj | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/' | head -n 1)
+          if [ -n "$SIGNALBUS_VERSION" ]; then
+            VERSION="$SIGNALBUS_VERSION"
+          else
+            VERSION=$(grep '<Version>' Directory.Build.props | sed 's/.*<Version>\(.*\)<\/Version>.*/\1/')
+          fi
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
