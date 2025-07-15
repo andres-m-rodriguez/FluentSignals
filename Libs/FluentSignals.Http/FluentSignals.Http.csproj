@@ -10,7 +10,7 @@
     <Product>FluentSignals.Http</Product>
     <Description>HTTP client extensions for FluentSignals including reactive HTTP resources, typed API clients, interceptors, caching, and advanced features for building robust HTTP integrations.</Description>
     <PackageTags>fluentsignals;http;api-client;typed-resources;interceptors;caching;reactive</PackageTags>
-    <PackageReleaseNotes>v2.1.0 - Added dynamic request building with signal subscriptions. HttpResource can now subscribe to signals and automatically reload data when signals change.</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.1.2 - Fixed missing ISignal&lt;T&gt; interface implementations in HttpResource class. Added Subscribe overloads for Action&lt;T&gt; and Value property.</PackageReleaseNotes>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>

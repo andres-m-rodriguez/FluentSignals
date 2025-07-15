@@ -2,12 +2,13 @@
 
 A powerful reactive state management library for .NET applications inspired by SolidJS signals. FluentSignals provides fine-grained reactivity with automatic dependency tracking, making it perfect for building responsive applications with minimal boilerplate.
 
-## 📦 Latest Version: 1.1.2
+## 📦 Latest Version: 2.1.2
 
-### What's New in 1.1.2
-- **Custom JSON Serialization**: Configure JsonSerializerOptions for HttpResource
-- **Bug Fix**: Resolved duplicate handler calls for typed HTTP status handlers
-- **Enhanced Documentation**: Added comprehensive guides for JSON deserialization
+### What's New in 2.1.2
+- **Weak Reference Subscriptions**: New `SubscribeWeak()` method prevents memory leaks by using weak references
+- **Conditional Subscriptions**: Filter notifications with `Subscribe(action, condition)` - only invoke when condition is met
+- **Automatic Cleanup**: Dead weak references are automatically removed during signal notifications
+- **Enhanced Memory Management**: Better support for long-running applications and UI scenarios
 
 See the [full changelog](https://github.com/andres-m-rodriguez/FluentSignals/blob/main/CHANGELOG.md) for version history.
 
@@ -44,6 +45,47 @@ count.Subscribe(value => Console.WriteLine($"Count is now: {value}"));
 // Update the signal
 count.Value = 1; // Output: Count is now: 1
 count.Value = 2; // Output: Count is now: 2
+```
+
+### Weak Reference Subscriptions (New in 2.1.2)
+
+Prevent memory leaks in long-running applications:
+
+```csharp
+// Weak reference subscription - automatically cleaned up when handler is garbage collected
+var subscription = count.SubscribeWeak(value => Console.WriteLine($"Count: {value}"));
+
+// For typed signals
+var typedSignal = new Signal<User>(new User());
+typedSignal.SubscribeWeak(user => UpdateUI(user));
+
+// No need to manually unsubscribe - weak references are automatically cleaned up
+```
+
+### Conditional Subscriptions (New in 2.1.2)
+
+Only receive notifications when specific conditions are met:
+
+```csharp
+// Only notify when count is even
+count.Subscribe(
+    value => Console.WriteLine($"Even count: {value}"),
+    () => count.Value % 2 == 0
+);
+
+// For typed signals with value-based conditions
+var temperature = new Signal<double>(20.0);
+temperature.Subscribe(
+    temp => Console.WriteLine($"High temperature warning: {temp}°C"),
+    temp => temp > 30.0
+);
+
+// Complex conditions
+var user = new Signal<User>(new User { Role = "Guest" });
+user.Subscribe(
+    u => Console.WriteLine($"Admin user changed: {u.Name}"),
+    u => u.Role == "Admin" && u.IsActive
+);
 ```
 
 ### Computed Signals
@@ -468,6 +510,64 @@ var slowRequest = new MockHttpResourceRequest<User>(
 ```
 
 ## Advanced Features
+
+### Memory Management Best Practices (New in 2.1.2)
+
+#### When to Use Weak References
+
+```csharp
+// ✅ Good: UI components that may be destroyed
+public class TemporaryView
+{
+    private readonly Signal<string> _globalStatus;
+    
+    public TemporaryView(Signal<string> globalStatus)
+    {
+        _globalStatus = globalStatus;
+        // Use weak reference to avoid keeping this view alive
+        _globalStatus.SubscribeWeak(status => UpdateDisplay(status));
+    }
+}
+
+// ✅ Good: Event handlers in collectible objects
+public class DataProcessor
+{
+    public void AttachToSignal(Signal<Data> dataSignal)
+    {
+        // Weak reference prevents memory leak if processor is disposed
+        dataSignal.SubscribeWeak(data => ProcessData(data));
+    }
+}
+
+// ❌ Bad: Don't use weak references for critical handlers
+public class CriticalService
+{
+    public void Initialize(Signal<Alert> alertSignal)
+    {
+        // Regular subscription ensures handler stays alive
+        alertSignal.Subscribe(alert => HandleCriticalAlert(alert));
+    }
+}
+```
+
+#### Combining Weak References and Conditions
+
+```csharp
+// Advanced: Conditional weak subscription
+public class Dashboard
+{
+    private bool _isVisible = true;
+    
+    public void AttachToMetrics(Signal<Metrics> metricsSignal)
+    {
+        // Only update when dashboard is visible AND use weak reference
+        metricsSignal.Subscribe(
+            metrics => UpdateCharts(metrics),
+            metrics => _isVisible && metrics.HasData
+        );
+    }
+}
+```
 
 ### Signal Bus (Pub/Sub)
 

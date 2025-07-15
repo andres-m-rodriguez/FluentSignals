@@ -27,6 +27,12 @@ public class HttpResource<T>(
     public ISignal<bool> IsDataAvaible { get; } = new TypedSignal<bool>(false);
     public List<ISignalSubscriptionContract> Subscribers { get; } = [];
 
+    public T Value 
+    { 
+        get => SignalValue.Value; 
+        set => SignalValue.Value = value; 
+    }
+
     public HttpResource<T> Use(Func<HttpResourceHandler, HttpResourceHandler> middleware)
     {
         _middleware.Enqueue(middleware);
@@ -89,12 +95,38 @@ public class HttpResource<T>(
 
     public void Notify()
     {
+        // Clean up dead weak references first
+        var deadSubscribers = Subscribers
+            .OfType<WeakSignalSubscription>()
+            .Where(w => !w.IsAlive)
+            .Cast<ISignalSubscriptionContract>()
+            .ToList();
+            
+        foreach (var dead in deadSubscribers)
+        {
+            Subscribers.Remove(dead);
+        }
+        
         // Create a copy to avoid concurrent modification exceptions
-        var subscribersCopy = Subscribers.OfType<SignalSubscription>().ToList();
-
+        var subscribersCopy = Subscribers.ToList();
+        
         foreach (var sub in subscribersCopy)
         {
-            sub.Action?.Invoke();
+            switch (sub)
+            {
+                case ConditionalSignalSubscription conditional:
+                    if (conditional.Condition?.Invoke() == true)
+                    {
+                        conditional.Action?.Invoke();
+                    }
+                    break;
+                case WeakSignalSubscription weak:
+                    weak.Invoke();
+                    break;
+                case SignalSubscription regular:
+                    regular.Action?.Invoke();
+                    break;
+            }
         }
     }
 
@@ -117,6 +149,44 @@ public class HttpResource<T>(
     {
         var subscription = new SignalSubscription(Guid.NewGuid(), action);
         Subscribers.Add(subscription);
+        return subscription;
+    }
+    
+    public ISignalSubscriptionContract Subscribe(Action action, Func<bool> condition)
+    {
+        var subscription = new ConditionalSignalSubscription(Guid.NewGuid(), action, condition);
+        Subscribers.Add(subscription);
+        return subscription;
+    }
+    
+    public ISignalSubscriptionContract SubscribeWeak(Action action)
+    {
+        var subscription = new WeakSignalSubscription(Guid.NewGuid(), action);
+        Subscribers.Add(subscription);
+        return subscription;
+    }
+
+    public ISignalSubscriptionContract Subscribe(Action<T> action)
+    {
+        var subscription = new TypedSignalSubscription<T>(Guid.NewGuid(), action);
+        Subscribers.Add(subscription);
+        SignalValue.Subscribe(action);
+        return subscription;
+    }
+
+    public ISignalSubscriptionContract Subscribe(Action<T> action, Func<T, bool> condition)
+    {
+        var subscription = new ConditionalTypedSignalSubscription<T>(Guid.NewGuid(), action, condition);
+        Subscribers.Add(subscription);
+        SignalValue.Subscribe(action, condition);
+        return subscription;
+    }
+
+    public ISignalSubscriptionContract SubscribeWeak(Action<T> action)
+    {
+        var subscription = new WeakTypedSignalSubscription<T>(Guid.NewGuid(), action);
+        Subscribers.Add(subscription);
+        SignalValue.SubscribeWeak(action);
         return subscription;
     }
 

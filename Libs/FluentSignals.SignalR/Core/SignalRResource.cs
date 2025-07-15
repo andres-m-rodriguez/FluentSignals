@@ -254,6 +254,20 @@ public class SignalRResource<T> : IAsyncSignal<T>, IAsyncDisposable
         Subscribers.Add(subscription);
         return subscription;
     }
+    
+    public ISignalSubscriptionContract Subscribe(Action action, Func<bool> condition)
+    {
+        var subscription = new ConditionalSignalSubscription(Guid.NewGuid(), action, condition);
+        Subscribers.Add(subscription);
+        return subscription;
+    }
+    
+    public ISignalSubscriptionContract SubscribeWeak(Action action)
+    {
+        var subscription = new WeakSignalSubscription(Guid.NewGuid(), action);
+        Subscribers.Add(subscription);
+        return subscription;
+    }
 
     public void Unsubscribe(Guid subscriptionId)
     {
@@ -266,10 +280,38 @@ public class SignalRResource<T> : IAsyncSignal<T>, IAsyncDisposable
 
     public void Notify()
     {
-        var subscribersCopy = Subscribers.OfType<SignalSubscription>().ToList();
+        // Clean up dead weak references first
+        var deadSubscribers = Subscribers
+            .OfType<WeakSignalSubscription>()
+            .Where(w => !w.IsAlive)
+            .Cast<ISignalSubscriptionContract>()
+            .ToList();
+            
+        foreach (var dead in deadSubscribers)
+        {
+            Subscribers.Remove(dead);
+        }
+        
+        // Create a copy to avoid concurrent modification exceptions
+        var subscribersCopy = Subscribers.ToList();
+        
         foreach (var sub in subscribersCopy)
         {
-            sub.Action?.Invoke();
+            switch (sub)
+            {
+                case ConditionalSignalSubscription conditional:
+                    if (conditional.Condition?.Invoke() == true)
+                    {
+                        conditional.Action?.Invoke();
+                    }
+                    break;
+                case WeakSignalSubscription weak:
+                    weak.Invoke();
+                    break;
+                case SignalSubscription regular:
+                    regular.Action?.Invoke();
+                    break;
+            }
         }
     }
 

@@ -10,7 +10,7 @@
     <Product>FluentSignals.Blazor</Product>
     <Description>Blazor integration for FluentSignals - A reactive state management library. Includes SignalBus for component communication, HTTP resource components, typed resource factories, and Blazor-specific helpers.</Description>
     <PackageTags>signals;reactive;state-management;blazor;signalbus;pubsub;dotnet;http-resources;typed-factory</PackageTags>
-    <PackageReleaseNotes>v2.1.1: Added SuccessWithResource render fragment to access both value and HttpResource. Added EmptyWhen parameter for custom empty state conditions.</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.1.2: Updated to use FluentSignals.Http 2.1.2 with fixed ISignal&lt;T&gt; interface implementations. Ensures compatibility with the corrected HttpResource class.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
