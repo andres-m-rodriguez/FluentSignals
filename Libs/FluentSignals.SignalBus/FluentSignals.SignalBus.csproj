@@ -4,14 +4,13 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2.1.2</Version>
     
     <!-- NuGet Package Properties -->
     <PackageId>FluentSignals.SignalBus</PackageId>
     <Product>FluentSignals.SignalBus</Product>
     <Description>Event bus and messaging patterns for FluentSignals including publish/subscribe, message queuing, and advanced patterns like batching and multi-tenancy.</Description>
     <PackageTags>fluentsignals;signalbus;eventbus;pubsub;messaging;cqrs</PackageTags>
-    <PackageReleaseNotes>v2.1.2 - Added middleware pipeline support for message processing, statistics tracking, error handling improvements, and comprehensive async/sync handler support.</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.1.3: Version bump to align with core library updates. Maintains middleware pipeline support, statistics tracking, and comprehensive handler support.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>

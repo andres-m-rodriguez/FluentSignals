@@ -10,7 +10,7 @@
     <Product>FluentSignals.SignalR</Product>
     <Description>SignalR integration for FluentSignals providing real-time reactive resources with automatic reconnection and state management.</Description>
     <PackageTags>fluentsignals;signalr;real-time;reactive;websocket</PackageTags>
-    <PackageReleaseNotes>Initial release of FluentSignals.SignalR - SignalR integration extracted from FluentSignals core library.</PackageReleaseNotes>
+    <PackageReleaseNotes>v2.1.3: Version bump to align with core library updates. Maintains all SignalR integration features with automatic reconnection and state management.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageIcon>icon.png</PackageIcon>
