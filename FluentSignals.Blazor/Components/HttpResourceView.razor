@@ -91,6 +91,10 @@
     private readonly List<ISignalSubscriptionContract> _subscriptions = new();
     private HttpResourceFactory? _factory;
     private bool _isInitialized;
+    private string? _previousUrl;
+    private Func<HttpRequestMessage>? _previousRequestBuilder;
+    private Func<HttpRequestMessage>? _previousDynamicRequestBuilder;
+    private ISignal[]? _previousSignals;
 
     [Parameter]
     public string? Url { get; set; }
@@ -160,17 +164,31 @@
     {
         if (_isInitialized)
         {
-            // Re-initialize if key parameters changed
+            // Check if key parameters actually changed
             var needsReInit = false;
             
-            if (_resource != null)
+            // Check URL change
+            if (_previousUrl != Url)
             {
-                // Check if we need to reinitialize based on parameter changes
-                if (RequestBuilder != null || DynamicRequestBuilder != null || 
-                    (SubscribeToSignals != null && SubscribeToSignals.Length > 0))
-                {
-                    needsReInit = true;
-                }
+                needsReInit = true;
+            }
+            
+            // Check RequestBuilder change
+            if (!ReferenceEquals(_previousRequestBuilder, RequestBuilder))
+            {
+                needsReInit = true;
+            }
+            
+            // Check DynamicRequestBuilder change
+            if (!ReferenceEquals(_previousDynamicRequestBuilder, DynamicRequestBuilder))
+            {
+                needsReInit = true;
+            }
+            
+            // Check SubscribeToSignals change
+            if (!SignalArraysEqual(_previousSignals, SubscribeToSignals))
+            {
+                needsReInit = true;
             }
 
             if (needsReInit)
@@ -182,6 +200,20 @@
                 }
             }
         }
+    }
+    
+    private bool SignalArraysEqual(ISignal[]? array1, ISignal[]? array2)
+    {
+        if (array1 == null && array2 == null) return true;
+        if (array1 == null || array2 == null) return false;
+        if (array1.Length != array2.Length) return false;
+        
+        for (int i = 0; i < array1.Length; i++)
+        {
+            if (!ReferenceEquals(array1[i], array2[i])) return false;
+        }
+        
+        return true;
     }
 
     private async Task InitializeResourceAsync()
@@ -263,6 +295,12 @@
             // Notify resource created
             await OnResourceCreated.InvokeAsync(_resource);
         }
+
+        // Store current parameter values to detect future changes
+        _previousUrl = Url;
+        _previousRequestBuilder = RequestBuilder;
+        _previousDynamicRequestBuilder = DynamicRequestBuilder;
+        _previousSignals = SubscribeToSignals;
 
         _isInitialized = true;
     }
