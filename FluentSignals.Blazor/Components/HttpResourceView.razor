@@ -95,6 +95,7 @@
     private Func<HttpRequestMessage>? _previousRequestBuilder;
     private Func<HttpRequestMessage>? _previousDynamicRequestBuilder;
     private ISignal[]? _previousSignals;
+    private HttpResource<T>? _previousResource;
 
     [Parameter]
     public string? Url { get; set; }
@@ -107,6 +108,9 @@
 
     [Parameter]
     public HttpClient? HttpClient { get; set; }
+
+    [Parameter]
+    public HttpResource<T>? Resource { get; set; }
 
     [Parameter]
     public bool LoadOnInit { get; set; } = true;
@@ -154,7 +158,7 @@
     {
         await InitializeResourceAsync();
         
-        if (LoadOnInit && _resource != null)
+        if (LoadOnInit && _resource != null && Resource == null)
         {
             await _resource.LoadData();
         }
@@ -166,6 +170,12 @@
         {
             // Check if key parameters actually changed
             var needsReInit = false;
+            
+            // Check Resource change
+            if (!ReferenceEquals(_previousResource, Resource))
+            {
+                needsReInit = true;
+            }
             
             // Check URL change
             if (_previousUrl != Url)
@@ -221,44 +231,52 @@
         // Clean up existing resource
         DisposeResource();
 
-        // Get factory
-        _factory = ResourceFactory ?? ServiceProvider.GetService<HttpResourceFactory>();
-        if (_factory == null)
+        // Check if Resource is provided externally
+        if (Resource != null)
         {
-            throw new InvalidOperationException("HttpResourceFactory not found. Please provide ResourceFactory parameter or register HttpResourceFactory in DI.");
-        }
-
-        // Create resource based on parameters
-        if (DynamicRequestBuilder != null && SubscribeToSignals != null && SubscribeToSignals.Length > 0)
-        {
-            // Use dynamic request builder with signal subscriptions
-            _resource = _factory.CreateWithDynamicRequest<T>(DynamicRequestBuilder, SubscribeToSignals);
-        }
-        else if (RequestBuilder != null)
-        {
-            // Use provided request builder
-            _resource = _factory.Create<T>(RequestBuilder);
-            
-            // Subscribe to signals if provided
-            if (SubscribeToSignals != null && SubscribeToSignals.Length > 0)
-            {
-                _resource.SubscribeTo(SubscribeToSignals);
-            }
-        }
-        else if (!string.IsNullOrEmpty(Url))
-        {
-            // Use URL
-            _resource = _factory.Create<T>(Url);
-            
-            // Subscribe to signals if provided
-            if (SubscribeToSignals != null && SubscribeToSignals.Length > 0)
-            {
-                _resource.SubscribeTo(SubscribeToSignals);
-            }
+            _resource = Resource;
         }
         else
         {
-            throw new InvalidOperationException("Either Url, RequestBuilder, or DynamicRequestBuilder must be provided.");
+            // Get factory
+            _factory = ResourceFactory ?? ServiceProvider.GetService<HttpResourceFactory>();
+            if (_factory == null)
+            {
+                throw new InvalidOperationException("HttpResourceFactory not found. Please provide ResourceFactory parameter or register HttpResourceFactory in DI.");
+            }
+
+            // Create resource based on parameters
+            if (DynamicRequestBuilder != null && SubscribeToSignals != null && SubscribeToSignals.Length > 0)
+            {
+                // Use dynamic request builder with signal subscriptions
+                _resource = _factory.CreateWithDynamicRequest<T>(DynamicRequestBuilder, SubscribeToSignals);
+            }
+            else if (RequestBuilder != null)
+            {
+                // Use provided request builder
+                _resource = _factory.Create<T>(RequestBuilder);
+                
+                // Subscribe to signals if provided
+                if (SubscribeToSignals != null && SubscribeToSignals.Length > 0)
+                {
+                    _resource.SubscribeTo(SubscribeToSignals);
+                }
+            }
+            else if (!string.IsNullOrEmpty(Url))
+            {
+                // Use URL
+                _resource = _factory.Create<T>(Url);
+                
+                // Subscribe to signals if provided
+                if (SubscribeToSignals != null && SubscribeToSignals.Length > 0)
+                {
+                    _resource.SubscribeTo(SubscribeToSignals);
+                }
+            }
+            else
+            {
+                throw new InvalidOperationException("Either Resource, Url, RequestBuilder, or DynamicRequestBuilder must be provided.");
+            }
         }
 
         // Subscribe to state changes
@@ -292,8 +310,11 @@
                 InvokeAsync(StateHasChanged);
             }));
 
-            // Notify resource created
-            await OnResourceCreated.InvokeAsync(_resource);
+            // Notify resource created only if we created it internally
+            if (Resource is null)
+            {
+                await OnResourceCreated.InvokeAsync(_resource);
+            }
         }
 
         // Store current parameter values to detect future changes
@@ -301,6 +322,7 @@
         _previousRequestBuilder = RequestBuilder;
         _previousDynamicRequestBuilder = DynamicRequestBuilder;
         _previousSignals = SubscribeToSignals;
+        _previousResource = Resource;
 
         _isInitialized = true;
     }
@@ -323,7 +345,11 @@
         }
         _subscriptions.Clear();
 
-        _resource?.Dispose();
+        // Only dispose the resource if we created it internally
+        if (_resource != null && Resource == null)
+        {
+            _resource.Dispose();
+        }
         _resource = null;
     }
 
