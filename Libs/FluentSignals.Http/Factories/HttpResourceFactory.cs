@@ -32,6 +32,12 @@ public class HttpResourceFactory(IServiceProvider service, IOptions<HttpResource
         );
     }
 
+    public HttpResource<HttpResponseMessage> Create(Func<HttpRequestMessage> requestBuilder)
+    {
+        var client = ResolveHttpClient();
+        return new HttpResource<HttpResponseMessage>(client, requestBuilder, service);
+    }
+
     public HttpResource<T> Create<T>(Func<HttpRequestMessage> requestBuilder)
     {
         var client = ResolveHttpClient();

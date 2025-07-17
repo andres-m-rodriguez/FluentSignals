@@ -57,13 +57,22 @@ public class HttpResource<T>(
             var handler = BuildPipeline();
             var response = await handler(request, cancellationToken);
 
-            var parsed = await response.Content.ReadFromJsonAsync<T>(
-                cancellationToken: cancellationToken
-            );
-            if (parsed is null)
-                throw new InvalidOperationException("The response was null.");
+            // Special handling for HttpResponseMessage type
+            if (typeof(T) == typeof(HttpResponseMessage))
+            {
+                SignalValue.Value = (T)(object)response;
+            }
+            else
+            {
+                var parsed = await response.Content.ReadFromJsonAsync<T>(
+                    cancellationToken: cancellationToken
+                );
+                if (parsed is null)
+                    throw new InvalidOperationException("The response was null.");
 
-            SignalValue.Value = parsed;
+                SignalValue.Value = parsed;
+            }
+            
             IsDataAvaible.Value = true;
             Notify();
         }
